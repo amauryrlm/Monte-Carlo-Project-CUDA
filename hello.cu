@@ -77,7 +77,7 @@ int main(void) {
 
     std::vector<int> N {1, 10, 25, 50, 100, 1000};
 
-    printf("n_steps\tavg\tstd\t\tvar\n");
+    printf("n_steps\tavg\tstd\tvar\n");
     for (auto n : N) {
         fn(n);
     }
