@@ -10,4 +10,4 @@ set(INC ${CMAKE_SOURCE_DIR}/inc)
 
 include_directories(${INC})
 
-add_executable(hello hello.cu)
+add_executable(main hello.cu)
