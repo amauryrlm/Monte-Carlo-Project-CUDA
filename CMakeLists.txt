@@ -11,3 +11,4 @@ set(INC ${CMAKE_SOURCE_DIR}/inc)
 include_directories(${INC})
 
 add_executable(main hello.cu)
+add_executable(csv traj_to_csv.cpp)
