@@ -19,6 +19,9 @@
 #define DEFAULT_INITIAL_SPOT_PRICE 100
 #define DEFAULT_END_TIME 1.0
 
+namespace monte_carlo {
+
+
 /// @brief Simulate $S_{t + \\delta t}$
 /// @tparam Float Either double or float. Allows us to compare the speed of 64 and 32-bit arithmetic
 /// @param current_spot_price
@@ -108,9 +111,13 @@ inline auto compute_n_trajectory_endpoints (
     Float r = DEFAULT_RISK_FREE_RATE
 ) -> std::vector<Float> {
 
+    // std::cout << "Computing trajectories with " << n_steps << " steps\n";
+
     auto fn = [&] () {
         return compute_trajectory_endpoint(x0, n_steps, T, v, r);
     };
 
     return replicate<Float>(fn, n_trajectories);
 }
+
+}; // namespace monte_carlo
