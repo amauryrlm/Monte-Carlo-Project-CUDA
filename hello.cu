@@ -1,4 +1,6 @@
 #include <iostream>
+// include cuda 
+#include <cuda_runtime.h>
 __global__ void myKernel(void) {
 }
 int main(void) {
