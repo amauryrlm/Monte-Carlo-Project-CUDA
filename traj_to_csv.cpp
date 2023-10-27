@@ -1,11 +1,25 @@
 #include <iostream>
 #include <fstream>
-#include <format>
+// #include <format>
 #include <string>
+#include <cstdarg>
 
 #include "monte_carlo.hpp"
 
 using namespace monte_carlo;
+
+// Create a string from a printf formatted string
+std::string stringf(const char * format...) {
+    char buffer [1000];
+
+    va_list args;
+    va_start(args, format);
+
+    std::ofstream myfile;
+    int n = std::sprintf(buffer, format, args);
+    std::string s {buffer};
+    return s;
+}
 
 
 int main(int argc, char* argv[]) {
@@ -20,14 +34,17 @@ int main(int argc, char* argv[]) {
 
     std::vector<int> N {1, 2, 3, 5, 10, 25, 50, 100, 1000};
 
-    std::cout << std::format("Spawning {} trajectories with the following lengths:\n", n_traj);
+    std::cout << "Spawning " << n_traj << "trajectories with the following lengths:\n";
     print_vector(N);
 
     for (int n_steps : N) {
 
+        char buffer[100];
 
         std::ofstream myfile;
-        myfile.open(std::format("out_{:04}.csv", n_steps));
+        int n = std::sprintf(buffer, "out_%04d.csv", n_steps);
+        std::string s {buffer};
+        myfile.open(s);
 
         // Simulate n_trajectories of length n_steps
         auto trajectories = replicate<std::vector<double>>(
@@ -39,9 +56,9 @@ int main(int argc, char* argv[]) {
         myfile << "t,";
 
         for (int i = 0; i < trajectories.size() - 1; i++) {
-            myfile << std::format("traj_{},", i);
+            myfile << stringf("traj_%d", i);
         }
-        myfile << std::format("traj_{}\n", trajectories.size() - 1);
+        myfile << stringf("traj_%d\n", trajectories.size() - 1);
 
         // Populate the csv with the trajectory values
         for (int i = 0; i < n_steps + 1; i++) {
