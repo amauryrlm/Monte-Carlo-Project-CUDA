@@ -1,4 +1,10 @@
-# Google Colab
+# Application of Monte Carlo to Financial Models
+
+![t](./imgs/all_the_trajectories.png)
+
+
+
+## Google Colab
 
 We can clone and build this project using Google Colab.
 
