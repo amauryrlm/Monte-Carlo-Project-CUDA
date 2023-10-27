@@ -55,10 +55,12 @@ int main(int argc, char* argv[]) {
         // Create the header
         myfile << "t,";
 
+        // std::cout << "traj_"
+
         for (int i = 0; i < trajectories.size() - 1; i++) {
-            myfile << stringf("traj_%d", i);
+            myfile << "traj_" << i << ",";
         }
-        myfile << stringf("traj_%d\n", trajectories.size() - 1);
+        myfile << "traj_" << trajectories.size() - 1 << "\n";
 
         // Populate the csv with the trajectory values
         for (int i = 0; i < n_steps + 1; i++) {
