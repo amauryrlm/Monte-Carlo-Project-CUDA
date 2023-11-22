@@ -6,9 +6,12 @@
 #include "trajectories.hpp"
 #include "common.hpp"
 #include "Xoshiro.hpp"
+#include  "pricinghost.hpp"
+#include <random>
 
 
-using namespace monte_carlo;
+
+using namespace std;
 
 // template<class Sumarize>
 
@@ -16,34 +19,37 @@ __global__ void myKernel(void) {
 }
 int main(void) {
 
-	myKernel <<<1, 1>>>();
-    // Try and get a trajectory
-    // auto traj = simulate_trajectory(x0, n);
-    // std::cout << "Simulated a trajectory!\n";
-    // float endpoint = compute_trajectory_endpoint(x0, n);
+// declare variables and constants
+    const size_t N_PATHS = 100000;
+    const size_t N_STEPS = 365;
+    const size_t N_NORMALS = N_PATHS*N_STEPS;
+    const float T = 1.0f;
+    const float K = 100.0f;
+    const float B = 95.0f;
+    const float S0 = 100.0f;
+    const float sigma = 0.2f;
+    const float mu = 0.1f;
+    const float r = 0.05f;
+    float dt = float(T)/float(N_STEPS);
+    float sqrdt = sqrt(dt);
 
-    int n_traj = 1000;
-    // std::cout << "Printing a single trajectory!\n";
-    // print_vector(traj);
+    vector<float> s(N_PATHS);
 
-    auto fn = [&] (int n) {
+    float step = 1.0 / N_STEPS;
+    float G = 0.0;
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0.0, 1.0);
 
-        float x0 = 100.0;
 
-        auto traj_endpoints = compute_n_trajectory_endpoints(x0, n_traj, n);
-        printf("%d\t%.2f\t%.2f\t%.2f\n", n, mean(traj_endpoints), std::sqrt(var(traj_endpoints)), var(traj_endpoints));
 
-    };
 
-    std::vector<int> N {1, 10, 25, 50, 100, 1000};
-
-    printf("n_steps\tavg\tstd\tvar\n");
-    printf("------------------------------\n");
-    for (auto n : N) {
-        fn(n);
+    for(int i=0; i<N_PATHS;i++){
+        float St = S0;
+        for(int j=1; j<N_STEPS; j++){
+            G = distribution(generator);
+            St = St * exp((r - (sigma**2)/2)*step + sigma * sqrt(step) * G);
+        }
     }
-
-    print_vector(simulate_trajectory(100.0, 1));
 
 	return 0;
 }
