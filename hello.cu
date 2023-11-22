@@ -40,7 +40,7 @@ int main(void) {
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 1.0);
 
-
+    cout << "step : " << step;
 
 
     for(int i=0; i<N_PATHS;i++){
