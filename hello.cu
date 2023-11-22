@@ -35,8 +35,8 @@ int main(void) {
 
     vector<float> s(N_PATHS);
 
-    float step = 1.0 / N_STEPS;
-    float G = 0.0;
+    float step = 1.0f / N_STEPS;
+    float G = 0.0f;
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 1.0);
 
@@ -49,7 +49,7 @@ int main(void) {
         float St = S0;
         for(int j=1; j<N_STEPS; j++){
             G = distribution(generator);
-            St *= exp((r - (sigma**2)/2)*step + sigma * sqrt(step) * G);
+            St *= exp((r - (sigma^2)/2)*step + sigma * sqrt(step) * G);
         }
     }
 
