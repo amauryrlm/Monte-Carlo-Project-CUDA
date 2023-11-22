@@ -47,7 +47,7 @@ int main(void) {
         float St = S0;
         for(int j=1; j<N_STEPS; j++){
             G = distribution(generator);
-            St *= exp((r - (sigma**2)/2)*step + sigma * sqrt(step) * G);
+            // St *= exp((r - (sigma**2)/2)*step + sigma * sqrt(step) * G);
         }
     }
 
