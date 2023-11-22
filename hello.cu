@@ -41,6 +41,8 @@ int main(void) {
     std::normal_distribution<double> distribution(0.0, 1.0);
 
     cout << "step : " << step;
+    G = distribution(generator);
+    cout << "G : " << G;
 
 
     for(int i=0; i<N_PATHS;i++){
