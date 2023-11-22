@@ -20,8 +20,8 @@ __global__ void myKernel(void) {
 int main(void) {
 
 // declare variables and constants
-    const size_t N_PATHS = 100000;
-    const size_t N_STEPS = 365;
+    const size_t N_PATHS = 5;
+    const size_t N_STEPS = 1;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -40,7 +40,7 @@ int main(void) {
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 1.0);
 
-    cout << "step : " << step;
+    cout << "step : " << step << endl;
     G = distribution(generator);
     cout << "G : " << G;
 
@@ -49,6 +49,7 @@ int main(void) {
         float St = S0;
         for(int j=1; j<N_STEPS; j++){
             G = distribution(generator);
+            cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
         }
     }
