@@ -48,7 +48,7 @@ inline T BlackScholesHost(
 
 )
 {
-    T d1 = (std::ln(s / K) + (r + (v * v) / 2) * t) / (v * std::sqrt(t));
+    T d1 = (log(s / K) + (r + (v * v) / 2) * t) / (v * std::sqrt(t));
     T d2 = d1 - v * std::sqrt(t);
     T Nd1 = CDN(d1);
     T Nd2 = CDN(d2);
