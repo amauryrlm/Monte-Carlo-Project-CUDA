@@ -42,15 +42,16 @@ int main(void) {
 
     cout << "step : " << step << endl;
     G = distribution(generator);
-    cout << "G : " << G;
+    // cout << "G : " << G;
 
 
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
-        for(int j=1; j<N_STEPS; j++){
+        for(int j=0; j<N_STEPS; j++){
             G = distribution(generator);
             cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
+            cout << "St : " << St << endl;
         }
     }
 
