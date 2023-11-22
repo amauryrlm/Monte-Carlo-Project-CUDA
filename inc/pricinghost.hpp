@@ -57,8 +57,8 @@ inline T BlackScholesHost(
 }
 
 // template <typename T>
-// inline T black_scholes(T r,
-//                        T v,
+// inline T trajectories( int n_paths,
+//                        int n_steps,
 //                        T step,
 //                        T s,
 //                        T t)
