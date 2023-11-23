@@ -73,7 +73,7 @@ int main(void) {
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
 
-    float h_randomData[N];
+    float h_randomData[N_PATHS * N_STEPS];
     cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
 
     for(int i = 0; i < N_PATHS * N_STEPS; i++) {
