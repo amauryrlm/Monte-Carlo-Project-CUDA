@@ -93,7 +93,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
     // Write result for this block to output
     if (tid == 0){
         for(int i=0; i< N_PATHS; i++){
-            output[i] = 0.0f;
+            output[i] = sdata[i];
         }
         
     } 
