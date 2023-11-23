@@ -209,7 +209,7 @@ int main() {
     cudaMalloc(&d_arr, N * sizeof(float));
 
     // Kernel launch parameters
-    int blockSize = 256;
+    int blockSize = 100;
     int numBlocks = (N + blockSize - 1) / blockSize;
 
     // Launch the kernel
