@@ -140,13 +140,13 @@ int main(void) {
     float *a;
     a = (float *)malloc(N_PATHS * sizeof(float));
     float *d_a;
-    d_a = testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
     cudaMemcpy(d_a, a, N_PATHS * sizeof(int), cudaMemcpyHostToDevice);
 
     simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(a, d_a, length * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
 
     for(int i = 0; i<N_PATHS; i++){
         cout << "GPU St : " << a[i] << endl;
