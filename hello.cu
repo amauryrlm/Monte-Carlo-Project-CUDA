@@ -156,91 +156,25 @@ int main(void) {
 
 
 
-    // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // cudaDeviceSynchronize();
-
-
-    // float *a;
-    // a = (float *)malloc(N_PATHS * sizeof(float));
-    // float *d_a;
-    // testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
-
-    // simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // cudaDeviceSynchronize();
-
-    // cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-
-    // for(int i = 0; i<N_PATHS; i++){
-    //     cout << "GPU St : " << a[i] << endl;
-    // }
-
-// Variables definition
-	int *a, *b, *c, *c_cuda;
-	int *d_a, *d_b, *d_c;
-	int i;
-
-	// Length for the size of arrays
-	int length = 20;
-
-
-
-	// Memory allocation of arrays
-	a = (int *)malloc(length * sizeof(int));
-	b = (int *)malloc(length * sizeof(int));
-	c = (int *)malloc(length * sizeof(int));
-	c_cuda = (int *)malloc(length * sizeof(int));
-
-	// device memory allocation
-
-	cudaMalloc((void **)&d_a, length * sizeof(int));
-	cudaMalloc((void **)&d_b, length * sizeof(int));
-	cudaMalloc((void **)&d_c, length * sizeof(int));
-
-	
-	// Setting value
-	for (i = 0; i < length; i++)
-	{
-		a[i] = i;
-		b[i] = 9 * i;
-	}
-
-	cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice);
-
-
-
-	// Executing the addition
-	addVect(a, b, c, length);
-
-	int nbBlock = (length + 1024 - 1) / 1024;
-	int nbthread = 1024;
-
-	cudaAdd<<<nbBlock, nbthread>>>(d_a, d_b, d_c, length);
+    simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaDeviceSynchronize();
 
-	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
+
+    float *a;
+    a = (float *)malloc(N_PATHS * sizeof(float));
+    float *d_a;
+    testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
+
+    simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaDeviceSynchronize();
-	// Displaying the results to check the correctness
-	for (int i = 0; i < length; i++)
-	{
 
-		printf("%d",c_cuda[i]);
-
-	}
-
+    cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    for(int i = 0; i<N_PATHS; i++){
+        cout << "GPU St : " << a[i] << endl;
+    }
 
 
-
-
-
-	// Freeing the memory
-	free(a);
-	free(b);
-	free(c);
-	cudaFree(d_a);
-	cudaFree(d_b);
-	cudaFree(d_c);
-	return 0;
 
     // float *d_optionPriceGU;
     // testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
