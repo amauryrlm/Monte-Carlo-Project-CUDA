@@ -27,6 +27,7 @@ __global__ void initializeArray(float *arr, int n, float value) {
 }
 
 
+
 // Has to be defined in the compilation in order to get the correct value of the
 // macros __FILE__ and __LINE__
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
@@ -136,14 +137,16 @@ int main(void) {
     float *d_optionPriceGPU;
     testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
 
-    initializeArray<<<1, 256>>>(d_optionPriceGPU, N_PATHS, 6.0f);
+    int blockSize = 256; // You can adjust this based on your GPU's capability
+    int numBlocks = (N_PATHS + blockSize - 1) / blockSize;
+
+    initializeArray<<<numBlocks, blockSize>>>(d_optionPriceGPU, N_PATHS, 6.0f);
+
     cudaDeviceSynchronize();
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
-    float mean_priceGPU = 0.0f;
 
     for(int i = 0; i<N_PATHS; i++){
-        mean_priceGPU += h_optionPriceGPU[i];
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
     // cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
