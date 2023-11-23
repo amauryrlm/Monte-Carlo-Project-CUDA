@@ -29,15 +29,15 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < N_PATHS) {
-        float St = S0;
-        float G;
-        for(int i = 0; i < N_STEPS; i++){
-            G = d_randomData[idx*i];
-            // cout << "G : " << G << endl;
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        }
+        // float St = S0;
+        // float G;
+        // for(int i = 0; i < N_STEPS; i++){
+        //     G = d_randomData[idx*i];
+        //     // cout << "G : " << G << endl;
+        //     St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+        // }
         
-        // Calculate the payoff
+        // // Calculate the payoff
         d_optionPriceGPU[idx] = S0;
     }
 }
@@ -123,7 +123,7 @@ int main(void) {
     float *d_optionPriceGPU;
     testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
 
-    simulateOptionPrice<<<1, 256>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaDeviceSynchronize();
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
