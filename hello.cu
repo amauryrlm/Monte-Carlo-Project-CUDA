@@ -65,7 +65,7 @@ void addVect(int *a, int *b, int *c, int length)
 	}
 }
 
-__global__ void cudaAdd(float *d_c, int length, float d_randomData)
+__global__ void cudaAdd(float *d_c, int length, float *d_randomData)
 {
 	int indice = threadIdx.x + blockIdx.x * blockDim.x;
 	if (indice < length)
