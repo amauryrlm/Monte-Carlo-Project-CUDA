@@ -141,8 +141,11 @@ int main(void) {
     int numBlocks = (N_PATHS + blockSize - 1) / blockSize;
 
     initializeArray<<<numBlocks, blockSize>>>(d_optionPriceGPU, N_PATHS, 6.0f);
-
-    cudaDeviceSynchronize();
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        cout << "CUDA Error: " << cudaGetErrorString(err) << endl;
+    }
+    testCUDA(cudaDeviceSynchronize());
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
 
