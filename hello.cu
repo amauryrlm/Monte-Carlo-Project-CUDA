@@ -53,14 +53,6 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
     }
 }
 
-__global__ void cudaAdd(int *d_a, int *d_b, int *d_c, int length)
-{
-	int indice = threadIdx.x + blockIdx.x * blockDim.x;
-	if (indice < length)
-	{
-		d_c[indice] = d_a[indice] + d_b[indice];
-	}
-}
 
 void addVect(int *a, int *b, int *c, int length)
 {
@@ -190,11 +182,7 @@ int main(void) {
 	// Length for the size of arrays
 	int length = 20;
 
-	Timer Tim; // CPU timer instructions
 
-	cudaEvent_t start, end;
-	cudaEventCreate(&start);
-	cudaEventCreate(&end);
 
 	// Memory allocation of arrays
 	a = (int *)malloc(length * sizeof(int));
@@ -220,17 +208,14 @@ int main(void) {
 	cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice);
 
 
-	Tim.start(); // CPU timer instructions
 
 	// Executing the addition
 	addVect(a, b, c, length);
 
-	Tim.add(); // CPU timer instructions
-	int nbBlock = (length + 1024 - 1) / 1024;
-	int nbthread = 1024;
+
 
 	cudaEventRecord(start);
-	cudaAdd<<<nbBlock, nbthread>>>(d_a, d_b, d_c, length);
+	cudaAdd<<<1, length>>>(d_a, d_b, d_c, length);
 
 	cudaEventRecord(end);
 
@@ -243,19 +228,8 @@ int main(void) {
 		printf("%f",c_cuda[i]);
 
 	}
-	printf("Computation true\n");
 
-	printf("CPU Timer for the addition on the CPU of vectors: %f s\n",
-		   (float)Tim.getsum()); // CPU timer instructions
 
-	cudaEventSynchronize(end);
-	float milliseconds = 0.0f;
-	cudaEventElapsedTime(&milliseconds, start, end);
-	float seconds = milliseconds / 1000.0f;
-
-	printf("Elapsed time: %f ms\n", seconds);
-
-	printf("Speedup :%f", (float)Tim.getsum() / seconds);
 
 	// Freeing the memory
 	free(a);
