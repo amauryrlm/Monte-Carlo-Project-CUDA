@@ -57,9 +57,10 @@ int main(void) {
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
             cout << "St : " << St << endl;
         }
-        cout << "S before assigning" << St << endl;
+        cout << "S before assigning " << St << endl;
         s[i] = St;
-        cout << "S" << St << endl;
+        cout << "S " << St << endl;
+        cout << i << endl;
     }
     cout << "paths calculated";
     // generate random numbers using curand
