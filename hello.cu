@@ -164,83 +164,89 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
 // 	return 0;
 // }
 
-int main() {
+#include <stdio.h>
 
-    int deviceCount;
+#define NB 16384
+#define NTPB 1024
 
-    // Initialize CUDA and get the number of CUDA devices (GPUs)
-    cudaError_t cudaStatus = cudaGetDeviceCount(&deviceCount);
+// Function that catches the error 
+void testCUDA(cudaError_t error, const char *file, int line)  {
 
-    if (cudaStatus != cudaSuccess) {
-        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(cudaStatus) << std::endl;
-        return 1;
-    }
+	if (error != cudaSuccess) {
+	   printf("There is an error in file %s at line %d\n", file, line);
+       exit(EXIT_FAILURE);
+	} 
+}
 
-    std::cout << "Number of CUDA devices (GPUs) found: " << deviceCount << std::endl;
 
-    for (int deviceId = 0; deviceId < deviceCount; ++deviceId) {
-        cudaDeviceProp deviceProp;
-        
-        // Get and print the properties of each GPU
-        cudaStatus = cudaGetDeviceProperties(&deviceProp, deviceId);
+// Has to be defined in the compilation in order to get the correct value of the macros
+// __FILE__ and __LINE__
+#define testCUDA(error) (testCUDA(error, __FILE__ , __LINE__))
 
-        if (cudaStatus != cudaSuccess) {
-            std::cerr << "cudaGetDeviceProperties failed for device " << deviceId << ": "
-                      << cudaGetErrorString(cudaStatus) << std::endl;
-            return 1;
-        }
+__device__ void Test(int *a) {
 
-        std::cout << "GPU " << deviceId << " Properties:" << std::endl;
-        std::cout << "  Name: " << deviceProp.name << std::endl;
-        std::cout << "  Total Global Memory: " << (deviceProp.totalGlobalMem / (1024 * 1024 * 1024.0)) << " GB" << std::endl;
-        std::cout << "  Compute Capability: " << deviceProp.major << "." << deviceProp.minor << std::endl;
-        std::cout << "  Number of SMs (Multiprocessors): " << deviceProp.multiProcessorCount << std::endl;
-        std::cout << "  Clock Rate: " << (deviceProp.clockRate / 1000.0) << " MHz" << std::endl;
-        std::cout << std::endl;
-    }
-    const int N = 1024; // Size of the array
-    const float valueToSet = 5.0f; // Value to set in the array
+	for (int i = 0; i < 1000; i++) {
+		*a = *a + 1;
+	}
+}
 
-    // Allocate host memory
-    float *h_arr = new float[N];
+__device__ int aGlob[NB*NTPB];					// Global variable solution
 
-    // Allocate device memory
-    float *d_arr;
-    cudaMalloc(&d_arr, N * sizeof(float));
+__global__ void MemComp(int *a){
 
-    // Kernel launch parameters
-    int blockSize = 100;
-    int numBlocks = (N + blockSize - 1) / blockSize;
+	int idx = threadIdx.x + blockIdx.x*blockDim.x;
 
-    // Launch the kernel
-    setValuesKernel<<<numBlocks, blockSize>>>(d_arr, valueToSet, N);
+	aGlob[idx] = a[idx];
 
-    // Check for kernel launch errors
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        cout << "CUDA Kernel Launch Error: " << cudaGetErrorString(err) << endl;
-        // Free device memory in case of error
-        cudaFree(d_arr);
-        delete[] h_arr;
-        return -1;
-    }
+	Test(aGlob + idx);
 
-    // Wait for GPU to finish before accessing on host
-    cudaDeviceSynchronize();
+	a[idx] = aGlob[idx];
+}
 
-    // Copy the results back to the host
-    cudaMemcpy(h_arr, d_arr, N * sizeof(float), cudaMemcpyDeviceToHost);
 
-    // Print the results
-    for (int i = 0; i < N; i++) {
-        cout << "Value at index " << i << " = " << h_arr[i] << endl;
-    }
+int main (void){
 
-    // Free device memory
-    cudaFree(d_arr);
+	
+	int *a, *aGPU;
+	float Tim;										// GPU timer instructions
+	cudaEvent_t start, stop;						// GPU timer instructions
+	testCUDA(cudaEventCreate(&start));				// GPU timer instructions
+	testCUDA(cudaEventCreate(&stop));				// GPU timer instructions
+		
+	a = (int*)malloc(NB*NTPB*sizeof(int));
+	testCUDA(cudaMalloc(&aGPU, NB*NTPB * sizeof(int)));
 
-    // Free host memory
-    delete[] h_arr;
+	for(int i=0; i<NB; i++){
+		for(int j=0; j<NTPB; j++){
+			a[j+i*NTPB] = j+i*NTPB;
+		}
+	}
 
-    return 0;
+	testCUDA(cudaMemcpy(aGPU, a, NB*NTPB*sizeof(int), cudaMemcpyHostToDevice));
+
+	testCUDA(cudaEventRecord(start, 0));			// GPU timer instructions
+	
+	for(int i = 0; i<100; i++) {
+		MemComp<<<NB,NTPB>>>(aGPU);
+	}
+	
+	testCUDA(cudaEventRecord(stop, 0));				// GPU timer instructions
+	testCUDA(cudaEventSynchronize(stop));			// GPU timer instructions
+	testCUDA(cudaEventElapsedTime(&Tim,				// GPU timer instructions
+		start, stop));								// GPU timer instructions
+
+	printf("Time per execution: %f ms\n", Tim/100);
+	testCUDA(cudaEventDestroy(start));				// GPU timer instructions
+	testCUDA(cudaEventDestroy(stop));				// GPU timer instructions
+
+	testCUDA(cudaMemcpy(a, aGPU, NB*NTPB*sizeof(int), cudaMemcpyDeviceToHost));
+	testCUDA(cudaFree(aGPU));
+
+	for(int i= 0; i<4; i++){
+		printf("%i = %i \n", 100000 + i, a[i]);
+	}
+
+	free(a);
+
+	return 0;
 }
