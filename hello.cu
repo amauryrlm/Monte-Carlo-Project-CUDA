@@ -53,13 +53,13 @@ int main(void) {
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
             G = distribution(generator);
-            cout << "G : " << G << endl;
+            // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
-            cout << "St : " << St << endl;
+            // cout << "St : " << St << endl;
         }
         s[i] = St;
     }
-
+    cout << "paths calculated";
     // generate random numbers using curand
 
     //allocate array filled with random values 
