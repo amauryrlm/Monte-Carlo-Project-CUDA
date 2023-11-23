@@ -97,9 +97,9 @@ int main(void) {
     cout << "host copied" << endl;
     cout << h_randomData[0];
 
-    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-        cout << "random  : " << h_randomData[i] << endl;
-    }
+    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+    //     cout << "random  : " << h_randomData[i] << endl;
+    // }
 
     float count = 0.0f;
     for(int i=0; i<N_PATHS;i++){
@@ -128,8 +128,10 @@ int main(void) {
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
     float mean_priceGPU = 0.0f;
+
     for(int i = 0; i<N_PATHS; i++){
         mean_priceGPU += h_optionPriceGPU[i];
+        cout << "GPU St : " << h_optionPriceGPU[i];
     }
     cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
 
