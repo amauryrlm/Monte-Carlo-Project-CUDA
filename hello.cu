@@ -201,7 +201,7 @@ int main(void) {
 	for (int i = 0; i < length; i++)
 	{
 
-		cout << "c " << c[i];
+		cout << "c " << c_cuda[i];
 
 	}
 
