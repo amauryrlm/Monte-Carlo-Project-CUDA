@@ -89,8 +89,10 @@ int main(void) {
     cout << "number generated";
 
 
-    // float h_randomData[N_PATHS * N_STEPS];
-    // testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    float h_randomData[N_PATHS * N_STEPS];
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+
+        cout << "host copied";
 
     // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
     //     cout << "random  : " << d_randomData[i] << endl;
