@@ -70,7 +70,7 @@ int main(void) {
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
-    curandGenerateNormal(gen, d_randomData, N, 0.0, 1.0);
+    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
 
     float h_randomData[N];
