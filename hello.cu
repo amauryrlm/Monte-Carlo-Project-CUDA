@@ -86,18 +86,18 @@ int main(void) {
     curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
-        cout << "number generated";
+    cout << "number generated";
 
 
-    float h_randomData[N_PATHS * N_STEPS];
-    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    // float h_randomData[N_PATHS * N_STEPS];
+    // testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-        cout << "random  : " << d_randomData[i] << endl;
-    }
+    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+    //     cout << "random  : " << d_randomData[i] << endl;
+    // }
 
 
-    testCUDA(cudaFree(d_randomData));
+    // testCUDA(cudaFree(d_randomData));
     curandDestroyGenerator(gen);
 
 	return 0;
