@@ -25,13 +25,14 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 using namespace std;
 
-__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData) {
+__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrtdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < numPaths) {
-        float St = 0.0f;
+        float St = S0;
+        float G;
         for(int i = 0; i < N_STEPS; i++){
-            G = h_randomData[idx*i];
+            G = d_randomData[idx*i];
             // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         }
@@ -122,7 +123,7 @@ int main(void) {
     float *d_paths;
     testCUDA(cudaMalloc(&d_paths,N_PATHS*sizeof(float)));
 
-    simulateOptionPrice<<<1, 256>>>(d_paths, S0, K, r, T, N_PATHS,d_randomData);
+    simulateOptionPrice<<<1, 256>>>( d_paths,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrtdt);
 
 
     testCUDA(cudaFree(d_randomData));
