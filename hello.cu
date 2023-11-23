@@ -108,11 +108,12 @@ int main(void) {
             G = h_randomData[i*j];
             // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            cout << "St : " << St << endl;
+            
         }
         // cout << "S before assigning " << St << endl;
         s[i] = St;
         count += St;
+        cout << "St : " << St << endl;
         // cout << "S " << St << endl;
         // cout << i << endl;
     }
