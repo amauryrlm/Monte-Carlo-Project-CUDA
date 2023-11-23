@@ -95,9 +95,9 @@ int main(void) {
     cout << "host copied" << endl;
     cout << h_randomData[0];
 
-    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-    //     cout << "random  : " << d_randomData[i] << endl;
-    // }
+    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+        cout << "random  : " << d_randomData[i] << endl;
+    }
 
 
     // testCUDA(cudaFree(d_randomData));
