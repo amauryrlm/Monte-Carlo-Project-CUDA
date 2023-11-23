@@ -25,9 +25,17 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 using namespace std;
 
-// template<class Sumarize>
+__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T, int N_PATHS, float *d_randomData) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-__global__ void myKernel(void) {
+    if (idx < numPaths) {
+
+        // Simulate the final stock price using geometric Brownian motion
+        float finalPrice = d_paths[idx] * exp((riskFreeRate - 0.5 * volatility * volatility) * timeToMaturity + volatility * sqrt(timeToMaturity) * d_randomData[idx]);
+        
+        // Calculate the payoff
+        d_paths[idx] = max(finalPrice - strikePrice, 0.0f);
+    }
 }
 int main(void) {
 
@@ -105,8 +113,16 @@ int main(void) {
     cout << "mean paths : " << count/N_PATHS << endl;
 
 
+    float *d_paths;
+    testCUDA(cudaMalloc(&d_paths,N_PATHS*sizeof(float)));
+
+    testCUDA(simulateOptionPrice<<<1, 256>>>(d_paths, S0, K, r, T, N_PATHS,d_randomData));
+
+
     testCUDA(cudaFree(d_randomData));
     curandDestroyGenerator(gen);
+    free(s);
+    free(h_randomData);
 
 	return 0;
 }
