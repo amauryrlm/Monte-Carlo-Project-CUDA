@@ -125,10 +125,10 @@ int main(void) {
 
     float *d_optionPriceGPU;
     testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    testCUDA(cudaMemset(d_optionPriceGPU, 6.0f, N_PATHS * sizeof(float)));
+    testCUDA(cudaMemset(d_optionPriceGPU, 6.0, N_PATHS * sizeof(float)));
 
-    simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    cudaDeviceSynchronize();
+    // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // cudaDeviceSynchronize();
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
     float mean_priceGPU = 0.0f;
