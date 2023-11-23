@@ -98,7 +98,7 @@ int main(void) {
 
 
     testCUDA(cudaFree(d_randomData));
-    testCUDA(curandDestroyGenerator(gen));
+    curandDestroyGenerator(gen);
 
 	return 0;
 }
