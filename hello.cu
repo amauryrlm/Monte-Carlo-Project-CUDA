@@ -140,6 +140,8 @@ int main(void) {
     int blockSize = 256; // You can adjust this based on your GPU's capability
     int numBlocks = (N_PATHS + blockSize - 1) / blockSize;
 
+    cout << "nb block" << numBlocks << endl;
+
     initializeArray<<<numBlocks, blockSize>>>(d_optionPriceGPU, N_PATHS, 6.0f);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -149,7 +151,7 @@ int main(void) {
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
 
-    for(int i = 0; i<N_PATHS; i++){
+    for(int i = 0; i<N_PATHS; i++){è
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
     // cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
