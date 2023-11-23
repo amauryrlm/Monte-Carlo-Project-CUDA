@@ -25,7 +25,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 using namespace std;
 
-__global__ void simulateOptionPrice(float *h_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
+__global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < N_PATHS) {
@@ -38,7 +38,7 @@ __global__ void simulateOptionPrice(float *h_optionPriceGPU, float K, float r, f
         }
         
         // Calculate the payoff
-        h_optionPriceGPU[idx] = St;
+        d_optionPriceGPU[idx] = St;
     }
 }
 
