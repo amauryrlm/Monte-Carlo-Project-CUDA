@@ -91,7 +91,13 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
         }
 
         // Write result for this block to output
-        if (tid == 0) output[blockIdx.x] = sdata[0];
+        if (tid == 0){
+            for(int i=0; i< N_PATHS; i++){
+                output[i] = sdata[i];
+            }
+            
+        } 
+        
         
     }
 }
@@ -203,11 +209,11 @@ int main(void) {
 
     float *h_optionPriceGPU, *output;
     h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
-    output = (float *)malloc(sizeof(float));
+    output = (float *)malloc(N_PATHS*sizeof(float));
     float *d_optionPriceGPU, *d_output;
 
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output,N_PATHS*sizeof(float)));
 
     simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
@@ -215,13 +221,17 @@ int main(void) {
 
 
     cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output, d_output, N_PATHS*sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     for(int i = 0; i<N_PATHS; i++){
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
+d
 
-    cout << "Average" << output[0];
+    for(int i = 0; i<N_PATHS; i++){
+        cout << "shared  : " <<  i << output[i] << endl;
+    }
+    // cout << "Average" << output[0];
 
 
 
