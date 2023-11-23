@@ -10,6 +10,13 @@
 #include <random>
 #include <curand.h>
 
+__global__ void addKernel(int *c, const int *a, const int *b, int size) {
+    int i = threadIdx.x;
+    if (i < size) {
+        c[i] = a[i] + b[i];
+    }
+}
+
 // Function that catches the error
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
@@ -75,12 +82,7 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
     }
 }
 
-__global__ void addKernel(int *c, const int *a, const int *b, int size) {
-    int i = threadIdx.x;
-    if (i < size) {
-        c[i] = a[i] + b[i];
-    }
-}
+
 
 
 
