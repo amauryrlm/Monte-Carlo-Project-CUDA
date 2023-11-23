@@ -198,7 +198,7 @@ int main(void) {
     }
     cout << endl;
 
-    cout << "Average CPU : " << countt/N_PATHS << endl;
+    cout << "Average CPU : " << countt << endl;
 
 
     float *h_optionPriceGPU, *output;
@@ -221,7 +221,7 @@ int main(void) {
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
 
-    cout << "Average" << output[0]/N_PATHS;
+    cout << "Average" << output[0];
 
 
 
