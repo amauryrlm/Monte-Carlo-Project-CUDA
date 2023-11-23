@@ -76,7 +76,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
         d_optionPriceGPU[idx] = St;
 
         // Shared memory for the block
-        __shared__ float sdata[N_PATHS];
+        __shared__ float sdata[10];
 
         // Load input into shared memory
         sdata[tid] = (idx < N_PATHS) ? St : 0;
