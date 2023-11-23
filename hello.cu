@@ -197,7 +197,7 @@ int main(void) {
     //     cout << "random  : " << h_randomData[i] << endl;
     // }
 
-    float count = 0.0f;
+    float countt = 0.0f;
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
@@ -208,13 +208,13 @@ int main(void) {
         }
         // cout << "S before assigning " << St << endl;
         s[i] = St;
-        count += St;
+        countt += St;
         cout << "St : " << St << endl;
         // cout << "S " << St << endl;
         // cout << i << endl;
     }
     cout << "paths calculated" << endl;
-    cout << "mean paths : " << count/N_PATHS << endl;
+    cout << "mean paths : " << countt/N_PATHS << endl;
 
     const int arraySize = 5;
     const int a[arraySize] = { 1, 2, 3, 4, 5 };
