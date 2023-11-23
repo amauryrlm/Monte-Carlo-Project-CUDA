@@ -38,7 +38,7 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
         // }
         
         // // Calculate the payoff
-        d_optionPriceGPU[idx] = S0;
+        d_optionPriceGPU[idx] = 1.0f;
     }
 }
 
@@ -118,6 +118,8 @@ int main(void) {
     }
     cout << "paths calculated" << endl;
     cout << "mean paths : " << count/N_PATHS << endl;
+
+
 
 
     float *d_optionPriceGPU;
