@@ -41,14 +41,37 @@ void addWithCuda(int *c, const int *a, const int *b, int size) {
 
     // Launch a kernel on the GPU with one thread for each element.
     addKernel<<<1, size>>>(dev_c, dev_a, dev_b, size);
+    // After kernel launch
+    cudaError_t cudaStatus = cudaGetLastError();
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+        goto Error;
+    }
+
+    // Wait for kernel to finish and check for any errors.
+    cudaStatus = cudaDeviceSynchronize();
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
+        goto Error;
+    }
 
     // Copy output vector from GPU buffer to host memory.
-    cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaStatus = cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!\n");
+        goto Error;
+    }
 
-    // Cleanup.
+    Error:
     cudaFree(dev_c);
     cudaFree(dev_a);
     cudaFree(dev_b);
+
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "AddWithCuda failed!\n");
+        return;
+    }
+
 }
 
 
