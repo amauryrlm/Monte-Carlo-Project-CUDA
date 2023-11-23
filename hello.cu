@@ -192,9 +192,9 @@ int main(void) {
 
 	// device memory allocation
 
-	cudaMalloc((void **)&d_a, length * sizeof(int));
-	cudaMalloc((void **)&d_b, length * sizeof(int));
-	cudaMalloc((void **)&d_c, length * sizeof(int));
+	testCUDA(cudaMalloc((void **)&d_a, length * sizeof(int)));
+	testCUDA(cudaMalloc((void **)&d_b, length * sizeof(int)));
+	testCUDA(cudaMalloc((void **)&d_c, length * sizeof(int)));
 
 	
 	// Setting value
@@ -204,8 +204,8 @@ int main(void) {
 		b[i] = 9 * i;
 	}
 
-	cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice);
+	testCUDA(cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice));
+	testCUDA(cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice));
 
 
 
@@ -218,13 +218,13 @@ int main(void) {
 	cudaAdd<<<1, length>>>(d_a, d_b, d_c, length);
 
 
-	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
+	testCUDA(cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost));
 
 	// Displaying the results to check the correctness
-	for (i = length; i < length; i++)
+	for (int i = 0; i < length; i++)
 	{
 
-		printf("%f",c_cuda[i]);
+		cout << "c " << c[i];
 
 	}
 
