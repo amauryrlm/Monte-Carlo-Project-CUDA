@@ -212,13 +212,11 @@ int main(void) {
 	// Executing the addition
 	addVect(a, b, c, length);
 
-	Tim.add(); // CPU timer instructions
 	int nbBlock = (length + 1024 - 1) / 1024;
 	int nbthread = 1024;
 
 	cudaAdd<<<nbBlock, nbthread>>>(d_a, d_b, d_c, length);
 
-	cudaEventRecord(end);
 
 	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
 	cudaEventSynchronize();
