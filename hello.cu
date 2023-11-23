@@ -116,7 +116,7 @@ int main(void) {
     float *d_paths;
     testCUDA(cudaMalloc(&d_paths,N_PATHS*sizeof(float)));
 
-    testCUDA(simulateOptionPrice<<<1, 256>>>(d_paths, S0, K, r, T, N_PATHS,d_randomData));
+    simulateOptionPrice<<<1, 256>>>(d_paths, S0, K, r, T, N_PATHS,d_randomData);
 
 
     testCUDA(cudaFree(d_randomData));
