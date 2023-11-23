@@ -65,12 +65,12 @@ void addVect(int *a, int *b, int *c, int length)
 	}
 }
 
-__global__ void cudaAdd(int *d_a, int *d_b, int *d_c, int length)
+__global__ void cudaAdd(float *d_c, int length, float d_randomData)
 {
 	int indice = threadIdx.x + blockIdx.x * blockDim.x;
 	if (indice < length)
 	{
-		d_c[indice] = d_a[indice] + d_b[indice];
+		d_c[indice] = 1.0f;
 	}
 }
 
@@ -175,50 +175,27 @@ int main(void) {
     // }
 
 	// Variables definition
-	int *a, *b, *c, *c_cuda;
-	int *d_a, *d_b, *d_c;
+	int *a, *b, *c;
+	int *d_a, *d_b;
 	int i;
-
+    float *d_c, *c_cuda;
 	// Length for the size of arrays
 	int length = 20;
 
 
 
-	// Memory allocation of arrays
-	a = (int *)malloc(length * sizeof(int));
-	b = (int *)malloc(length * sizeof(int));
-	c = (int *)malloc(length * sizeof(int));
-	c_cuda = (int *)malloc(length * sizeof(int));
+
+	c_cuda = (int *)malloc(length * sizeof(float));
 
 	// device memory allocation
 
-	testCUDA(cudaMalloc((void **)&d_a, length * sizeof(int)));
-	testCUDA(cudaMalloc((void **)&d_b, length * sizeof(int)));
-	testCUDA(cudaMalloc((void **)&d_c, length * sizeof(int)));
-
-	
-	// Setting value
-	for (i = 0; i < length; i++)
-	{
-		a[i] = i;
-		b[i] = 9 * i;
-	}
-
-	testCUDA(cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice));
-	testCUDA(cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice));
+	testCUDA(cudaMalloc((void **)&d_c, length * sizeof(float)));
 
 
-
-	// Executing the addition
-	addVect(a, b, c, length);
+	cudaAdd<<<1, length>>>( d_c, length, d_randomData);
 
 
-
-
-	cudaAdd<<<1, length>>>(d_a, d_b, d_c, length);
-
-
-	testCUDA(cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost));
+	testCUDA(cudaMemcpy(c_cuda, d_c, length * sizeof(float), cudaMemcpyDeviceToHost));
 
 	// Displaying the results to check the correctness
 	for (int i = 0; i < length; i++)
