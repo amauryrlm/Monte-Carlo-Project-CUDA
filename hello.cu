@@ -214,10 +214,9 @@ int main(void) {
 
 
 
-	cudaEventRecord(start);
+
 	cudaAdd<<<1, length>>>(d_a, d_b, d_c, length);
 
-	cudaEventRecord(end);
 
 	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
 
