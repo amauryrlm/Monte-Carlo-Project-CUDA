@@ -144,7 +144,6 @@ int main(void) {
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
-    cout << h_randomData[0];
 
 
     float countt = 0.0f;
@@ -157,7 +156,7 @@ int main(void) {
         }
         s[i] = St;
         countt += St;
-        cout << "St : " << St << endl;
+        cout << "St : " << St << endl << endl;
     }
 
 
