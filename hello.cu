@@ -96,7 +96,7 @@ int main(void) {
     cout << h_randomData[0];
 
     for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-        cout << "random  : " << d_randomData[i] << endl;
+        cout << "random  : " << h_randomData[i] << endl;
     }
 
 
