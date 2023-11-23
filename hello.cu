@@ -182,6 +182,19 @@ int main() {
     // Launch the kernel
     setValuesKernel<<<numBlocks, blockSize>>>(d_arr, valueToSet, N);
 
+    // Check for kernel launch errors
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        cout << "CUDA Kernel Launch Error: " << cudaGetErrorString(err) << endl;
+        // Free device memory in case of error
+        cudaFree(d_arr);
+        delete[] h_arr;
+        return -1;
+    }
+
+    // Wait for GPU to finish before accessing on host
+    cudaDeviceSynchronize();
+
     // Copy the results back to the host
     cudaMemcpy(h_arr, d_arr, N * sizeof(float), cudaMemcpyDeviceToHost);
 
