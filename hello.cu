@@ -86,7 +86,7 @@ int main(void) {
         cout << "random  : " << h_randomData[i] << endl;
     }
 
-    flat count = 0.0f;
+    float count = 0.0f;
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
