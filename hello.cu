@@ -216,10 +216,10 @@ int main(void) {
 	int nbthread = 1024;
 
 	cudaAdd<<<nbBlock, nbthread>>>(d_a, d_b, d_c, length);
-
+    cudaDeviceSynchronize();
 
 	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
-	cudaEventSynchronize();
+    cudaDeviceSynchronize();
 	// Displaying the results to check the correctness
 	for (int i = 0; i < length; i++)
 	{
