@@ -228,7 +228,7 @@ int main(void) {
     }
 
     for(int i = 0; i<N_PATHS; i++){
-        cout << "shared  : " <<  i << output[i] << endl;
+        cout << "shared  : " <<  i << " " << output[i] << endl;
     }
     // cout << "Average" << output[0];
 
