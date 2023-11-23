@@ -135,7 +135,7 @@ int main(void) {
     curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
-    cout << "number generated";
+    cout << "number generated" << endl;
 
 
 
@@ -146,25 +146,18 @@ int main(void) {
     cout << "host copied" << endl;
     cout << h_randomData[0];
 
-    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-    //     cout << "random  : " << h_randomData[i] << endl;
-    // }
 
     float countt = 0.0f;
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
             G = h_randomData[i*j];
-            // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
-        // cout << "S before assigning " << St << endl;
         s[i] = St;
         countt += St;
         cout << "St : " << St << endl;
-        // cout << "S " << St << endl;
-        // cout << i << endl;
     }
 
 
@@ -184,29 +177,6 @@ int main(void) {
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
 
-
-
-    // float *d_optionPriceGU;
-    // testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
-
-    // int blockSize = 256; // You can adjust this based on your GPU's capability
-    // int numBlocks = (N_PATHS + blockSize - 1) / blockSize;
-
-    // cout << "nb block" << numBlocks << endl;
-
-    // initializeArray<<<numBlocks, blockSize>>>(d_optionPriceGPU, N_PATHS, 6.0f);
-    // cudaError_t err = cudaGetLastError();
-    // if (err != cudaSuccess) {
-    //     cout << "CUDA Error: " << cudaGetErrorString(err) << endl;
-    // }
-    // testCUDA(cudaDeviceSynchronize());
-    // float *h_optionPriceGPU = new float[N_PATHS];
-    // testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
-
-    // for(int i = 0; i<N_PATHS; i++){
-    //     cout << "GPU St : " << h_optionPriceGPU[i] << endl;
-    // }
-    // cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
 
 
     testCUDA(cudaFree(d_randomData));
