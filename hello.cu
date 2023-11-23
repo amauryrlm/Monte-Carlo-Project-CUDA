@@ -25,7 +25,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 using namespace std;
 
-__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
+__global__ void simulateOptionPrice(float *h_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < N_PATHS) {
@@ -38,7 +38,7 @@ __global__ void simulateOptionPrice(float *d_paths, float K, float r, float T,fl
         }
         
         // Calculate the payoff
-        d_paths[idx] = max(St - K, 0.0f);
+        h_optionPriceGPU[idx] = St;
     }
 }
 
@@ -120,10 +120,20 @@ int main(void) {
     cout << "mean paths : " << count/N_PATHS << endl;
 
 
-    float *d_paths;
-    testCUDA(cudaMalloc(&d_paths,N_PATHS*sizeof(float)));
+    float *d_optionPriceGPU;
+    testCUDA(cudaMalloc(&h_optionPriceGPU,N_PATHS*sizeof(float)));
 
-    simulateOptionPrice<<<1, 256>>>( d_paths,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    simulateOptionPrice<<<1, 256>>>( h_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+
+    float *h_optionPriceGPU = new float[N_PATHS];
+    test(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyHostToDevice));
+    float mean_priceGPU = 0.0f;
+    for(int i = 0; i<N_PATHS; i++){
+        mean_priceGPU += h_optionPriceGPU[i];
+    }
+    cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
+
+    testCUDA()
 
 
     testCUDA(cudaFree(d_randomData));
