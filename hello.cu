@@ -226,7 +226,6 @@ int main(void) {
     for(int i = 0; i<N_PATHS; i++){
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
-d
 
     for(int i = 0; i<N_PATHS; i++){
         cout << "shared  : " <<  i << output[i] << endl;
