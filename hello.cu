@@ -181,7 +181,7 @@ int main(void) {
     cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     for(int i = 0; i<N_PATHS; i++){
-        cout << "GPU St : " << a[i] << endl;
+        cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
 
 
