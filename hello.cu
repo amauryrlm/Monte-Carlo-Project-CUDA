@@ -10,6 +10,17 @@
 #include <random>
 #include <curand.h>
 
+// Function that catches the error
+void testCUDA(cudaError_t error, const char *file, int line) {
+    if (error != cudaSuccess) {
+        printf("There is an error in file %s at line %d\n", file, line);
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Has to be defined in the compilation in order to get the correct value of the
+// macros __FILE__ and __LINE__
+#define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
 
 using namespace std;
@@ -63,11 +74,11 @@ int main(void) {
         cout << i << endl;
     }
     cout << "paths calculated";
-    // // generate random numbers using curand
+    // generate random numbers using curand
 
-    // //allocate array filled with random values 
-    // float *d_randomData;
-    // cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
+    //allocate array filled with random values 
+    float *d_randomData;
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
 
     // // create generator all fill array with generated values
     // curandGenerator_t gen;
