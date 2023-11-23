@@ -57,6 +57,7 @@ int main(void) {
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
             // cout << "St : " << St << endl;
         }
+        cout << "S before assigning" << St;
         s[i] = St;
         cout << "S" << St;
     }
