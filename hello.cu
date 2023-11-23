@@ -83,7 +83,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
         __syncthreads();
 
         // Perform reduction in shared memory
-        for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+        for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
             if (tid < s) {
                 sdata[tid] += sdata[tid + s];
             }
