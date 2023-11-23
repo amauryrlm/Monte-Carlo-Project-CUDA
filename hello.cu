@@ -22,7 +22,7 @@ int main(void) {
 
 // declare variables and constants
     const size_t N_PATHS = 10;
-    const size_t N_STEPS = 100;
+    const size_t N_STEPS = 5;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -55,11 +55,11 @@ int main(void) {
             G = distribution(generator);
             // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
-            // cout << "St : " << St << endl;
+            cout << "St : " << St << endl;
         }
-        cout << "S before assigning" << St;
+        cout << "S before assigning" << St << endl;
         s[i] = St;
-        cout << "S" << St;
+        cout << "S" << St << endl;
     }
     cout << "paths calculated";
     // generate random numbers using curand
