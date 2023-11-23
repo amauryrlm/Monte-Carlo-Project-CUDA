@@ -135,7 +135,6 @@ int main(void) {
     // cudaDeviceSynchronize();
     float *d_optionPriceGPU;
     testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    testCUDA(cudaMemset(d_optionPriceGPU, 6.0, N_PATHS * sizeof(float)));
 
     initializeArray<<<1, 256>>>(d_optionPriceGPU, N_PATHS, 6.0f);
     cudaDeviceSynchronize();
