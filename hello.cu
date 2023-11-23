@@ -58,6 +58,7 @@ int main(void) {
             // cout << "St : " << St << endl;
         }
         s[i] = St;
+        cout << "S" << St;
     }
     cout << "paths calculated";
     // generate random numbers using curand
