@@ -25,18 +25,24 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 using namespace std;
 
-__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T, int N_PATHS, float *d_randomData) {
+__global__ void simulateOptionPrice(float *d_paths, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < numPaths) {
-
-        // Simulate the final stock price using geometric Brownian motion
-        float finalPrice = d_paths[idx] * exp((riskFreeRate - 0.5 * volatility * volatility) * timeToMaturity + volatility * sqrt(timeToMaturity) * d_randomData[idx]);
+        float St = 0.0f;
+        for(int i = 0; i < N_STEPS; i++){
+            G = h_randomData[idx*i];
+            // cout << "G : " << G << endl;
+            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+        }
         
         // Calculate the payoff
-        d_paths[idx] = max(finalPrice - strikePrice, 0.0f);
+        d_paths[idx] = max(St - K, 0.0f);
     }
 }
+
+
+
 int main(void) {
 
 // declare variables and constants
