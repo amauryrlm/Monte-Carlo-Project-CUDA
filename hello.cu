@@ -60,20 +60,7 @@ int main(void) {
 
 
 
-    for(int i=0; i<N_PATHS;i++){
-        float St = S0;
-        for(int j=0; j<N_STEPS; j++){
-            G = distribution(generator);
-            // cout << "G : " << G << endl;
-            St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
-            cout << "St : " << St << endl;
-        }
-        cout << "S before assigning " << St << endl;
-        s[i] = St;
-        cout << "S " << St << endl;
-        cout << i << endl;
-    }
-    cout << "paths calculated";
+
     // generate random numbers using curand
 
     //allocate array filled with random values 
@@ -99,8 +86,26 @@ int main(void) {
         cout << "random  : " << h_randomData[i] << endl;
     }
 
+    flat count = 0.0f;
+    for(int i=0; i<N_PATHS;i++){
+        float St = S0;
+        for(int j=0; j<N_STEPS; j++){
+            G = h_randomData[i*j];
+            // cout << "G : " << G << endl;
+            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+            cout << "St : " << St << endl;
+        }
+        // cout << "S before assigning " << St << endl;
+        s[i] = St;
+        count += St;
+        // cout << "S " << St << endl;
+        // cout << i << endl;
+    }
+    cout << "paths calculated" << endl;
+    cout << "mean paths : " << count/N_PATHS << endl;
 
-    // testCUDA(cudaFree(d_randomData));
+
+    testCUDA(cudaFree(d_randomData));
     curandDestroyGenerator(gen);
 
 	return 0;
