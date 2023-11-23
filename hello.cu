@@ -62,6 +62,26 @@ __global__ void cudaAdd(int *d_a, int *d_b, int *d_c, int length)
 	}
 }
 
+void addVect(int *a, int *b, int *c, int length)
+{
+
+	int i;
+
+	for (i = 0; i < length; i++)
+	{
+		c[i] = a[i] + b[i];
+	}
+}
+
+__global__ void cudaAdd(int *d_a, int *d_b, int *d_c, int length)
+{
+	int indice = threadIdx.x + blockIdx.x * blockDim.x;
+	if (indice < length)
+	{
+		d_c[indice] = d_a[indice] + d_b[indice];
+	}
+}
+
 
 
 int main(void) {
@@ -109,6 +129,8 @@ int main(void) {
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
     cout << "number generated";
+
+
 
 
     float h_randomData[N_PATHS * N_STEPS];
