@@ -185,7 +185,7 @@ int main(void) {
 
 
 
-	c_cuda = (int *)malloc(length * sizeof(float));
+	c_cuda = (float *)malloc(length * sizeof(float));
 
 	// device memory allocation
 
