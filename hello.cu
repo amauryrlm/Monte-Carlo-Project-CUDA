@@ -121,19 +121,17 @@ int main(void) {
 
 
     float *d_optionPriceGPU;
-    testCUDA(cudaMalloc(&h_optionPriceGPU,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
 
-    simulateOptionPrice<<<1, 256>>>( h_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    simulateOptionPrice<<<1, 256>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
 
     float *h_optionPriceGPU = new float[N_PATHS];
-    test(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyHostToDevice));
+    testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyHostToDevice));
     float mean_priceGPU = 0.0f;
     for(int i = 0; i<N_PATHS; i++){
         mean_priceGPU += h_optionPriceGPU[i];
     }
     cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
-
-    testCUDA()
 
 
     testCUDA(cudaFree(d_randomData));
