@@ -18,6 +18,15 @@ void testCUDA(cudaError_t error, const char *file, int line) {
     }
 }
 
+
+__global__ void initializeArray(float *arr, int n, float value) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < n) {
+        arr[idx] = value;
+    }
+}
+
+
 // Has to be defined in the compilation in order to get the correct value of the
 // macros __FILE__ and __LINE__
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
@@ -128,6 +137,7 @@ int main(void) {
     testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
     testCUDA(cudaMemset(d_optionPriceGPU, 6.0, N_PATHS * sizeof(float)));
 
+    initializeArray<<<1, N_PATHS>>>(d_optionPriceGPU, N_PATHS, 6.0f);
 
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
