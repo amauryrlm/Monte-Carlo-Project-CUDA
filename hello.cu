@@ -141,7 +141,6 @@ int main(void) {
     a = (float *)malloc(N_PATHS * sizeof(float));
     float *d_a;
     testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
-    cudaMemcpy(d_a, a, N_PATHS * sizeof(int), cudaMemcpyHostToDevice);
 
     simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaDeviceSynchronize();
