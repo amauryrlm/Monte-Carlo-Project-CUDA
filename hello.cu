@@ -82,9 +82,9 @@ int main(void) {
 
     // create generator all fill array with generated values
     curandGenerator_t gen;
-    testCUDA(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
-    testCUDA(curandSetPseudoRandomGeneratorSeed(gen, 1234ULL));
-    testCUDA(curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0));
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
+    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
         cout << "number generated";
 
