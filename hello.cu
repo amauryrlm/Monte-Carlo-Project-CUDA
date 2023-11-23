@@ -8,6 +8,7 @@
 #include "Xoshiro.hpp"
 #include  "pricinghost.hpp"
 #include <random>
+#include <curand.h>
 
 
 
@@ -20,8 +21,8 @@ __global__ void myKernel(void) {
 int main(void) {
 
 // declare variables and constants
-    const size_t N_PATHS = 5;
-    const size_t N_STEPS = 1;
+    const size_t N_PATHS = 10;
+    const size_t N_STEPS = 100;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -45,6 +46,9 @@ int main(void) {
     // cout << "G : " << G;
 
 
+
+
+
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
@@ -53,7 +57,32 @@ int main(void) {
             St *= exp((r - (sigma*sigma)/2)*step + sigma * sqrt(step) * G);
             cout << "St : " << St << endl;
         }
+        s[i] = St;
     }
+
+    // generate random numbers using curand
+
+    //allocate array filled with random values 
+    float *d_randomData;
+    cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
+
+    // create generator all fill array with generated values
+    curandGenerator_t gen;
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
+    curandGenerateNormal(gen, d_randomData, N, 0.0, 1.0);
+
+
+    float h_randomData[N];
+    cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
+
+    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+        cout << "random  : " << d_randomData[i] << endl;
+    }
+
+
+    cudaFree(d_randomData);
+    curandDestroyGenerator(gen);
 
 	return 0;
 }
