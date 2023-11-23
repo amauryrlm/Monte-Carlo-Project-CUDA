@@ -174,7 +174,7 @@ int main(void) {
     //     cout << "GPU St : " << a[i] << endl;
     // }
 
-	// Variables definition
+// Variables definition
 	int *a, *b, *c, *c_cuda;
 	int *d_a, *d_b, *d_c;
 	int i;
@@ -192,9 +192,9 @@ int main(void) {
 
 	// device memory allocation
 
-	testCUDA(cudaMalloc((void **)&d_a, length * sizeof(int)));
-	testCUDA(cudaMalloc((void **)&d_b, length * sizeof(int)));
-	testCUDA(cudaMalloc((void **)&d_c, length * sizeof(int)));
+	cudaMalloc((void **)&d_a, length * sizeof(int));
+	cudaMalloc((void **)&d_b, length * sizeof(int));
+	cudaMalloc((void **)&d_c, length * sizeof(int));
 
 	
 	// Setting value
@@ -204,29 +204,34 @@ int main(void) {
 		b[i] = 9 * i;
 	}
 
-	testCUDA(cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice));
-	testCUDA(cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice));
+	cudaMemcpy(d_a, a, length * sizeof(int), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_b, b, length * sizeof(int), cudaMemcpyHostToDevice);
 
 
 
 	// Executing the addition
 	addVect(a, b, c, length);
 
+	Tim.add(); // CPU timer instructions
+	int nbBlock = (length + 1024 - 1) / 1024;
+	int nbthread = 1024;
 
+	cudaAdd<<<nbBlock, nbthread>>>(d_a, d_b, d_c, length);
 
+	cudaEventRecord(end);
 
-	cudaAdd<<<1, length>>>(d_a, d_b, d_c, length);
-
-
-	testCUDA(cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost));
-
+	cudaMemcpy(c_cuda, d_c, length * sizeof(int), cudaMemcpyDeviceToHost);
+	cudaEventSynchronize();
 	// Displaying the results to check the correctness
 	for (int i = 0; i < length; i++)
 	{
 
-		cout << "c " << c_cuda[i];
+		printf("%f",c_cuda[i]);
 
 	}
+
+
+
 
 
 
@@ -237,7 +242,7 @@ int main(void) {
 	cudaFree(d_a);
 	cudaFree(d_b);
 	cudaFree(d_c);
-
+	return 0;
 
     // float *d_optionPriceGU;
     // testCUDA(cudaMalloc(&d_optionPriceGPU,N_PATHS*sizeof(float)));
