@@ -213,22 +213,7 @@ int main(void) {
         // cout << "S " << St << endl;
         // cout << i << endl;
     }
-    cout << "paths calculated" << endl;
-    cout << "mean paths : " << countt/N_PATHS << endl;
 
-    const int arraySize = 5;
-    const int a[arraySize] = { 1, 2, 3, 4, 5 };
-    const int b[arraySize] = { 10, 20, 30, 40, 50 };
-    int c[arraySize] = { 0 };
-
-    // Add vectors in parallel.
-    addWithCuda(c, a, b, arraySize);
-
-    // Print the result.
-    printf("Result:\n");
-    for(int i = 0; i < arraySize; i++) {
-        printf("%d + %d = %d\n", a[i], b[i], c[i]);
-    }
 
 
 
@@ -239,19 +224,19 @@ int main(void) {
 
 
 
-    // float *a;
-    // a = (float *)malloc(N_PATHS * sizeof(float));
-    // float *d_a;
-    // testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
+    float *a;
+    a = (float *)malloc(N_PATHS * sizeof(float));
+    float *d_a;
+    testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
 
-    // simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // cudaDeviceSynchronize();
+    simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    cudaDeviceSynchronize();
 
-    // cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    // cudaDeviceSynchronize();
-    // for(int i = 0; i<N_PATHS; i++){
-    //     cout << "GPU St : " << a[i] << endl;
-    // }
+    cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    for(int i = 0; i<N_PATHS; i++){
+        cout << "GPU St : " << a[i] << endl;
+    }
 
 
 
