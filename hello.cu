@@ -89,16 +89,16 @@ int main(void) {
         cout << "number generated";
 
 
-    // float h_randomData[N_PATHS * N_STEPS];
-    // cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
+    float h_randomData[N_PATHS * N_STEPS];
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
-    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-    //     cout << "random  : " << d_randomData[i] << endl;
-    // }
+    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+        cout << "random  : " << d_randomData[i] << endl;
+    }
 
 
-    // cudaFree(d_randomData);
-    // curandDestroyGenerator(gen);
+    testCUDA(cudaFree(d_randomData));
+    testCUDA(curandDestroyGenerator(gen));
 
 	return 0;
 }
