@@ -18,13 +18,35 @@ void testCUDA(cudaError_t error, const char *file, int line) {
     }
 }
 
+void addWithCuda(int *c, const int *a, const int *b, int size) {
+    int *dev_a = 0;
+    int *dev_b = 0;
+    int *dev_c = 0;
 
-__global__ void setValuesKernel(float *arr, float value, int n) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < n) {
-        arr[idx] = value;
-    }
+    // Allocate GPU buffers for three vectors (two input, one output).
+    cudaMalloc((void**)&dev_c, size * sizeof(int));
+    cudaMalloc((void**)&dev_a, size * sizeof(int));
+    cudaMalloc((void**)&dev_b, size * sizeof(int));
+
+    // Copy input vectors from host memory to GPU buffers.
+    cudaMemcpy(dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice);
+
+    // Launch a kernel on the GPU with one thread for each element.
+    addKernel<<<1, size>>>(dev_c, dev_a, dev_b, size);
+
+    // Copy output vector from GPU buffer to host memory.
+    cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
+
+    // Cleanup.
+    cudaFree(dev_c);
+    cudaFree(dev_a);
+    cudaFree(dev_b);
 }
+
+
+
+
 
 
 
@@ -53,25 +75,11 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
     }
 }
 
-
-void addVect(int *a, int *b, int *c, int length)
-{
-
-	int i;
-
-	for (i = 0; i < length; i++)
-	{
-		c[i] = a[i] + b[i];
-	}
-}
-
-__global__ void cudaAdd(int *d_a, int *d_b, int *d_c, int length)
-{
-	int indice = threadIdx.x + blockIdx.x * blockDim.x;
-	if (indice < length)
-	{
-		d_c[indice] = d_a[indice] + d_b[indice];
-	}
+__global__ void addKernel(int *c, const int *a, const int *b, int size) {
+    int i = threadIdx.x;
+    if (i < size) {
+        c[i] = a[i] + b[i];
+    }
 }
 
 
@@ -154,25 +162,42 @@ int main(void) {
     cout << "paths calculated" << endl;
     cout << "mean paths : " << count/N_PATHS << endl;
 
+    const int arraySize = 5;
+    const int a[arraySize] = { 1, 2, 3, 4, 5 };
+    const int b[arraySize] = { 10, 20, 30, 40, 50 };
+    int c[arraySize] = { 0 };
+
+    // Add vectors in parallel.
+    addWithCuda(c, a, b, arraySize);
+
+    // Print the result.
+    printf("Result:\n");
+    for(int i = 0; i < arraySize; i++) {
+        printf("%d + %d = %d\n", a[i], b[i], c[i]);
+    }
+
+
 
 
     // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     // cudaDeviceSynchronize();
 
 
-    float *a;
-    a = (float *)malloc(N_PATHS * sizeof(float));
-    float *d_a;
-    testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
 
-    simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    cudaDeviceSynchronize();
 
-    cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
-    for(int i = 0; i<N_PATHS; i++){
-        cout << "GPU St : " << a[i] << endl;
-    }
+    // float *a;
+    // a = (float *)malloc(N_PATHS * sizeof(float));
+    // float *d_a;
+    // testCUDA(cudaMalloc((void **)&d_a,N_PATHS*sizeof(float)));
+
+    // simulateOptionPrice<<<1, N_PATHS>>>( d_a,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // cudaDeviceSynchronize();
+
+    // cudaMemcpy(a, d_a, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    // cudaDeviceSynchronize();
+    // for(int i = 0; i<N_PATHS; i++){
+    //     cout << "GPU St : " << a[i] << endl;
+    // }
 
 
 
