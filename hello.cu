@@ -165,6 +165,39 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
 // }
 
 int main() {
+
+    int deviceCount;
+
+    // Initialize CUDA and get the number of CUDA devices (GPUs)
+    cudaError_t cudaStatus = cudaGetDeviceCount(&deviceCount);
+
+    if (cudaStatus != cudaSuccess) {
+        std::cerr << "cudaGetDeviceCount failed: " << cudaGetErrorString(cudaStatus) << std::endl;
+        return 1;
+    }
+
+    std::cout << "Number of CUDA devices (GPUs) found: " << deviceCount << std::endl;
+
+    for (int deviceId = 0; deviceId < deviceCount; ++deviceId) {
+        cudaDeviceProp deviceProp;
+        
+        // Get and print the properties of each GPU
+        cudaStatus = cudaGetDeviceProperties(&deviceProp, deviceId);
+
+        if (cudaStatus != cudaSuccess) {
+            std::cerr << "cudaGetDeviceProperties failed for device " << deviceId << ": "
+                      << cudaGetErrorString(cudaStatus) << std::endl;
+            return 1;
+        }
+
+        std::cout << "GPU " << deviceId << " Properties:" << std::endl;
+        std::cout << "  Name: " << deviceProp.name << std::endl;
+        std::cout << "  Total Global Memory: " << (deviceProp.totalGlobalMem / (1024 * 1024 * 1024.0)) << " GB" << std::endl;
+        std::cout << "  Compute Capability: " << deviceProp.major << "." << deviceProp.minor << std::endl;
+        std::cout << "  Number of SMs (Multiprocessors): " << deviceProp.multiProcessorCount << std::endl;
+        std::cout << "  Clock Rate: " << (deviceProp.clockRate / 1000.0) << " MHz" << std::endl;
+        std::cout << std::endl;
+    }
     const int N = 1024; // Size of the array
     const float valueToSet = 5.0f; // Value to set in the array
 
