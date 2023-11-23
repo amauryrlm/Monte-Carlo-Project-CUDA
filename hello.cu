@@ -63,29 +63,29 @@ int main(void) {
         cout << i << endl;
     }
     cout << "paths calculated";
-    // generate random numbers using curand
+    // // generate random numbers using curand
 
-    //allocate array filled with random values 
-    float *d_randomData;
-    cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
+    // //allocate array filled with random values 
+    // float *d_randomData;
+    // cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
 
-    // create generator all fill array with generated values
-    curandGenerator_t gen;
-    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
-    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
-    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-
-
-    float h_randomData[N_PATHS * N_STEPS];
-    cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
-
-    for(int i = 0; i < N_PATHS * N_STEPS; i++) {
-        cout << "random  : " << d_randomData[i] << endl;
-    }
+    // // create generator all fill array with generated values
+    // curandGenerator_t gen;
+    // curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    // curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
+    // curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
 
-    cudaFree(d_randomData);
-    curandDestroyGenerator(gen);
+    // float h_randomData[N_PATHS * N_STEPS];
+    // cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
+
+    // for(int i = 0; i < N_PATHS * N_STEPS; i++) {
+    //     cout << "random  : " << d_randomData[i] << endl;
+    // }
+
+
+    // cudaFree(d_randomData);
+    // curandDestroyGenerator(gen);
 
 	return 0;
 }
