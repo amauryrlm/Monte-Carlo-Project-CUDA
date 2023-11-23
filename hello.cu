@@ -79,7 +79,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
         __shared__ float sdata[1024];
 
         // Load input into shared memory
-        sdata[tid] = (idx < N_THREADS) ? St : 0;
+        sdata[tid] = (idx < N_PATHS) ? St : 0;
         __syncthreads();
 
         // Perform reduction in shared memory
@@ -201,7 +201,7 @@ int main(void) {
     cout << "Average CPU : " << countt/N_PATHS << endl;
 
 
-    float *h_optionPriceGPU, output;
+    float *h_optionPriceGPU, *output;
     h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
     output = (float *)malloc(sizeof(float));
     float *d_optionPriceGPU, *d_output;
