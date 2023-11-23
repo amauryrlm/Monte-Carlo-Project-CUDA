@@ -159,13 +159,7 @@ int main(void) {
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 1.0);
 
-    cout << "step : " << step << endl;
     G = distribution(generator);
-    // cout << "G : " << G;
-
-
-
-
 
 
     // generate random numbers using curand
@@ -205,7 +199,7 @@ int main(void) {
     }
     cout << endl;
 
-    cout << "Average CPU : " << countt << endl;
+    cout << "Average CPU : " << countt << endl << endl;
 
 
     float *h_optionPriceGPU, *output;
@@ -227,8 +221,9 @@ int main(void) {
     for(int i = 0; i<N_PATHS; i++){
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
+    cout << endl;
 
-    cout << "Average" << output[0];
+    cout << "Average GPU" << output[0] ;
 
 
 
