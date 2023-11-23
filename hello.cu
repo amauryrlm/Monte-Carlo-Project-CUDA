@@ -151,7 +151,7 @@ int main(void) {
     float *h_optionPriceGPU = new float[N_PATHS];
     testCUDA(cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU,N_PATHS*sizeof(float),cudaMemcpyDeviceToHost));
 
-    for(int i = 0; i<N_PATHS; i++){è
+    for(int i = 0; i<N_PATHS; i++){
         cout << "GPU St : " << h_optionPriceGPU[i] << endl;
     }
     // cout << "mean paths GPU : " << mean_priceGPU/N_PATHS << endl;
