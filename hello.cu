@@ -174,7 +174,7 @@ int main(void) {
     curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
 
-    cout << "number generated" << endl;
+    cout << endl << "number generated" << endl;
 
 
 
@@ -223,7 +223,7 @@ int main(void) {
     }
     cout << endl;
 
-    cout << "Average GPU" << output[0] ;
+    cout << "Average GPU " << output[0] ;
 
 
 
