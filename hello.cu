@@ -75,28 +75,28 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
 
         d_optionPriceGPU[idx] = St;
 
-        // Shared memory for the block
-        __shared__ float sdata[10];
+    // Shared memory for the block
+    __shared__ float sdata[1024];
 
-        // Load input into shared memory
-        sdata[tid] = (idx < N_PATHS) ? St : 0;
+    // Load input into shared memory
+    sdata[tid] = (idx < N_PATHS) ? St : 0;
+    __syncthreads();
+
+    // Perform reduction in shared memory
+    for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
+        if (tid < s) {
+            sdata[tid] += sdata[tid + s];
+        }
         __syncthreads();
+    }
 
-        // // Perform reduction in shared memory
-        // for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
-        //     if (tid < s) {
-        //         sdata[tid] += sdata[tid + s];
-        //     }
-        //     __syncthreads();
-        // }
-
-        // Write result for this block to output
-        if (tid == 0){
-            for(int i=0; i< N_PATHS; i++){
-                output[i] = sdata[i];
-            }
-            
-        } 
+    // Write result for this block to output
+    if (tid == 0){
+        for(int i=0; i< N_PATHS; i++){
+            output[i] = sdata[i];
+        }
+        
+    } 
         
         
     }
