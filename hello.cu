@@ -187,19 +187,13 @@ __global__ void BlackScholesGPU(
 
 void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS, unsigned long long seed = 1234ULL){
 
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
-
     // create generator all fill array with generated values
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-
     cout << endl << "number generated" << endl;
-
-    h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-
     cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 
@@ -341,6 +335,8 @@ int main(void) {
 
     // G = distribution(generator);
     float *d_randomData, *h_randomData;
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
 
