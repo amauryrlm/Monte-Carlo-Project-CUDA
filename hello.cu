@@ -201,7 +201,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
-    testCUDA(curandDestroyGenerator(gen));
+    curandDestroyGenerator(gen);
 
 }
 
