@@ -355,7 +355,7 @@ int main(void) {
 
     cout << endl;
 
-    cout << "Average CPU : " << optionPriceCPU[0] << endl << endl;
+    cout << "Average CPU : " << optionPriceCPU << endl << endl;
 
 
     // // float *h_optionPriceGPU, *output;
