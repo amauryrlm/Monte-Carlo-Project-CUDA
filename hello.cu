@@ -359,7 +359,6 @@ int main(void) {
         }
         s[i] = max(St - K, 0.0f);
         countt += max(St - K, 0.0f);
-        cout << "St : " << St << endl ;
     }
     cout << endl;
 
