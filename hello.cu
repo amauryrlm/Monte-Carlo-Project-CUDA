@@ -191,7 +191,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS, unsigned long long seed = 1234ULL){
 
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
 
     // create generator all fill array with generated values
     curandGenerator_t gen;
@@ -202,7 +202,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     cout << endl << "number generated" << endl;
 
     h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
-    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
 
     cout << "host copied" << endl;
     curandDestroyGenerator(gen);
