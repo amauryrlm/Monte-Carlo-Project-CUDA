@@ -343,10 +343,10 @@ int main(void) {
 
 
 
-    // float h_randomData[N_PATHS * N_STEPS];
-    // testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    float h_randomData[N_PATHS * N_STEPS];
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
-    // cout << "host copied" << endl;
+    cout << "host copied" << endl;
 
 
     // float countt = 0.0f;
