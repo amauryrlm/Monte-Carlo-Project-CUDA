@@ -205,6 +205,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
+    curandDestroyGenerator(gen);
 
 }
 
@@ -340,7 +341,7 @@ int main(void) {
 
     getDeviceProperty();
 
-    // float G = 0.0f;
+    float G = 0.0f;
     // std::default_random_engine generator;
     // std::normal_distribution<double> distribution(0.0, 1.0);
 
@@ -396,7 +397,7 @@ int main(void) {
 
 
     testCUDA(cudaFree(d_randomData));
-    curandDestroyGenerator(gen);
+
 
 	return 0;
 }
