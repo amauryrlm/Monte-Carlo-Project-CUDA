@@ -389,9 +389,9 @@ int main(void) {
     float callResult = 0.0f;
     float putResult = 0.0f;
 
-    BlackScholesBodyCPU(&callResult,&putResult,K, S0, T, r,  sigma);
+    BlackScholesBodyCPU(callResult,putResult,K, S0, T, r,  sigma);
     
-    cout << "call BS" << *callResult << endl;
+    cout << "call BS" << callResult << endl;
 
 
 
