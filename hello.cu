@@ -304,7 +304,7 @@ void getDeviceProperty(){
 
 }
 
-void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r){
+void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r, float K, float dt){
     float G;
     float countt = 0.0f;
     for(int i=0; i<N_PATHS;i++){
@@ -314,7 +314,6 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
-        s[i] = max(St - K, 0.0f);
         countt += max(St - K, 0.0f);
     }
     *optionPriceCPU = countt/N_PATHS;
@@ -351,7 +350,7 @@ int main(void) {
 
     cout << "random  " << h_randomData[0] << endl;
     
-    simulateOptionPriceCPU(optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r);
+    simulateOptionPriceCPU(optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r, K, dt);
 
     cout << endl;
 
