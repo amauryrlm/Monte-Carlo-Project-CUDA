@@ -13,7 +13,16 @@
 
 #include <math.h>
 using namespace std;
-
+// Function that catches the error
+void testCUDA(cudaError_t error, const char *file, int line) {
+    if (error != cudaSuccess) {
+        printf("There is an error in file %s at line %d\n", file, line);
+        exit(EXIT_FAILURE);
+    }
+}
+// Has to be defined in the compilation in order to get the correct value of the
+// macros __FILE__ and __LINE__
+#define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
 ///////////////////////////////////////////////////////////////////////////////
 // Polynomial approximation of cumulative normal distribution function
@@ -174,24 +183,11 @@ __global__ void BlackScholesGPU(
 }
 
 
-__global__ void addKernel(int *c, const int *a, const int *b, int size) {
-    int i = threadIdx.x;
-    if (i < size) {
-        c[i] = a[i] + b[i];
-    }
-}
 
-// Function that catches the error
-void testCUDA(cudaError_t error, const char *file, int line) {
-    if (error != cudaSuccess) {
-        printf("There is an error in file %s at line %d\n", file, line);
-        exit(EXIT_FAILURE);
-    }
-}
 
 void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS, unsigned long long seed = 1234ULL){
 
-    cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float));
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
 
     // create generator all fill array with generated values
     curandGenerator_t gen;
@@ -202,10 +198,10 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     cout << endl << "number generated" << endl;
 
     h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
-    cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost);
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
-    curandDestroyGenerator(gen);
+    testCUDA(curandDestroyGenerator(gen));
 
 }
 
@@ -218,9 +214,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
 
 
-// Has to be defined in the compilation in order to get the correct value of the
-// macros __FILE__ and __LINE__
-#define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
+
 
 
 
