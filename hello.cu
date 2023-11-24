@@ -386,7 +386,8 @@ int main(void) {
     cout << endl;
 
     cout << "Average GPU " << output[0] ;
-    float *callResult, *putResult;
+    float callResult = 0.0f;
+    float putResult = 0.0f;
 
     BlackScholesBodyCPU(&callResult,&putResult,K, S0, T, r,  sigma);
     
