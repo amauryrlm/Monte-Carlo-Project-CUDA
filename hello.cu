@@ -343,7 +343,7 @@ int main(void) {
 
 
 
-    float h_randomData[N_PATHS * N_STEPS];
+    float h_randomData = malloc(N_PATHS * N_STEPS*sizeof(float));
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
