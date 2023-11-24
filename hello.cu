@@ -303,7 +303,7 @@ int main(void) {
     printf("Do we have ECC memory? %d\n", prop.ECCEnabled);
 
 // declare variables and constants
-    const size_t N_PATHS = 1000000;
+    const size_t N_PATHS = 100000;
     const size_t N_STEPS = 1000;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
