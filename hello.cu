@@ -304,7 +304,7 @@ int main(void) {
 
 // declare variables and constants
     const size_t N_PATHS = 1024;
-    const size_t N_STEPS = 1000;
+    const size_t N_STEPS = 1000000;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -365,26 +365,26 @@ int main(void) {
     cout << "Average CPU : " << countt/N_PATHS << endl << endl;
 
 
-    float *h_optionPriceGPU, *output;
-    h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
-    output = (float *)malloc(sizeof(float));
-    float *d_optionPriceGPU, *d_output;
+    // float *h_optionPriceGPU, *output;
+    // h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
+    // output = (float *)malloc(sizeof(float));
+    // float *d_optionPriceGPU, *d_output;
 
-    testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
+    // testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
+    // testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    cudaDeviceSynchronize();
+    // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // cudaDeviceSynchronize();
 
 
-    cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
+    // cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    // cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    // cudaDeviceSynchronize();
 
-    cout << endl;
+    // cout << endl;
 
-    cout << "Average GPU " << output[0]/ N_PATHS << endl ;
+    // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
     float callResult = 0.0f;
     float putResult = 0.0f;
 
