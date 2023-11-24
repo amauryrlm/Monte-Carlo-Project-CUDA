@@ -218,7 +218,7 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
         }
         
         // // Calculate the payoff
-        d_optionPriceGPU[idx] = max(St - K, 0);
+        d_optionPriceGPU[idx] = max(St - K, 0.0f);
 
 
     }
@@ -239,7 +239,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         }
 
-        d_optionPriceGPU[idx] = max(St - K,0);
+        d_optionPriceGPU[idx] = max(St - K,0.0f);
 
     // Shared memory for the block
     __shared__ float sdata[1024];
