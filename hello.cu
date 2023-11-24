@@ -12,7 +12,7 @@
 
 
 #include <math.h>
-
+namespace std;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,6 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
 
-using namespace std;
 
 __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
