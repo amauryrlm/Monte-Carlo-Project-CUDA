@@ -324,8 +324,8 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 100000;
-    const size_t N_STEPS = 1000;
+    const size_t N_PATHS = 10;
+    const size_t N_STEPS = 10;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -349,19 +349,20 @@ int main(void) {
     float *d_randomData, *h_randomData;
     generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
-
-
-    float countt = 0.0f;
-    for(int i=0; i<N_PATHS;i++){
-        float St = S0;
-        for(int j=0; j<N_STEPS; j++){
-            G = h_randomData[i*j];
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            
-        }
-        s[i] = max(St - K, 0.0f);
-        countt += max(St - K, 0.0f);
+    for (int i = 0; i<N_PATHS*N_STEPS; i++){
+        cout << "random  " << h_randomData[i] << endl;
     }
+    // float countt = 0.0f;
+    // for(int i=0; i<N_PATHS;i++){
+    //     float St = S0;
+    //     for(int j=0; j<N_STEPS; j++){
+    //         G = h_randomData[i*j];
+    //         St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+            
+    //     }
+    //     s[i] = max(St - K, 0.0f);
+    //     countt += max(St - K, 0.0f);
+    // }
     cout << endl;
 
     cout << "Average CPU : " << countt/N_PATHS << endl << endl;
