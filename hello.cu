@@ -349,7 +349,8 @@ int main(void) {
 
 
     cout << "random  " << h_randomData[0] << endl;
-    
+
+    float *optionPriceCPU;
     simulateOptionPriceCPU(optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r, K, dt);
 
     cout << endl;
