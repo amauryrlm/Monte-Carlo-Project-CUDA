@@ -318,84 +318,84 @@ int main(void) {
 
     vector<float> s(N_PATHS);
 
-    float step = 1.0f / N_STEPS;
-    float G = 0.0f;
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 1.0);
+    // float step = 1.0f / N_STEPS;
+    // float G = 0.0f;
+    // std::default_random_engine generator;
+    // std::normal_distribution<double> distribution(0.0, 1.0);
 
-    G = distribution(generator);
-
-
-    // generate random numbers using curand
-
-    //allocate array filled with random values 
-    float *d_randomData;
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
-
-    // create generator all fill array with generated values
-    curandGenerator_t gen;
-    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
-    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
-    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-
-    cout << endl << "number generated" << endl;
+    // G = distribution(generator);
 
 
+    // // generate random numbers using curand
+
+    // //allocate array filled with random values 
+    // float *d_randomData;
+    // testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+
+    // // create generator all fill array with generated values
+    // curandGenerator_t gen;
+    // curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    // curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
+    // curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
+
+    // cout << endl << "number generated" << endl;
 
 
-    float h_randomData[N_PATHS * N_STEPS];
-    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-
-    cout << "host copied" << endl;
 
 
-    float countt = 0.0f;
-    for(int i=0; i<N_PATHS;i++){
-        float St = S0;
-        for(int j=0; j<N_STEPS; j++){
-            G = h_randomData[i*j];
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+    // float h_randomData[N_PATHS * N_STEPS];
+    // testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // cout << "host copied" << endl;
+
+
+    // float countt = 0.0f;
+    // for(int i=0; i<N_PATHS;i++){
+    //     float St = S0;
+    //     for(int j=0; j<N_STEPS; j++){
+    //         G = h_randomData[i*j];
+    //         St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
-        }
-        s[i] = max(St - K, 0.0f);
-        countt += max(St - K, 0.0f);
-    }
-    cout << endl;
-
-    cout << "Average CPU : " << countt/N_PATHS << endl << endl;
-
-
-    // float *h_optionPriceGPU, *output;
-    // h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
-    // output = (float *)malloc(sizeof(float));
-    // float *d_optionPriceGPU, *d_output;
-
-    // testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    // testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
-
-    // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // cudaDeviceSynchronize();
-
-
-    // cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    // cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
-    // cudaDeviceSynchronize();
-
+    //     }
+    //     s[i] = max(St - K, 0.0f);
+    //     countt += max(St - K, 0.0f);
+    // }
     // cout << endl;
 
-    // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
-    float callResult = 0.0f;
-    float putResult = 0.0f;
+    // cout << "Average CPU : " << countt/N_PATHS << endl << endl;
 
-    BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
+
+    // // float *h_optionPriceGPU, *output;
+    // // h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
+    // // output = (float *)malloc(sizeof(float));
+    // // float *d_optionPriceGPU, *d_output;
+
+    // // testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
+    // // testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
+
+    // // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // // simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // // cudaDeviceSynchronize();
+
+
+    // // cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    // // cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    // // cudaDeviceSynchronize();
+
+    // // cout << endl;
+
+    // // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
+    // float callResult = 0.0f;
+    // float putResult = 0.0f;
+
+    // BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
     
-    cout << "call BS" << callResult << endl;
+    // cout << "call BS" << callResult << endl;
 
 
 
-    testCUDA(cudaFree(d_randomData));
-    curandDestroyGenerator(gen);
+    // testCUDA(cudaFree(d_randomData));
+    // curandDestroyGenerator(gen);
 
 	return 0;
 }
