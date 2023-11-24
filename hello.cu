@@ -189,6 +189,25 @@ void testCUDA(cudaError_t error, const char *file, int line) {
     }
 }
 
+void generateRandomArray(float *d_randomData, float *h_randomData, N_PATHS, N_STEPS, seed = 1234ULL){
+
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+
+    // create generator all fill array with generated values
+    curandGenerator_t gen;
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(gen, seed);
+    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
+
+    cout << endl << "number generated" << endl;
+
+    float *h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+
+    cout << "host copied" << endl;
+
+}
+
 
 
 
@@ -265,17 +284,10 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
         
         
 }
-
-
-
-
-
-
-int main(void) {
+void getDeviceProperty(){
 
     int count;
     cudaDeviceProp prop;
-    
     cudaGetDeviceCount(&count);
     printf("The number of devices available is %i GPUs \n", count);
     cudaGetDeviceProperties(&prop, count-1);
@@ -302,6 +314,15 @@ int main(void) {
     printf("Can we launch concurrent kernels? %d\n", prop.concurrentKernels);
     printf("Do we have ECC memory? %d\n", prop.ECCEnabled);
 
+}
+
+
+
+
+int main(void) {
+
+
+
 // declare variables and constants
     const size_t N_PATHS = 100000;
     const size_t N_STEPS = 1000;
@@ -318,35 +339,16 @@ int main(void) {
 
     vector<float> s(N_PATHS);
 
-    float step = 1.0f / N_STEPS;
-    float G = 0.0f;
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 1.0);
+    getDeviceProperty();
 
-    G = distribution(generator);
+    // float G = 0.0f;
+    // std::default_random_engine generator;
+    // std::normal_distribution<double> distribution(0.0, 1.0);
 
+    // G = distribution(generator);
+    float *d_randomData, *h_randomData;
+    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
-    // generate random numbers using curand
-
-    //allocate array filled with random values 
-    float *d_randomData;
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
-
-    // create generator all fill array with generated values
-    curandGenerator_t gen;
-    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
-    curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
-    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-
-    cout << endl << "number generated" << endl;
-
-
-
-
-    float *h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
-    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-
-    cout << "host copied" << endl;
 
 
     float countt = 0.0f;
