@@ -349,20 +349,20 @@ int main(void) {
     cout << "host copied" << endl;
 
 
-    // float countt = 0.0f;
-    // for(int i=0; i<N_PATHS;i++){
-    //     float St = S0;
-    //     for(int j=0; j<N_STEPS; j++){
-    //         G = h_randomData[i*j];
-    //         St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+    float countt = 0.0f;
+    for(int i=0; i<N_PATHS;i++){
+        float St = S0;
+        for(int j=0; j<N_STEPS; j++){
+            G = h_randomData[i*j];
+            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
-    //     }
-    //     s[i] = max(St - K, 0.0f);
-    //     countt += max(St - K, 0.0f);
-    // }
-    // cout << endl;
+        }
+        s[i] = max(St - K, 0.0f);
+        countt += max(St - K, 0.0f);
+    }
+    cout << endl;
 
-    // cout << "Average CPU : " << countt/N_PATHS << endl << endl;
+    cout << "Average CPU : " << countt/N_PATHS << endl << endl;
 
 
     // // float *h_optionPriceGPU, *output;
@@ -384,18 +384,18 @@ int main(void) {
 
     // // cout << endl;
 
-    // // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
-    // float callResult = 0.0f;
-    // float putResult = 0.0f;
+    // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
+    float callResult = 0.0f;
+    float putResult = 0.0f;
 
-    // BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
+    BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
     
-    // cout << "call BS" << callResult << endl;
+    cout << "call BS" << callResult << endl;
 
 
 
-    // testCUDA(cudaFree(d_randomData));
-    // curandDestroyGenerator(gen);
+    testCUDA(cudaFree(d_randomData));
+    curandDestroyGenerator(gen);
 
 	return 0;
 }
