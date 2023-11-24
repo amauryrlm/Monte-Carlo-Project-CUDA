@@ -201,7 +201,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
     cout << endl << "number generated" << endl;
 
-    float *h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
+    h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
     cout << "host copied" << endl;
