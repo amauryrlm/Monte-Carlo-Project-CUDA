@@ -365,7 +365,7 @@ int main(void) {
     // }
     cout << endl;
 
-    cout << "Average CPU : " << countt/N_PATHS << endl << endl;
+    // cout << "Average CPU : " << countt/N_PATHS << endl << endl;
 
 
     // // float *h_optionPriceGPU, *output;
