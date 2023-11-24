@@ -212,7 +212,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
 
 
-__global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
+__global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx < N_PATHS) {
@@ -233,7 +233,7 @@ __global__ void simulateOptionPrice(float *d_optionPriceGPU, float K, float r, f
 
 //for one block
 
-__global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
+__global__ void simulateOptionPriceGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     
@@ -304,7 +304,21 @@ void getDeviceProperty(){
 
 }
 
-
+void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r){
+    float G;
+    float countt = 0.0f;
+    for(int i=0; i<N_PATHS;i++){
+        float St = S0;
+        for(int j=0; j<N_STEPS; j++){
+            G = h_randomData[i*j];
+            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+            
+        }
+        s[i] = max(St - K, 0.0f);
+        countt += max(St - K, 0.0f);
+    }
+    *optionPriceCPU = countt/N_PATHS;
+}
 
 
 int main(void) {
@@ -324,16 +338,11 @@ int main(void) {
     const float r = 0.05f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
-
     vector<float> s(N_PATHS);
 
     getDeviceProperty();
 
-    float G = 0.0f;
-    // std::default_random_engine generator;
-    // std::normal_distribution<double> distribution(0.0, 1.0);
 
-    // G = distribution(generator);
     float *d_randomData, *h_randomData;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
@@ -342,20 +351,11 @@ int main(void) {
 
     cout << "random  " << h_randomData[0] << endl;
     
-    // float countt = 0.0f;
-    // for(int i=0; i<N_PATHS;i++){
-    //     float St = S0;
-    //     for(int j=0; j<N_STEPS; j++){
-    //         G = h_randomData[i*j];
-    //         St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            
-    //     }
-    //     s[i] = max(St - K, 0.0f);
-    //     countt += max(St - K, 0.0f);
-    // }
+    simulateOptionPriceCPU(optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r);
+
     cout << endl;
 
-    // cout << "Average CPU : " << countt/N_PATHS << endl << endl;
+    cout << "Average CPU : " << *optionPriceCPU << endl << endl;
 
 
     // // float *h_optionPriceGPU, *output;
@@ -366,8 +366,8 @@ int main(void) {
     // // testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
     // // testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    // // simulateOptionPrice<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // // simulateOptionPriceSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // // simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     // // cudaDeviceSynchronize();
 
 
