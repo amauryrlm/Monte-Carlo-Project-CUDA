@@ -239,7 +239,7 @@ __global__ void simulateOptionPriceSumReduce(float *d_optionPriceGPU, float K, f
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         }
 
-        d_optionPriceGPU[idx] = max(St - K,0.0f);
+        St = max(St - K,0.0f);
 
     // Shared memory for the block
     __shared__ float sdata[1024];
@@ -357,13 +357,13 @@ int main(void) {
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
-        s[i] = St;
+        s[i] = max(St - K, 0.0f);
         countt += St;
         cout << "St : " << St << endl ;
     }
     cout << endl;
 
-    cout << "Average CPU : " << countt << endl << endl;
+    cout << "Average CPU : " << countt/N_PATHS << endl << endl;
 
 
     float *h_optionPriceGPU, *output;
@@ -385,7 +385,7 @@ int main(void) {
 
     cout << endl;
 
-    cout << "Average GPU " << output[0] ;
+    cout << "Average GPU " << output[0]/ N_PATHS << endl ;
     float callResult = 0.0f;
     float putResult = 0.0f;
 
