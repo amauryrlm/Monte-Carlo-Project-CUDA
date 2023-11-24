@@ -343,9 +343,9 @@ int main(void) {
     float *d_randomData, *h_randomData;
     generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
-    for (int i = 0; i<N_PATHS*N_STEPS; i++){
-        cout << "random  " << h_randomData[i] << endl;
-    }
+
+    cout << "random  " << h_randomData[0] << endl;
+    
     // float countt = 0.0f;
     // for(int i=0; i<N_PATHS;i++){
     //     float St = S0;
