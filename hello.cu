@@ -283,7 +283,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
     float sum = 0.0f;
     
     if(idx < N_PATHS) {
-        sdata[idx] = 0.0f;
+        sdata[tid] = 0.0f;
 
         while(idx < N_PATHS){
             float St = S0;
@@ -374,7 +374,7 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 100000;
+    const size_t N_PATHS = 1000;
     const size_t N_STEPS = 1000;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
@@ -416,8 +416,8 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
     // simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
 
     cudaDeviceSynchronize();
 
