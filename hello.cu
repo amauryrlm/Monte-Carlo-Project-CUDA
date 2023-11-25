@@ -363,6 +363,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
+        cout << "cpu : " <<  max(St - K, 0.0f);
         countt += max(St - K, 0.0f);
     }
     *optionPriceCPU = countt/N_PATHS;
@@ -374,7 +375,7 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 1000;
+    const size_t N_PATHS = 10;
     const size_t N_STEPS = 1000;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
@@ -404,6 +405,8 @@ int main(void) {
 
     cout << endl;
 
+
+
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
 
 
@@ -416,7 +419,7 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
     simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     // simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
 
     cudaDeviceSynchronize();
@@ -427,7 +430,9 @@ int main(void) {
     cudaDeviceSynchronize();
 
     cout << endl;
-
+    for(int i=0; i<N_PATHS; i++){
+        cout << "gpu  : " << h_optionPriceGPU[i] << endl;
+    }
     cout << "Average GPU " << output[0]/ N_PATHS << endl ;
     float callResult = 0.0f;
     float putResult = 0.0f;
