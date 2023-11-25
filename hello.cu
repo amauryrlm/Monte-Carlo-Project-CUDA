@@ -272,6 +272,53 @@ __global__ void simulateOptionPriceGPUSumReduce(float *d_optionPriceGPU, float K
         
         
 }
+
+__global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
+    int stride = blockDim.x;
+    int idx = threadIdx.x;
+    // Shared memory for the block
+    __shared__ float sdata[1024];
+    float sum = 0.0f;
+    
+    if(idx < N_PATHS) {
+        sdata[idx] = 0.0f;
+
+        while(idx < N_PATHS){
+            float St = S0;
+            float G;
+            for(int i = 0; i < N_STEPS; i++){
+                G = d_randomData[idx*i];
+                // cout << "G : " << G << endl;
+                St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+            }
+            sdata[idx] += max(St - K,0.0f);
+            idx += stride;
+        }
+        
+
+
+
+    // Load input into shared memory
+        
+        __syncthreads();
+
+        // Perform reduction in shared memory
+        for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
+            if (tid < s) {
+                sdata[tid] += sdata[tid + s];
+            }
+            __syncthreads();
+        }
+
+        // Write result for this block to output
+        if (tid == 0){
+            output[0] = sdata[0];
+            }
+            
+        } 
+        
+        
+}
 void getDeviceProperty(){
 
     int count;
