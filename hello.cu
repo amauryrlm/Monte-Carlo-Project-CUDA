@@ -405,26 +405,28 @@ int main(void) {
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
 
 
-    // // float *h_optionPriceGPU, *output;
-    // // h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
-    // // output = (float *)malloc(sizeof(float));
-    // // float *d_optionPriceGPU, *d_output;
+    float *h_optionPriceGPU, *output;
+    h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
+    output = (float *)malloc(sizeof(float));
+    float *d_optionPriceGPU, *d_output;
 
-    // // testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
-    // // testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    // // simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // // cudaDeviceSynchronize();
+    // simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+
+    cudaDeviceSynchronize();
 
 
-    // // cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    // // cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
-    // // cudaDeviceSynchronize();
+    cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
-    // // cout << endl;
+    cout << endl;
 
-    // cout << "Average GPU " << output[0]/ N_PATHS << endl ;
+    cout << "Average GPU " << output[0]/ N_PATHS << endl ;
     float callResult = 0.0f;
     float putResult = 0.0f;
 
