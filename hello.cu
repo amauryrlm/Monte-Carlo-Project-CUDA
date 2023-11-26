@@ -316,12 +316,52 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
         // Write result for this block to output
         if (tid == 0){
             output[0] = sdata[0]/N_PATHS;
+            }  
+        }  
+}
+__global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
+    int stride = blockDim.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = threadIdx.x;
+    float = payoff;
+
+    // Shared memory for the block
+    __shared__ float sdata[1024];
+    
+    if(idx < N_PATHS) {
+            float St = S0;
+            float G;
+            for(int i = 0; i < N_STEPS; i++){
+                G = d_randomData[idx*N_STEPS + i];
+                St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
-            
-        } 
+            payoff = max(St - K,0.0f);
+        }
         
+
+
+
+    // Load input into shared memory
+        sdata[tid] = (idx < N_PATHS) ?  payoff : 0;
+
+        __syncthreads();
+
+        // Perform reduction in shared memory
+        for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
+            if (tid < s && (tid + s) < N_PATHS) {
+                sdata[tid] += sdata[tid + s];
+            }
+            __syncthreads();
+        }
+
+        // Write result for this block to output
+        if (tid == 0){
+            output[blockIdx.x] = sdata[0]/N_PATHS;
+        }  
         
 }
+
+
 void getDeviceProperty(){
 
     int count;
@@ -393,6 +433,8 @@ int main(void) {
     vector<float> s(N_PATHS);
 
     getDeviceProperty();
+    int threadsPerBlock = 1024;
+    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
 
     float *d_randomData, *h_randomData;
@@ -421,9 +463,15 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    // simulateOptionPriceGPU<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    simulateOptionPriceOneBlockGPUSumReduce<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // simulateOptionPriceOneBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // cudaError_t error = cudaGetLastError();
+    // if (error != cudaSuccess) {
+    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+    //     return -1;
+    // }
+    simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
@@ -433,7 +481,7 @@ int main(void) {
 
 
     cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output, d_output, blocksPerGrid*sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     cout << endl;
