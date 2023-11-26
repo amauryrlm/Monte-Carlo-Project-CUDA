@@ -444,7 +444,7 @@ int main(void) {
 
     BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
     
-    cout << "call BS" << callResult << endl;
+    cout << "call BS : " << callResult << endl;
 
 
 
