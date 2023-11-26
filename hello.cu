@@ -423,7 +423,7 @@ int main(void) {
 
     simulateOptionPriceGPU<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
