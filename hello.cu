@@ -356,7 +356,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPric
 
         // Write result for this block to output
         if (tid == 0){
-            output[blockIdx.x] = sdata[0]/N_PATHS;
+            output[blockIdx.x] = sdata[0];
         }  
         
 }
