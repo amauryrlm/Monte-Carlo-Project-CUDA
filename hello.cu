@@ -315,7 +315,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
         // Write result for this block to output
         if (tid == 0){
-            output[0] = sdata[0];
+            output[0] = sdata[0]/N_PATHS;
             }
             
         } 
@@ -431,10 +431,8 @@ int main(void) {
     cudaDeviceSynchronize();
 
     cout << endl;
-    for(int i=0; i<N_PATHS; i++){
-        cout << "gpu  : " << h_optionPriceGPU[i] << endl;
-    }
-    cout << "Average GPU " << output[0]/ N_PATHS << endl ;
+
+    cout << "Average GPU " << output[0] << endl ;
     float callResult = 0.0f;
     float putResult = 0.0f;
 
