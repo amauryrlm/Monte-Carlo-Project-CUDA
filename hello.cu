@@ -293,7 +293,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
                 // cout << "G : " << G << endl;
                 St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
-            sdata[tid] += max(St - K,0.0f);
+            sum += max(St - K,0.0f);
             idx += stride;
         }
         
@@ -301,12 +301,13 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
 
     // Load input into shared memory
-        
+        sdata[tid] = (i < N_PATHS) ? sum : 0;
+
         __syncthreads();
 
         // Perform reduction in shared memory
         for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
-            if (tid < s && (tid + s) < size) {
+            if (tid < s && (tid + s) < N_PATHS) {
                 sdata[tid] += sdata[tid + s];
             }
             __syncthreads();
