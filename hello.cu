@@ -323,7 +323,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPric
     int stride = blockDim.x;
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
-    float = payoff;
+    float payoff;
 
     // Shared memory for the block
     __shared__ float sdata[1024];
