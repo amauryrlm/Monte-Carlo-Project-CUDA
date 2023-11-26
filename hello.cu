@@ -364,7 +364,10 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
-        cout << "cpu : " <<  max(St - K, 0.0f);
+        if (i==0){
+            cout << "cpu : " <<  max(St - K, 0.0f);
+
+        }
         countt += max(St - K, 0.0f);
     }
     *optionPriceCPU = countt/N_PATHS;
@@ -378,7 +381,6 @@ int main(void) {
 // declare variables and constants
     const size_t N_PATHS = 1024;
     const size_t N_STEPS = 12300;
-    const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
     const float B = 95.0f;
