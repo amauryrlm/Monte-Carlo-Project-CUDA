@@ -305,7 +305,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
         __syncthreads();
 
         // Perform reduction in shared memory
-        for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
+        for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
             if (tid < s) {
                 sdata[tid] += sdata[tid + s];
             }
@@ -419,8 +419,8 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
     simulateOptionPriceGPU<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // simulateOptionPriceGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
 
     cudaDeviceSynchronize();
 
