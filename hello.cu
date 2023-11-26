@@ -301,7 +301,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
 
     // Load input into shared memory
-        sdata[tid] = (i < N_PATHS) ? sum : 0;
+        sdata[tid] = (tid < N_PATHS) ? sum : 0;
 
         __syncthreads();
 
