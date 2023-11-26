@@ -377,7 +377,7 @@ int main(void) {
 
 // declare variables and constants
     const size_t N_PATHS = 1023;
-    const size_t N_STEPS = 12345;
+    const size_t N_STEPS = 123;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
