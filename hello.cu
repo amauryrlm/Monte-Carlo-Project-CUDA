@@ -465,23 +465,23 @@ int main(void) {
 
     // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // simulateOptionPriceOneBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // cudaError_t error = cudaGetLastError();
-    // if (error != cudaSuccess) {
-    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-    //     return -1;
-    // }
-    simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
     }
-    cudaDeviceSynchronize();
+    // simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    // cudaError_t error = cudaGetLastError();
+    // if (error != cudaSuccess) {
+    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+    //     return -1;
+    // }
+    // cudaDeviceSynchronize();
 
 
     cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output, d_output, blocksPerGrid*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     cout << endl;
