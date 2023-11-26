@@ -241,7 +241,7 @@ __global__ void simulateOptionPriceGPUSumReduce(float *d_optionPriceGPU, float K
         float St = S0;
         float G;
         for(int i = 0; i < N_STEPS; i++){
-            G = d_randomData[idx*i];
+            G = d_randomData[idx*N_STEPS + i];
             // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         }
@@ -289,7 +289,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             float St = S0;
             float G;
             for(int i = 0; i < N_STEPS; i++){
-                G = d_randomData[idx*i];
+                G = d_randomData[idx*N_STEPS + i];
                 // cout << "G : " << G << endl;
                 St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
@@ -360,7 +360,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
     for(int i=0; i<N_PATHS;i++){
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
-            G = h_randomData[i*j];
+            G = h_randomData[i*N_STEPS + j];
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
