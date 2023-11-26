@@ -306,7 +306,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
         // Perform reduction in shared memory
         for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
-            if (tid < s) {
+            if (tid < s && (tid + s) < size) {
                 sdata[tid] += sdata[tid + s];
             }
             __syncthreads();
@@ -376,7 +376,7 @@ int main(void) {
 
 // declare variables and constants
     const size_t N_PATHS = 10;
-    const size_t N_STEPS = 2048;
+    const size_t N_STEPS = 2047;
     const size_t N_NORMALS = N_PATHS*N_STEPS;
     const float T = 1.0f;
     const float K = 100.0f;
