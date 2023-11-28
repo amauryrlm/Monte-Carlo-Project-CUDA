@@ -495,7 +495,7 @@ int main(void) {
     float sum = 0.0f;
     for(int i=0; i<blocksPerGrid; i++){
         sum += output2[i];
-        cout << gpu2 << i << output2[i] << endl;
+        cout << "gpu2" << i << output2[i] << endl;
     }
 
     cout << "Average GPU2 " << sum/N_PATHS << endl ;
