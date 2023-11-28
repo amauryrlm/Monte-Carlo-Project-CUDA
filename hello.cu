@@ -419,7 +419,7 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 1024;
+    const size_t N_PATHS = 2048;
     const size_t N_STEPS = 12300;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -455,6 +455,10 @@ int main(void) {
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
 
 
+
+//--------------------------------GPU WITH ONE BLOCK ----------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+
     float *h_optionPriceGPU, *output;
     h_optionPriceGPU = (float *)malloc(N_PATHS * sizeof(float));
     output = (float *)malloc(sizeof(float));
@@ -465,7 +469,7 @@ int main(void) {
 
     // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    simulateOptionPriceOneBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
@@ -479,28 +483,24 @@ int main(void) {
 
     cout << "Average GPU " << output[0] << endl ;
 
+//--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+
     float *h_optionPriceGPU2, *output2;
     h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
     output2 = (float *)malloc(sizeof(float));
     float *d_optionPriceGPU2, *d_output2;
 
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output2,sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
 
-    simulateOptionPriceMultipleBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
+    simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
     error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
     }
-    // simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    // cudaError_t error = cudaGetLastError();
-    // if (error != cudaSuccess) {
-    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-    //     return -1;
-    // }
-    // cudaDeviceSynchronize();
 
 
     cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
@@ -508,14 +508,22 @@ int main(void) {
     cudaDeviceSynchronize();
 
     cout << endl;
+    float sum = 0.0f;
+    for(int i=0; i<blocksPerGrid; i++){
+        sum += output2[i];
+    }
 
-    cout << "Average GPU2 " << output2[0]/N_PATHS << endl ;
+    cout << "Average GPU2 " << sum/N_PATHS << endl ;
+
+
+
+
+//--------------------------------BLACK SCHOLES FORMULA ----------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
 
     float callResult = 0.0f;
     float putResult = 0.0f;
-
     BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
-    
     cout << "call BS : " << callResult << endl;
 
 
