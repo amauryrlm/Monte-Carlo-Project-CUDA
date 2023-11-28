@@ -478,7 +478,7 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-
+    cout << "number of block" << blocksPerGrid << endl;
     simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
     error = cudaGetLastError();
     if (error != cudaSuccess) {
