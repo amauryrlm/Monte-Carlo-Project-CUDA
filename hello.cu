@@ -303,7 +303,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
         // Write result for this block to output
         if (tid == 0){
-            output[0] = sdata[0]/N_PATHS;
+            output[0] = sdata[0];
             }  
         }  
 }
@@ -495,6 +495,7 @@ int main(void) {
     float sum = 0.0f;
     for(int i=0; i<blocksPerGrid; i++){
         sum += output2[i];
+        cout << gpu2 << i << output2[i] << endl;
     }
 
     cout << "Average GPU2 " << sum/N_PATHS << endl ;
