@@ -509,7 +509,7 @@ int main(void) {
 
     cout << endl;
 
-    cout << "Average GPU2 " << output2[0] << endl ;
+    cout << "Average GPU2 " << output2[0]/N_PATHS << endl ;
 
     float callResult = 0.0f;
     float putResult = 0.0f;
