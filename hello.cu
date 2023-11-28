@@ -204,14 +204,6 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
 
 
-
-
-
-
-
-
-
-
 __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -296,10 +288,6 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             sum += max(St - K,0.0f);
             idx += stride;
         }
-        
-
-
-
     // Load input into shared memory
         sdata[tid] = (tid < N_PATHS) ? sum : 0;
 
@@ -337,10 +325,6 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPric
             }
             payoff = max(St - K,0.0f);
         }
-        
-
-
-
     // Load input into shared memory
         sdata[tid] = (idx < N_PATHS) ?  payoff : 0;
 
@@ -469,7 +453,7 @@ int main(void) {
 
     // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
-    simulateOptionPriceOneBlockGPUSumReduce<<<1, N_PATHS>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceOneBlockGPUSumReduce<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
