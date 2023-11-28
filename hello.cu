@@ -471,6 +471,29 @@ int main(void) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
     }
+    cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+
+    cout << endl;
+
+    cout << "Average GPU " << output[0] << endl ;
+
+    float *h_optionPriceGPU2, *output;
+    h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
+    output2 = (float *)malloc(sizeof(float));
+    float *d_optionPriceGPU2, *d_output2;
+
+    testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output2,sizeof(float)));
+
+
+    simulateOptionPriceMultipleBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
     // simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     // cudaError_t error = cudaGetLastError();
     // if (error != cudaSuccess) {
@@ -480,13 +503,14 @@ int main(void) {
     // cudaDeviceSynchronize();
 
 
-    cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output2, d_output2, sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     cout << endl;
 
-    cout << "Average GPU " << output[0] << endl ;
+    cout << "Average GPU2 " << output2[0] << endl ;
+
     float callResult = 0.0f;
     float putResult = 0.0f;
 
