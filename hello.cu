@@ -489,7 +489,7 @@ int main(void) {
 
 
     simulateOptionPriceMultipleBlockGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
