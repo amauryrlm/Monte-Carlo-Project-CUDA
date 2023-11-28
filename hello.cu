@@ -479,7 +479,7 @@ int main(void) {
 
     cout << "Average GPU " << output[0] << endl ;
 
-    float *h_optionPriceGPU2, *output;
+    float *h_optionPriceGPU2, *output2;
     h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
     output2 = (float *)malloc(sizeof(float));
     float *d_optionPriceGPU2, *d_output2;
