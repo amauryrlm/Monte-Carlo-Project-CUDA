@@ -732,7 +732,7 @@ int main(void) {
 
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-    reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
+    reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS,isPow2(N_PATHS));
     cudaDeviceSynchronize();
     // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
