@@ -18,6 +18,17 @@
 using namespace std;
 namespace cg = cooperative_groups;
 
+
+unsigned int nextPow2(unsigned int x) {
+  --x;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return ++x;
+}
+
 // Function that catches the error
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
@@ -417,7 +428,7 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 10;
+    unsigned int N_PATHS = 10;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -500,6 +511,13 @@ int main(void) {
         return -1;
     }
 
+    unsigned int maxThreads = 1024;
+
+    threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
+
+    reduce3<<<blocks,threads>>>(d_optionPriceGPU2,d_output2,N_PATHS);
 
     cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, sizeof(float), cudaMemcpyDeviceToHost);
