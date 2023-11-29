@@ -92,6 +92,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
     __syncthreads();
 
   }
+  printf("mySum : %f , tid : %d \n", mySum, tid);
 
   // write result for this block to global mem
   if (tid == 0){
@@ -467,6 +468,10 @@ int main(void) {
     simulateOptionPriceCPU(&optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r, K, dt,simulated_paths_cpu);
 
     cout << endl;
+
+    for(int i=0; i<N_PATHS; i++){
+        cout << "cpu : " <<  simulated_paths_cpu[i] << endl;
+    }
 
 
 
