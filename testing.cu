@@ -22,7 +22,7 @@ int main() {
 
     // Print the first five elements of our random array
     for (int i = 0; i < 10; i++) {
-        printf("%f\n", default_paramaters.h_random_array[i]);
+        printf("%f\n", default_parameters.h_random_array[i]);
     }
 
 
