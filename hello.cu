@@ -67,7 +67,6 @@ static double CND(double d)
 
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
-  cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float sdata[];
 
   // perform first level of reduction,
@@ -76,11 +75,13 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
   float mySum = (i < n) ? g_idata[i] : 0;
+  printf("mySum : %f \n", mySum)
 
   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
 
   sdata[tid] = mySum;
-  cg::sync(cta);
+  __syncthreads();
+
 
   // do reduction in shared mem
   for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
@@ -88,7 +89,8 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
       sdata[tid] = mySum = mySum + sdata[tid + s];
     }
 
-    cg::sync(cta);
+    __syncthreads();
+
   }
 
   // write result for this block to global mem
@@ -429,7 +431,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 2048;
+    unsigned int N_PATHS = 10;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
