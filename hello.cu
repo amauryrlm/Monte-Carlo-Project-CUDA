@@ -79,7 +79,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
 
-  printf("mySum : %f \n", mySum);
+  printf("mySum : %f , tid : %d \n", mySum, tid);
   sdata[tid] = mySum;
   __syncthreads();
 
@@ -93,7 +93,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
     __syncthreads();
 
   }
-  printf("mySum : %f , tid : %d \n", mySum, tid);
+
 
   // write result for this block to global mem
   if (tid == 0){
