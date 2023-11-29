@@ -88,12 +88,15 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
     if (tid < s) {
         printf("mySum : %f , tid : %d \n", mySum, tid);
-        sdata[tid] = mySum = mySum + sdata[tid + s];
+        mySum = mySum + sdata[tid + s];
+        sdata[tid] = mySum;
+
     }
 
     __syncthreads();
 
   }
+  printf("mySum : %f , tid : %d \n", mySum, tid);
 
 
   // write result for this block to global mem
