@@ -176,6 +176,7 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
   if ( (blockSize >= 1024) && (tid < 512)) {
     sdata[tid] = mySum = mySum + sdata[tid + 512];
   }
+  cg::sync(cta);
  if ((blockSize >= 512) && (tid < 256)) {
     sdata[tid] = mySum = mySum + sdata[tid + 256];
   }
