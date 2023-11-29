@@ -440,7 +440,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 8192;
+    unsigned int N_PATHS = 8;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -551,6 +551,7 @@ int main(void) {
     cout << endl;
     float sum = 0.0f;
     for(int i=0; i<blocks; i++){
+        cout << "gpu : " <<  output2[i] << endl;
         sum+=output2[i];
     }
 
