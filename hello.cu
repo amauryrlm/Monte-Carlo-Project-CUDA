@@ -514,11 +514,11 @@ int main(void) {
     //     return -1;
     // }
 
-    // unsigned int maxThreads = 1024;
+    unsigned int maxThreads = 1024;
 
-    // int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
-    // int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
-    // testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
+    int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
     reduce3<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
