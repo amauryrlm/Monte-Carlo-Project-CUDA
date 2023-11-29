@@ -525,9 +525,11 @@ int main(void) {
 
     cout << endl;
     float sum = 0.0f;
-    for(int i=0; i<N_PATHS; i++){
-        cout << "gpu2 " << h_optionPriceGPU2[i] << endl;
+    for(int i=0; i<blocks; i++){
+        sum+=output2[i];
     }
+
+    cout<< "result gpu cuda " << sum/N_PATHS << endl;
 
 
 
