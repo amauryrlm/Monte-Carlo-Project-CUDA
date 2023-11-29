@@ -64,7 +64,7 @@ public:
 
 
     /* -------------------------- Simulation functions -------------------------- */
-    void simulate_trajectory_cpu() {
+    std::vector<float> simulate_trajectory_cpu() {
 
         // First check to see if we have random numbers already simulated.
         // Let's simulate different trajectories now.
@@ -95,6 +95,7 @@ public:
         )
 
         // Now return the vector containing all of the simulations
+        return simulated_paths_cpu;
 
     }
 

@@ -38,8 +38,9 @@ int main() {
     print_gpu_random<<<1, 1>>>(default_parameters.d_random_array);
 
     // Now let's go ahead and simulate using CPU and GPU
-    default_parameters.simulate_trajectory_cpu();
+    auto simulations = default_parameters.simulate_trajectory_cpu();
 
+    std::cout << "Len simulations: " << simulations.size() << "\n";
 
 
     cudaDeviceSynchronize();
