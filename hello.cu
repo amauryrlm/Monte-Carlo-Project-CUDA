@@ -111,6 +111,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
 __global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
+  const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float sdata[1024];
 
@@ -153,7 +154,7 @@ __global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
 
 __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
-  int blockSize = 1024;
+  const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float sdata[blockSize];
 
