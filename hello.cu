@@ -458,7 +458,7 @@ void initRandomArray(float **d_randomData, float **h_randomData, size_t length, 
  * @param n_blocks
  * @param reduction
  */
-void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0)
+void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
 
     // Parameters:
 
@@ -492,7 +492,7 @@ void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduc
     // I want to call different reductions, both on the CPU and GPU
 
     // First step: wrap up the CPU code into a function
-
+}
 
 
 // Compute a trajectory using the CPU
