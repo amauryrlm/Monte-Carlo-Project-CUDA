@@ -245,7 +245,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
 }
 
-void generate_random_array(float *d_randomData, float *h_randomData, int length, unsigned long long seed = 1234ULL)
+void generate_random_array(float *d_randomData, float *h_randomData, int length, unsigned long long seed = 1234ULL) {
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
@@ -254,7 +254,7 @@ void generate_random_array(float *d_randomData, float *h_randomData, int length,
     testCUDA(cudaMemcpy(h_randomData, d_randomData, length * sizeof(float), cudaMemcpyDeviceToHost));
     cout << "host copied" << endl;
     curandDestroyGenerator(gen);
-
+}
 
 
 
