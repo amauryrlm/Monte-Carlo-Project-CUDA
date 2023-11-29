@@ -92,7 +92,7 @@ public:
             this->contract_strike(),
             this->dt(),
             simulated_paths_cpu.data()
-        )
+        );
 
         // Now return the vector containing all of the simulations
         return simulated_paths_cpu;
