@@ -75,10 +75,11 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
   float mySum = (i < n) ? g_idata[i] : 0;
-  printf("mySum : %f \n", mySum);
+  
 
   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
 
+  printf("mySum : %f \n", mySum);
   sdata[tid] = mySum;
   __syncthreads();
 
