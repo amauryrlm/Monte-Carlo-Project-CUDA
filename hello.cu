@@ -98,7 +98,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
   // write result for this block to global mem
   if (tid == 0){
-    printf("mySum last %f\n", mySum);
+    printf("mySum last %f , %d \n", mySum, blockIdx.x);
     g_odata[blockIdx.x] = mySum;
 
   } 
@@ -518,9 +518,14 @@ int main(void) {
     h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
     output2 = (float *)malloc(sizeof(float));
     float *d_optionPriceGPU2, *d_output2;
+    
+    unsigned int maxThreads = 1024;
+
+    int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
     // testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output2,blocks*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
     testCUDA(cudaMemcpy(d_simulated_paths_cpu, simulated_paths_cpu, N_PATHS * sizeof(float), cudaMemcpyHostToDevice));
 
@@ -533,10 +538,7 @@ int main(void) {
     //     return -1;
     // }
 
-    unsigned int maxThreads = 1024;
 
-    int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
-    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
     cout << "number of thread 2 " << threads << endl;
     cout << "number of block 2 " << blocks << endl;
@@ -546,7 +548,7 @@ int main(void) {
     reduce3<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
     // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(output2, d_output2, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     cout << endl;
