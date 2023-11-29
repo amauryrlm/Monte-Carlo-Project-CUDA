@@ -522,7 +522,7 @@ int main(void) {
 
     reduce3<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
-    cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+    // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
