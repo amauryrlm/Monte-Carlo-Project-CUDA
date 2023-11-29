@@ -6,7 +6,11 @@
 #include <stdio.h>
 
 
-
+__global__ void print_gpu_random(float * d_random_array) {
+    for (int i = 0; i < 10; i++) {
+        printf("%f\n", d_random_array[i]);
+    }
+}
 
 int main() {
     std::cout << "Hello from testing suite!\n";
@@ -21,11 +25,15 @@ int main() {
     // Now we want to launch multiple simulations from this central object.
 
     // Print the first five elements of our random array
+    printf("Host\n");
     for (int i = 0; i < 10; i++) {
         printf("%f\n", default_parameters.h_random_array[i]);
     }
 
+    printf("Device\n");
 
+    // Print from the kernel's GPU
+    print_gpu_random<<<1, 1>>>(default_parameters.d_random_array);
 
 
 
