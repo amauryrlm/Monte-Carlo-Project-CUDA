@@ -351,7 +351,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_
             float G;
             for(int i = 0; i < N_STEPS; i++){
                 G = d_randomData[idx*N_STEPS + i];
-                St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+                St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
             d_simulated_payoff[idx] = St;
         }
