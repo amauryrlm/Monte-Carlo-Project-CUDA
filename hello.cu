@@ -192,17 +192,20 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
   if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
-__global__ void reduce6(T *g_idata, T *g_odata, unsigned int n) {
-  // Handle to thread block group
-  cg::thread_block cta = cg::this_thread_block();
-  T *sdata = SharedMemory<T>();
 
+
+
+__global__ void reduce6(float *g_idata, float *g_odata, unsigned int n) {
+  // Handle to thread block group
+  int blockSize = 1024;
+  cg::thread_block cta = cg::this_thread_block();
+  extern __shared__ float sdata[blockSize];
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
   unsigned int tid = threadIdx.x;
   unsigned int gridSize = blockSize * gridDim.x;
 
-  T mySum = 0;
+  float mySum = 0;
 
   // we reduce multiple elements per thread.  The number is determined by the
   // number of active thread blocks (via gridDim).  More blocks will result
@@ -696,7 +699,7 @@ int main(void) {
 
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-    reduce5<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
+    reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
     // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
