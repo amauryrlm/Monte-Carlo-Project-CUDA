@@ -11,7 +11,7 @@ int main() {
 
 
     // Initialize a new set of parameters
-    parameters SimulationParameters()
+    SimulationParameters default_parameters;
 
 
 
