@@ -65,44 +65,6 @@ static double CND(double d)
     return cnd;
 }
 
-// __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
-//   // Handle to thread block group
-//   extern __shared__ float sdata[1024];
-
-//   // perform first level of reduction,
-//   // reading from global memory, writing to shared memory
-//   unsigned int tid = threadIdx.x;
-//   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
-
-//   float mySum = (i < n) ? g_idata[i] : 0;
-  
-
-//   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
-//   __syncthreads();
-//   sdata[tid] = mySum;
-
-
-
-//   // do reduction in shared mem
-//   for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
-//     if (tid < s) {
-//         mySum = mySum + sdata[tid + s];
-//         sdata[tid] = mySum;
-
-//     }
-
-//     __syncthreads();
-
-//   }
-
-
-//   // write result for this block to global mem
-//   if (tid == 0){
-//     printf("mySum last %f , %d \n", mySum, blockIdx.x);
-//     g_odata[blockIdx.x] = mySum;
-
-//   } 
-// }
 
 
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
@@ -147,46 +109,47 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
 
 
-// __global__ void reduce4(T *g_idata, T *g_odata, unsigned int n) {
-//   // Handle to thread block group
-//   cg::thread_block cta = cg::this_thread_block();
-//   T *sdata = SharedMemory<T>();
+__global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
+  // Handle to thread block group
+  cg::thread_block cta = cg::this_thread_block();
+  extern __shared__ float sdata[1024];
 
-//   // perform first level of reduction,
-//   // reading from global memory, writing to shared memory
-//   unsigned int tid = threadIdx.x;
-//   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
-//   T mySum = (i < n) ? g_idata[i] : 0;
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
-//   if (i + blockSize < n) mySum += g_idata[i + blockSize];
+  float mySum = (i < n) ? g_idata[i] : 0;
 
-//   sdata[tid] = mySum;
-//   cg::sync(cta);
+  if (i + blockSize < n) mySum += g_idata[i + blockSize];
 
-//   // do reduction in shared mem
-//   for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
-//     if (tid < s) {
-//       sdata[tid] = mySum = mySum + sdata[tid + s];
-//     }
+  sdata[tid] = mySum;
+  cg::sync(cta);
 
-//     cg::sync(cta);
-//   }
+  // do reduction in shared mem
+  for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
+    if (tid < s) {
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+    }
 
-//   cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+    cg::sync(cta);
+  }
 
-//   if (cta.thread_rank() < 32) {
-//     // Fetch final intermediate sum from 2nd warp
-//     if (blockSize >= 64) mySum += sdata[tid + 32];
-//     // Reduce final warp using shuffle
-//     for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
-//       mySum += tile32.shfl_down(mySum, offset);
-//     }
-//   }
+  cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
-//   // write result for this block to global mem
-//   if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
-// }
+  if (cta.thread_rank() < 32) {
+    // Fetch final intermediate sum from 2nd warp
+    if (blockSize >= 64) mySum += sdata[tid + 32];
+    // Reduce final warp using shuffle
+    for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+      mySum += tile32.shfl_down(mySum, offset);
+    }
+  }
+
+  // write result for this block to global mem
+  if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
+}
 
 
 
@@ -629,7 +592,7 @@ int main(void) {
 
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-    reduce3<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
+    reduce4<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
     // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
