@@ -10,6 +10,8 @@ __global__ void print_gpu_random(float * d_random_array) {
     for (int i = 0; i < 10; i++) {
         printf("%f\n", d_random_array[i]);
     }
+
+    __syncthreads();
 }
 
 int main() {
@@ -35,7 +37,7 @@ int main() {
     // Print from the kernel's GPU
     print_gpu_random<<<1, 1>>>(default_parameters.d_random_array);
 
-
+    cudaDeviceSynchronize();
 
 
 }
