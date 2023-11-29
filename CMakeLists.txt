@@ -20,6 +20,7 @@ add_executable(test testing.cu)
 
 # Link the cuRAND library to your main CUDA executable
 target_link_libraries(main ${CUDA_LIBRARIES} ${CUDA_curand_LIBRARY})
+target_link_libraries(test ${CUDA_LIBRARIES} ${CUDA_curand_LIBRARY})
 
 # Your other executable
 add_executable(csv traj_to_csv.cpp)
