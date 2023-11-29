@@ -198,10 +198,9 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
 
 
 
-__global__ void reduce6(float *g_idata, float *g_odata, unsigned int n) {
+__global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIsPow2) {
   // Handle to thread block group
   const int blockSize = 1024;
-  int nIsPow2 = isPow2(n);
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float sdata[blockSize];
   // perform first level of reduction,
