@@ -254,13 +254,27 @@ __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIs
   sdata[tid] = mySum;
   cg::sync(cta);
 
-  // do reduction in shared mem
-  if ( tid < 512) {
+// do reduction in shared mem
+  if ( (blockSize >= 1024) && (tid < 512)) {
     sdata[tid] = mySum = mySum + sdata[tid + 512];
+  }
+  cg::sync(cta);
+ if ((blockSize >= 512) && (tid < 256)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 256];
   }
 
   cg::sync(cta);
 
+  if ((blockSize >= 256) && (tid < 128)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 128];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 128) && (tid < 64)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 64];
+  }
+  cg::sync(cta);
 
 
   cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
@@ -718,7 +732,7 @@ int main(void) {
 
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-    reduce5<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
+    reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
     cudaDeviceSynchronize();
     // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
