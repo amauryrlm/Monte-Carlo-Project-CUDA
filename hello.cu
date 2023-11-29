@@ -435,7 +435,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 10;
+    unsigned int N_PATHS = 8;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
@@ -562,7 +562,7 @@ int main(void) {
 
 
 
-    testCUDA(cudaFree(d_randomData));
+    cudaFree(d_randomData);
 
 
 	return 0;
