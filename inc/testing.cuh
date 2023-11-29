@@ -53,7 +53,7 @@ public:
         , B{barrier}
     {
 
-        this->init_random_array()
+        this->init_random_array();
 
     }
 
