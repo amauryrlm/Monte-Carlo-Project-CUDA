@@ -440,7 +440,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 2048;
+    unsigned int N_PATHS = 10000;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
