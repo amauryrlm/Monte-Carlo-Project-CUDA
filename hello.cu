@@ -400,10 +400,8 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
-        if (i==0){
-            cout << "cpu : " <<  max(St - K, 0.0f);
-
-        }
+        
+        cout << "cpu : " <<  St;
         countt += max(St - K, 0.0f);
     }
     *optionPriceCPU = countt/N_PATHS;
