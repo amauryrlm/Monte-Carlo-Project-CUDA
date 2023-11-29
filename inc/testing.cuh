@@ -152,7 +152,7 @@ public:
     }
 
     float dt() {
-        return this->contract_maturity() / this.n_steps;
+        return this->contract_maturity() / this->n_steps;
     }
 
 
