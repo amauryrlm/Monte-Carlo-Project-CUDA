@@ -94,7 +94,11 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   }
 
   // write result for this block to global mem
-  if (tid == 0) g_odata[blockIdx.x] = mySum;
+  if (tid == 0){
+    g_odata[blockIdx.x] = mySum;
+    printf("g_odata[blockIdx.x] : %f \n", g_odata[blockIdx.x]);
+
+  } 
 }
 
 
