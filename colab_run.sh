@@ -4,3 +4,4 @@
 echo "[Colab] Running main!"
 cd build
 ./main
+./test

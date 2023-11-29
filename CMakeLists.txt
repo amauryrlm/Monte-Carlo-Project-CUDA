@@ -16,6 +16,7 @@ find_package(CUDA REQUIRED)
 
 # Add your main CUDA executable
 add_executable(main hello.cu)
+add_executable(test testing.cu)
 
 # Link the cuRAND library to your main CUDA executable
 target_link_libraries(main ${CUDA_LIBRARIES} ${CUDA_curand_LIBRARY})
