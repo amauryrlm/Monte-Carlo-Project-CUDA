@@ -473,9 +473,9 @@ int main(void) {
 
     cout << endl;
 
-    for(int i=0; i<N_PATHS; i++){
-        cout << "cpu : " <<  simulated_paths_cpu[i] << endl;
-    }
+    // for(int i=0; i<N_PATHS; i++){
+    //     cout << "cpu : " <<  simulated_paths_cpu[i] << endl;
+    // }
 
 
 
