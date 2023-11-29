@@ -401,7 +401,7 @@ void getDeviceProperty(){
 
 }
 
-void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r, float K, float dt, float simulated_paths_cpu){
+void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r, float K, float dt, float *simulated_paths_cpu){
     float G;
     float countt = 0.0f;
     for(int i=0; i<N_PATHS;i++){
