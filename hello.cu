@@ -18,6 +18,8 @@
 using namespace std;
 namespace cg = cooperative_groups;
 
+extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
+
 
 unsigned int nextPow2(unsigned int x) {
   --x;
@@ -198,7 +200,8 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
 
 __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
-  int blockSize = 1024;
+  const int blockSize = 1024;
+  int nIsPow2 = isPow2(n);
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float sdata[blockSize];
   // perform first level of reduction,
