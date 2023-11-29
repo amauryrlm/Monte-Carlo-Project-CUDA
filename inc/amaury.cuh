@@ -429,24 +429,6 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
 }
 
 
-/**
- * @brief Allocate space for and fill the elements of an array with size `length`.
- *
- * @param d_randomData
- * @param h_randomData
- * @param length
- * @param seed
- */
-void initRandomArray(float **d_randomData, float **h_randomData, size_t length, long seed = 1234ULL) {
-
-    size_t n_random_bytes = length * sizeof(float);
-
-    testCUDA(cudaMalloc(d_randomData, n_random_bytes));
-    *h_randomData = (float *) malloc(n_random_bytes);
-    generate_random_array(*d_randomData, *h_randomData, length, seed);
-
-}
-
 // // Let's create a structure that wraps up the parameters of our simulation
 // struct
 
