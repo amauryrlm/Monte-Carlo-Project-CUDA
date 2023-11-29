@@ -353,7 +353,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             }  
         }  
 }
-__global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
+__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     float payoff;
     
@@ -503,9 +503,11 @@ int main(void) {
     output2 = (float *)malloc(sizeof(float));
     float *d_optionPriceGPU2, *d_output2;
 
-    testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
+    // testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
+    testCUDA(cudaMemcpy(d_simulated_paths_cpu, simulated_paths_cpu, N_PATHS * sizeof(float), cudaMemcpyHostToDevice));
+
 
     // cout << "number of block " << blocksPerGrid << endl;
     // simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
@@ -519,6 +521,10 @@ int main(void) {
 
     int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+
+    cout << "number of thread 2 " << threads << endl;
+    cout << "number of block 2 " << blocks << endl;
+
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
     reduce3<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS);
