@@ -1,5 +1,3 @@
-#pragma once
-
 #include <iostream>
 // #include <format>
 // #include <functional>
@@ -247,7 +245,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
 
 }
 
-void generate_random_array(float *d_randomData, float *h_randomData, int length, unsigned long long seed = 1234ULL)
+void generate_random_array(float *d_randomData, float *h_randomData, int length, unsigned long long seed = 1234ULL) {
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
@@ -256,7 +254,7 @@ void generate_random_array(float *d_randomData, float *h_randomData, int length,
     testCUDA(cudaMemcpy(h_randomData, d_randomData, length * sizeof(float), cudaMemcpyDeviceToHost));
     cout << "host copied" << endl;
     curandDestroyGenerator(gen);
-
+}
 
 
 
@@ -460,7 +458,7 @@ void initRandomArray(float **d_randomData, float **h_randomData, size_t length, 
  * @param n_blocks
  * @param reduction
  */
-void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0)
+void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
 
     // Parameters:
 
@@ -494,7 +492,7 @@ void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduc
     // I want to call different reductions, both on the CPU and GPU
 
     // First step: wrap up the CPU code into a function
-
+}
 
 
 // Compute a trajectory using the CPU
