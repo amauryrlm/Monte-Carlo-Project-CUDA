@@ -67,7 +67,7 @@ static double CND(double d)
 
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
-  extern __shared__ float sdata[];
+  extern __shared__ float sdata[1024];
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
