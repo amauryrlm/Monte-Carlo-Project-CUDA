@@ -173,8 +173,23 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
   cg::sync(cta);
 
   // do reduction in shared mem
-  if ( (tid < 512)) {
+  if ( (blockSize >= 1024) && (tid < 512)) {
     sdata[tid] = mySum = mySum + sdata[tid + 512];
+  }
+ if ((blockSize >= 512) && (tid < 256)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 256];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 256) && (tid < 128)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 128];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 128) && (tid < 64)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 64];
   }
 
 
