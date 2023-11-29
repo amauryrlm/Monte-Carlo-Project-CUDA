@@ -79,16 +79,13 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
   __syncthreads();
-  printf("mySum : %f , tid : %d \n", mySum, tid);
   sdata[tid] = mySum;
 
 
 
   // do reduction in shared mem
   for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
-    printf("s : %d , tid : %d \n", s, tid);
     if (tid < s) {
-        printf("mySum : %f , tid : %d \n", mySum, tid);
         mySum = mySum + sdata[tid + s];
         sdata[tid] = mySum;
 
@@ -97,13 +94,11 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
     __syncthreads();
 
   }
-  printf("mySum : %f , tid : %d \n", mySum, tid);
 
 
   // write result for this block to global mem
   if (tid == 0){
     g_odata[blockIdx.x] = mySum;
-    printf("g_odata[blockIdx.x] : %f \n", g_odata[blockIdx.x]);
 
   } 
 }
@@ -425,7 +420,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
             
         }
 
-        simulated_paths_cpu[i] = St;
+        simulated_paths_cpu[i] = max(St - K, 0.0f);
         // cout << "cpu : " <<  St << endl;
         countt += max(St - K, 0.0f);
     }
