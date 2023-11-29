@@ -122,7 +122,7 @@ __global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
 
   float mySum = (i < n) ? g_idata[i] : 0;
 
-  if (i + blockSize < n) mySum += g_idata[i + blockSize];
+  if (i + 1024 < n) mySum += g_idata[i + 1024];
 
   sdata[tid] = mySum;
   cg::sync(cta);
