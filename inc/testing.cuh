@@ -41,7 +41,7 @@ public:
         float initial_spot_price = 100.0,
         float contract_strike = 100.0,
         float contract_maturity = 1,
-        float barrier = 0,
+        float barrier = 0
     )
         : n_trajectories{n_trajectories}
         , n_steps{n_steps}
