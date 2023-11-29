@@ -353,8 +353,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_
                 G = d_randomData[idx*N_STEPS + i];
                 St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
-            payoff = max(St - K,0.0f);
-            d_simulated_payoff[idx] = payoff;
+            d_simulated_payoff[idx] = St;
         }
     }
 
@@ -420,7 +419,7 @@ int main(void) {
 
 
 // declare variables and constants
-    const size_t N_PATHS = 2048;
+    const size_t N_PATHS = 10;
     const size_t N_STEPS = 12300;
     const float T = 1.0f;
     const float K = 100.0f;
