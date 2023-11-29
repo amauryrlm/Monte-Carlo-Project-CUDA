@@ -49,6 +49,36 @@ static double CND(double d)
     return cnd;
 }
 
+__global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
+  // Handle to thread block group
+  cg::thread_block cta = cg::this_thread_block();
+  T *sdata = SharedMemory<T>();
+
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
+
+  float mySum = (i < n) ? g_idata[i] : 0;
+
+  if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
+
+  sdata[tid] = mySum;
+  cg::sync(cta);
+
+  // do reduction in shared mem
+  for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+    if (tid < s) {
+      sdata[tid] = mySum = mySum + sdata[tid + s];
+    }
+
+    cg::sync(cta);
+  }
+
+  // write result for this block to global mem
+  if (tid == 0) g_odata[blockIdx.x] = mySum;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Black-Scholes formula for both call and put
@@ -307,14 +337,9 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             }  
         }  
 }
-__global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
-    int stride = blockDim.x;
+__global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int tid = threadIdx.x;
     float payoff;
-
-    // Shared memory for the block
-    __shared__ float sdata[1024];
     
     if(idx < N_PATHS) {
             float St = S0;
@@ -324,26 +349,9 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_optionPric
                 St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
             payoff = max(St - K,0.0f);
+            d_simulated_payoff[idx] = payoff;
         }
-    // Load input into shared memory
-        sdata[tid] = (idx < N_PATHS) ?  payoff : 0;
-
-        __syncthreads();
-
-        // Perform reduction in shared memory
-        for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
-            if (tid < s && (tid + s) < N_PATHS) {
-                sdata[tid] += sdata[tid + s];
-            }
-            __syncthreads();
-        }
-
-        // Write result for this block to output
-        if (tid == 0){
-            output[blockIdx.x] = sdata[0];
-        }  
-        
-}
+    }
 
 
 void getDeviceProperty(){
@@ -396,6 +404,10 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
     }
     *optionPriceCPU = countt/N_PATHS;
 }
+
+
+
+
 
 
 int main(void) {
@@ -478,7 +490,7 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
-    cout << "number of block" << blocksPerGrid << endl;
+    cout << "number of block " << blocksPerGrid << endl;
     simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
     error = cudaGetLastError();
     if (error != cudaSuccess) {
@@ -493,12 +505,11 @@ int main(void) {
 
     cout << endl;
     float sum = 0.0f;
-    for(int i=0; i<blocksPerGrid; i++){
-        sum += output2[i];
-        cout << "gpu2" << i << output2[i] << endl;
+    for(int i=0; i<N_STEPS; i++){
+        cout << "gpu2 " << i << h_optionPriceGPU2[i] << endl;
     }
 
-    cout << "Average GPU2 " << sum/N_PATHS << endl ;
+
 
 
 
