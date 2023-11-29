@@ -808,12 +808,12 @@ int main(void) {
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
-    // cout << endl;
-    // float sum = 0.0f;
-    // for(int i=0; i<blocks; i++){
-    //     cout << "gpu : " <<  output2[i] << endl;
-    //     sum+=output2[i];
-    // }
+    cout << endl;
+    float sum = 0.0f;
+    for(int i=0; i<blocks; i++){
+        // cout << "gpu : " <<  output2[i] << endl;
+        sum+=output2[i];
+    }
 
     cout<< "result gpu cuda " << sum/N_PATHS << endl;
 
