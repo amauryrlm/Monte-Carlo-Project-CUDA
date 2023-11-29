@@ -13,6 +13,6 @@ int main() {
     // Initialize a new set of parameters
     SimulationParameters default_parameters;
 
-
+    std::cout << "Default parameter has volatility: " << default_parameters.volatility() << "\n";
 
 }

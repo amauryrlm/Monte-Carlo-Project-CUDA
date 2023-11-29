@@ -24,6 +24,29 @@ public:
         , B{barrier}
     {}
 
+    float volatility() {
+        return this->sigma;
+    }
+
+    float risk_free_rate() {
+        return this->r;
+    }
+
+    float initial_spot_price() {
+        return this->x_0;
+    }
+
+    float contract_strike() {
+        return this->K;
+    }
+
+    float contract_maturity() {
+        return this->T;
+    }
+
+    float barrier() {
+        return this->B;
+    }
 
 
 private:
