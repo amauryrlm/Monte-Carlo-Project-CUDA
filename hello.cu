@@ -13,6 +13,8 @@
 
 #include <math.h>
 using namespace std;
+namespace cg = cooperative_groups;
+
 // Function that catches the error
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
@@ -52,7 +54,7 @@ static double CND(double d)
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
-  T *sdata = SharedMemory<T>();
+  float *sdata = SharedMemory<float>();
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
