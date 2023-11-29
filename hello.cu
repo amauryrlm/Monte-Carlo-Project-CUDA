@@ -552,6 +552,82 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             }  
         }  
 }
+
+
+
+// __global__ void reduce7(const float *__restrict__ g_idata, float *__restrict__ g_odata,
+//                         unsigned int n, bool nIsPow2) {
+
+//   __shared__ float sdata[1024];
+//   const int blockSize = 1024;
+
+//   // perform first level of reduction,
+//   // reading from global memory, writing to shared memory
+//   unsigned int tid = threadIdx.x;
+//   unsigned int gridSize = blockSize * gridDim.x;
+//   unsigned int maskLength = (blockSize & 31);  // 31 = warpSize-1
+//   maskLength = (maskLength > 0) ? (32 - maskLength) : maskLength;
+//   const unsigned int mask = (0xffffffff) >> maskLength;
+
+//   float mySum = 0;
+
+//   // we reduce multiple elements per thread.  The number is determined by the
+//   // number of active thread blocks (via gridDim).  More blocks will result
+//   // in a larger gridSize and therefore fewer elements per thread
+//   if (nIsPow2) {
+//     unsigned int i = blockIdx.x * blockSize * 2 + threadIdx.x;
+//     gridSize = gridSize << 1;
+
+//     while (i < n) {
+//       mySum += g_idata[i];
+//       // ensure we don't read out of bounds -- this is optimized away for
+//       // powerOf2 sized arrays
+//       if ((i + blockSize) < n) {
+//         mySum += g_idata[i + blockSize];
+//       }
+//       i += gridSize;
+//     }
+//   } else {
+//     unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+//     while (i < n) {
+//       mySum += g_idata[i];
+//       i += gridSize;
+//     }
+//   }
+
+//   // Reduce within warp using shuffle or reduce_add if T==int & CUDA_ARCH ==
+//   // SM 8.0
+//   mySum = warpReduceSum<T>(mask, mySum);
+
+//   // each thread puts its local sum into shared memory
+//   if ((tid % warpSize) == 0) {
+//     sdata[tid / warpSize] = mySum;
+//   }
+
+//   __syncthreads();
+
+//   const unsigned int shmem_extent =
+//       (blockSize / warpSize) > 0 ? (blockSize / warpSize) : 1;
+//   const unsigned int ballot_result = __ballot_sync(mask, tid < shmem_extent);
+//   if (tid < shmem_extent) {
+//     mySum = sdata[tid];
+//     // Reduce final warp using shuffle or reduce_add if T==int & CUDA_ARCH ==
+//     // SM 8.0
+//     mySum = warpReduceSum<T>(ballot_result, mySum);
+//   }
+
+//   // write result for this block to global mem
+//   if (tid == 0) {
+//     g_odata[blockIdx.x] = mySum;
+//   }
+// }
+
+// // Performs a reduction step and updates numTotal with how many are remaining
+// template <typename T, typename Group>
+// __device__ T cg_reduce_n(T in, Group &threads) {
+//   return cg::reduce(threads, in, cg::plus<T>());
+// }
+
 __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     float payoff;
