@@ -397,7 +397,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
         float St = S0;
         for(int j=0; j<N_STEPS; j++){
             G = h_randomData[i*N_STEPS + j];
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+            St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             
         }
         
