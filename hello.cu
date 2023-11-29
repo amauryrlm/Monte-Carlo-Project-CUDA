@@ -441,9 +441,10 @@ int main(void) {
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
     vector<float> s(N_PATHS);
+    int threadsPerBlock = 1024;
 
     getDeviceProperty();
-    int threadsPerBlock = 1024;
+
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
 
@@ -478,8 +479,8 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
+    simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     simulateOptionPriceOneBlockGPUSumReduce<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
