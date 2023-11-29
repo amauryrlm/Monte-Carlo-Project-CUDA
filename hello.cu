@@ -9,6 +9,9 @@
 #include  "pricinghost.hpp"
 #include <random>
 #include <curand.h>
+#include <cooperative_groups.h>
+#include <cooperative_groups/reduce.h>
+#include <stdio.h>
 
 
 #include <math.h>
