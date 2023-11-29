@@ -110,7 +110,7 @@ public:
             testCUDA(cudaFree(this->d_random_array));
         }
 
-        if !this->h_random_array) {
+        if (this->h_random_array) {
             free(this->h_random_array);
         }
 
