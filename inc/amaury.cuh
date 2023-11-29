@@ -433,48 +433,48 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
 // struct
 
 
-/**
- * @brief Test different reduction methods
- *
- * @param n_trajectories
- * @param n_blocks
- * @param reduction
- */
-void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
+// /**
+//  * @brief Test different reduction methods
+//  *
+//  * @param n_trajectories
+//  * @param n_blocks
+//  * @param reduction
+//  */
+// void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
 
-    // Parameters:
+//     // Parameters:
 
-    // Defaults
-    const float risk_free_rate = 0.1;      // r
-    const float initial_spot_price = 100;  // x_0
-    const float contract_strike = 100;     // K
-    const float contract_maturity = 1;     // T
-    const float volatitility = 0.2;        // sigma
+//     // Defaults
+//     const float risk_free_rate = 0.1;      // r
+//     const float initial_spot_price = 100;  // x_0
+//     const float contract_strike = 100;     // K
+//     const float contract_maturity = 1;     // T
+//     const float volatitility = 0.2;        // sigma
 
-    // Uninitalized
-    float barrier = 0;
+//     // Uninitalized
+//     float barrier = 0;
 
-    size_t seed = 1234ULL;
+//     size_t seed = 1234ULL;
 
-    // Variables needed for simulations
-
-
-    // Step one: Get random data from the gpu
-    float *d_randomData, *h_randomData;
-
-    initRandomArray(&d_randomData, &h_randomData, n_trajectories * n_steps, seed);
-
-    // Step two: Simulate different trajectories
-    // - need to simulate trajectories on the gpu and the cpu
+//     // Variables needed for simulations
 
 
-    // Intended effect: Allocate
+//     // Step one: Get random data from the gpu
+//     float *d_randomData, *h_randomData;
+
+//     initRandomArray(&d_randomData, &h_randomData, n_trajectories * n_steps, seed);
+
+//     // Step two: Simulate different trajectories
+//     // - need to simulate trajectories on the gpu and the cpu
 
 
-    // I want to call different reductions, both on the CPU and GPU
+//     // Intended effect: Allocate
 
-    // First step: wrap up the CPU code into a function
-}
+
+//     // I want to call different reductions, both on the CPU and GPU
+
+//     // First step: wrap up the CPU code into a function
+// }
 
 
 // Compute a trajectory using the CPU
