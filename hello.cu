@@ -513,8 +513,8 @@ int main(void) {
 
     unsigned int maxThreads = 1024;
 
-    threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
-    blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
     testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
 
     reduce3<<<blocks,threads>>>(d_optionPriceGPU2,d_output2,N_PATHS);
