@@ -37,6 +37,11 @@ int main() {
     // Print from the kernel's GPU
     print_gpu_random<<<1, 1>>>(default_parameters.d_random_array);
 
+    // Now let's go ahead and simulate using CPU and GPU
+    default_parameters.simulate_trajectory_cpu();
+
+
+
     cudaDeviceSynchronize();
 
 

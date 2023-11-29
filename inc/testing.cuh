@@ -2,7 +2,12 @@
 
 #pragma once
 
+
 #include "amaury.cuh"
+#include <cmath>
+#include <iostream>
+#include <vector>
+
 
 /**
  * @brief Allocate space for and fill the elements of an array with size `length` on both the CPU and GPU.
@@ -59,11 +64,37 @@ public:
 
 
     /* -------------------------- Simulation functions -------------------------- */
-    void simulate_trajectory_gpu() {
+    void simulate_trajectory_cpu() {
 
+        // First check to see if we have random numbers already simulated.
+        // Let's simulate different trajectories now.
 
+        if(!this->d_random_array || !this->h_random_array) {
+            std::cout << "Initializing random array with " << this->length() << " elements\n";
+            this->init_random_array();
+        }
 
+        std::cout << "Simulating trajectories using reduction method: \n";
 
+        // Allocate memomry for the output array.
+        float option_price = 0.0;
+        std::vector<float> simulated_paths_cpu(this->n_trajectories, 0.0);
+
+        simulateOptionPriceCPU(
+            &option_price,
+            this->n_trajectories,
+            this->n_steps,
+            this->h_random_array,
+            this->initial_spot_price(),
+            this->volatility(),
+            sqrt(this->dt()),
+            this->risk_free_rate(),
+            this->contract_strike(),
+            this->dt(),
+            simulated_paths_cpu.data
+        )
+
+        // Now return the vector containing all of the simulations
 
     }
 
@@ -74,11 +105,11 @@ public:
     void init_random_array(size_t seed = 1234ULL) {
 
         // Check if the pointers are empty
-        if (!this->d_random_array) {
+        if (this->d_random_array) {
             testCUDA(cudaFree(this->d_random_array));
         }
 
-        if (!this->h_random_array) {
+        if !this->h_random_array) {
             free(this->h_random_array);
         }
 
@@ -93,10 +124,20 @@ public:
         return this->r;
     }
 
+    /**
+     * @brief Return the initial spot price of our simulation. Known as x0 or S0
+     *
+     * @return float
+     */
     float initial_spot_price() {
         return this->x_0;
     }
 
+    /**
+     * @brief Return the contract strike (K) of our simulation.
+     *
+     * @return float
+     */
     float contract_strike() {
         return this->K;
     }
@@ -107,6 +148,10 @@ public:
 
     float barrier() {
         return this->B;
+    }
+
+    float dt() {
+        return this->contract_maturity() / this.n_steps;
     }
 
 
