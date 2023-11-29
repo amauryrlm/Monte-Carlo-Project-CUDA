@@ -508,7 +508,7 @@ int main(void) {
     cout << endl;
     float sum = 0.0f;
     for(int i=0; i<N_PATHS; i++){
-        cout << "gpu2 " << i << h_optionPriceGPU2[i] << endl;
+        cout << "gpu2 " << h_optionPriceGPU2[i] << endl;
     }
 
 
