@@ -717,6 +717,7 @@ int main(void) {
     float sqrdt = sqrt(dt);
     vector<float> s(N_PATHS);
     int threadsPerBlock = 1024;
+    unsigned int maxThreads = 1024;
 
     getDeviceProperty();
 
@@ -758,8 +759,6 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output,sizeof(float)));
 
-    // simulateOptionPriceGPU<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    // simulateOptionPriceGPUSumReduce<<<1, threadsPerBlock>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     simulateOptionPriceOneBlockGPUSumReduce<<<1, 1024>>>( d_optionPriceGPU,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
@@ -774,54 +773,62 @@ int main(void) {
 
     cout << "Average GPU " << output[0]/N_PATHS << endl ;
 
+    cudaFree(d_optionPriceGPU);
+    cudaFree(d_output);
+    free(h_optionPriceGPU);
+    free(output);
+
+
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
 
-    float *h_optionPriceGPU2, *output2;
+    float *h_optionPriceGPU2, *output2, *d_optionPriceGPU2, *d_output2;
     h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
     output2 = (float *)malloc(sizeof(float));
-    float *d_optionPriceGPU2, *d_output2;
     
-    unsigned int maxThreads = 1024;
+    
 
     int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
-    // testCUDA(cudaMalloc((void **)&d_optionPriceGPU2,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output2,blocks*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
-    testCUDA(cudaMemcpy(d_simulated_paths_cpu, simulated_paths_cpu, N_PATHS * sizeof(float), cudaMemcpyHostToDevice));
-
-
-    // cout << "number of block " << blocksPerGrid << endl;
-    // simulateOptionPriceMultipleBlockGPUSumReduce<<<blocksPerGrid, threadsPerBlock>>>( d_optionPriceGPU2,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, d_output2);
-    // error = cudaGetLastError();
-    // if (error != cudaSuccess) {
-    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-    //     return -1;
-    // }
-
-
-
     cout << "number of thread 2 " << threads << endl;
     cout << "number of block 2 " << blocks << endl;
 
-    testCUDA(cudaMalloc((void **)&d_output2,blocksPerGrid*sizeof(float)));
+    
+    testCUDA(cudaMalloc((void **)&d_output2,blocks*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
+
+    testCUDA(cudaMemcpy(d_simulated_paths_cpu, simulated_paths_cpu, N_PATHS * sizeof(float), cudaMemcpyHostToDevice));
+
+
 
     reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS,isPow2(N_PATHS));
     cudaDeviceSynchronize();
-    // cudaMemcpy(h_optionPriceGPU2, d_optionPriceGPU2, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
+
     cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
-    cout << endl;
-    float sum = 0.0f;
-    for(int i=0; i<blocks; i++){
-        cout << "gpu : " <<  output2[i] << endl;
-        sum+=output2[i];
-    }
+    // cout << endl;
+    // float sum = 0.0f;
+    // for(int i=0; i<blocks; i++){
+    //     cout << "gpu : " <<  output2[i] << endl;
+    //     sum+=output2[i];
+    // }
 
     cout<< "result gpu cuda " << sum/N_PATHS << endl;
+
+    cudaFree(d_optionPriceGPU2);
+    cudaFree(d_output2);
+    free(h_optionPriceGPU2);
+    free(output2);
+
+
+
+
+//--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+
+
 
 
 
