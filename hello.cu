@@ -87,7 +87,8 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // do reduction in shared mem
   for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
     if (tid < s) {
-      sdata[tid] = mySum = mySum + sdata[tid + s];
+        printf("mySum : %f , tid : %d \n", mySum, tid);
+        sdata[tid] = mySum = mySum + sdata[tid + s];
     }
 
     __syncthreads();
