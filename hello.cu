@@ -507,18 +507,25 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
         }
     }
 
-  __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B) {
+  __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   
   if(idx < N_PATHS) {
+          float count = 0.0f;
           float St = S0;
           float G;
           for(int i = 0; i < N_STEPS; i++){
               G = d_randomData[idx*N_STEPS + i];
               St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+              if(St < B){
+                  count += 1.0f;
+              }
           }
-          d_simulated_payoff[idx] = max(St - K,0.0f);
-      }
+          if((count >= P1) && (count <= P2)){
+            d_simulated_payoff[idx] = max(St - K,0.0f);
+          } else {
+            d_simulated_payoff[idx] = 0.0f;
+          }
   }
 
 
@@ -717,6 +724,41 @@ int main(void) {
 
 
     cudaFree(d_randomData);
+
+
+//-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS ------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------
+
+  float *d_simulated_payoff_bullet, *d_output4, *h_output4;
+  cudaTEST(cudaMalloc((void **)&d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
+  cudaTEST(cudaMalloc((void **)&d_output4, blocks * sizeof(float)));
+  h_output4 = (float *)malloc(blocks * sizeof(float));
+
+  simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_simulated_payoff_bullet,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, B, 0.1, 0.9);
+  cudaError_t error4 = cudaGetLastError();
+  if (error4 != cudaSuccess) {
+      fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
+      return -1;
+  }
+  reduce3<<<blocks,threads>>>(d_simulated_payoff_bullet,d_output4,N_PATHS);
+  error4 = cudaGetLastError();
+  if (error4 != cudaSuccess) {
+      fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
+      return -1;
+  }
+  cudaDeviceSynchronize();
+  testCUDA(cudaMemcpy(h_output4, d_output4, blocks * sizeof(float), cudaMemcpyDeviceToHost));
+  float sum4 = 0.0f;
+  for(int i=0; i<blocks; i++){
+      sum4+=h_output4[i];
+  }
+  cout<< "result gpu cuda computed bullet option " << sum4/N_PATHS << endl;
+  
+  cudaFree(d_simulated_payoff_bullet);
+  cudaFree(d_output4);
+  free(h_output4);
+
+
 
 
 	return 0;
