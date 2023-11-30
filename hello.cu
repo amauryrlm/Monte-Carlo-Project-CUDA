@@ -290,7 +290,7 @@ __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIs
 
 
 
-void black_scholes_CPU(float *call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility )
+void black_scholes_CPU(float &call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility )
 {
 
     float sqrtT = sqrtf(T);
@@ -298,11 +298,8 @@ void black_scholes_CPU(float *call_price, float x0, float strike_price, float T,
     float    d2 = d1 - volatility * sqrtT;
     float cnd_d1 = CND(d1);
     float cnd_d2 = CND(d2);
-    cout << "cnd_d1 : " << cnd_d1 << endl;
-    cout << "cnd_d2 : " << cnd_d2 << endl;
 
     *call_price   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
-    cout << "call price : " << *call_price << endl;
 }
 
 
@@ -701,7 +698,7 @@ int main(void) {
 //--------------------------------BLACK SCHOLES FORMULA ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
 
-    float *callResult;
+    float callResult = 0.0f;
     black_scholes_CPU(callResult,S0, K, T, r,  sigma);
     cout << "call BS : " << callResult << endl;
 
