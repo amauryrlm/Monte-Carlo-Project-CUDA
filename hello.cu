@@ -728,7 +728,7 @@ int main(void) {
 
 
 
-    cudaFree(d_randomData);
+
 
 
 //-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS ------------------------------------------------------------
@@ -769,7 +769,7 @@ int main(void) {
   cudaFree(d_simulated_payoff_bullet);
   cudaFree(d_output4);
   free(h_output4);
-
+  cudaFree(d_randomData);
 
 
 
