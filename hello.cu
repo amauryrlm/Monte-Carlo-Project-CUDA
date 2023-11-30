@@ -836,6 +836,7 @@ int main(void) {
     reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS,isPow2(N_PATHS));
     cudaDeviceSynchronize();
 
+    cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost);
 
 
     cout << endl;
@@ -849,7 +850,7 @@ int main(void) {
     cudaFree(d_optionPriceGPU3);
     cudaFree(d_output3);
     free(output3);
-    
+
 
 
 
