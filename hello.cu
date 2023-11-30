@@ -731,8 +731,8 @@ int main(void) {
 //------------------------------------------------------------------------------------------------------------------------------
 
   float *d_simulated_payoff_bullet, *d_output4, *h_output4;
-  cudaTEST(cudaMalloc((void **)&d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
-  cudaTEST(cudaMalloc((void **)&d_output4, blocks * sizeof(float)));
+  testCUDA(cudaMalloc((void **)&d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
+  testCUDA(cudaMalloc((void **)&d_output4, blocks * sizeof(float)));
   h_output4 = (float *)malloc(blocks * sizeof(float));
 
   simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_simulated_payoff_bullet,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, B, 0.1, 0.9);
