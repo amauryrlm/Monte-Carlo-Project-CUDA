@@ -519,9 +519,6 @@ __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_pay
     for(int i = 0; i < N_STEPS; i++){
         G = d_randomData[idx*N_STEPS + i];
         St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        if(St < B){
-            count += 1;
-        }
     }
     printf("St : %f \n", St);
     printf("count : %d \n", count);
