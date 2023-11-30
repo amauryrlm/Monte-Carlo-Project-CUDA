@@ -36,8 +36,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 
 // Cumulative normal distribution function
-float NP(float x)
-{
+float NP(float x) {
     float p = 0.2316419f;
     float b1 = 0.31938153f;
     float b2 = -0.356563782f;
