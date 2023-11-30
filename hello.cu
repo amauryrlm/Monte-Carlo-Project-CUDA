@@ -596,7 +596,7 @@ int main(void) {
     const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 100.0f;
-    const float B = 120.0f;
+    const float B = 110.0f;
     const float S0 = 100.0f;
     const float sigma = 0.2f;
     const float r = 0.05f;
