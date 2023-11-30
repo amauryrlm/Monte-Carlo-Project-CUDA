@@ -290,7 +290,7 @@ __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIs
 
 
 
-void BlackScholesCPU(float &call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility )
+void black_scholes_CPU(float &call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility )
 {
 
     float sqrtT = sqrtf(T);
@@ -699,8 +699,7 @@ int main(void) {
 //--------------------------------------------------------------------------------------------------------------------------
 
     float callResult = 0.0f;
-    float putResult = 0.0f;
-    BlackScholesBodyCPU(callResult,putResult,S0, K, T, r,  sigma);
+    black_scholes_CPU(callResult,S0, K, T, r,  sigma);
     cout << "call BS : " << callResult << endl;
 
 
