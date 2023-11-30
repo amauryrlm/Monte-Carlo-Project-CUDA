@@ -504,7 +504,6 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
                 St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
             d_simulated_payoff[idx] = max(St - K,0.0f);
-            printf("St : %f \n", St);
         }
     }
 
@@ -746,9 +745,6 @@ int main(void) {
   }
   cudaDeviceSynchronize();
   testCUDA(cudaMemcpy(h_simulated_payoff_bullet, d_simulated_payoff_bullet, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost));
-  for(int i=0; i<N_PATHS; i++){
-      cout << "simulated payoff bullet : " << h_simulated_payoff_bullet[i] << endl;
-  }
 
   reduce3<<<blocks,threads>>>(d_simulated_payoff_bullet,d_output4,N_PATHS);
   error4 = cudaGetLastError();
