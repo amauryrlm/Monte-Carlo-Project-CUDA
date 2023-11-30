@@ -521,7 +521,7 @@ __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_pay
             count += 1;
         }
     }
-    printf("count : %f \n", count);
+    printf("count : %d \n", count);
     if((count >= P1) && (count <= P2)){
       d_simulated_payoff[idx] = max(St - K,0.0f);
     } else {
