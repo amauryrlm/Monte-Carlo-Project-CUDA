@@ -801,7 +801,7 @@ int main(void) {
     reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS,isPow2(N_PATHS));
     cudaDeviceSynchronize();
 
-    cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost);
+    testCUDA(cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost));
     cudaDeviceSynchronize();
 
     cout << endl;
