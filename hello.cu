@@ -504,6 +504,7 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
                 St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
             d_simulated_payoff[idx] = max(St - K,0.0f);
+            printf("St : %f \n", St);
         }
     }
 
