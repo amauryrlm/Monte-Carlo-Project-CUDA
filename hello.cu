@@ -511,16 +511,17 @@ __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_pay
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   
   if(idx < N_PATHS) {
-    float count = 0.0f;
+    int count = 0;
     float St = S0;
     float G;
     for(int i = 0; i < N_STEPS; i++){
         G = d_randomData[idx*N_STEPS + i];
         St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         if(St < B){
-            count += 1.0f;
+            count += 1;
         }
     }
+    printf("count : %f \n", count);
     if((count >= P1) && (count <= P2)){
       d_simulated_payoff[idx] = max(St - K,0.0f);
     } else {
