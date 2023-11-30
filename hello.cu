@@ -784,7 +784,7 @@ int main(void) {
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
     cout << "number of thread 2 " << threads << endl;
-    cout << "number of block 2 " << blocks << endl;
+    cout << "number of block 2  " << blocks << endl;
 
     float *h_optionPriceGPU2, *output2, *d_optionPriceGPU2, *d_output2;
     h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
@@ -829,10 +829,10 @@ int main(void) {
     output3 = (float *)malloc(blocks * sizeof(float));
 
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output3,sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
 
-    cout << "number of blocks :" << blocksPerGrid << endl;
-    cout << "number of threads :" << threadsPerBlock << endl;
+    cout << "number of blocks : " << blocksPerGrid << endl;
+    cout << "number of threads : " << threadsPerBlock << endl;
 
     simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaError_t error3 = cudaGetLastError();
