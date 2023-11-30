@@ -628,7 +628,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 //   return cg::reduce(threads, in, cg::plus<T>());
 // }
 
-__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
+__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     float payoff;
     
@@ -737,13 +737,6 @@ int main(void) {
     simulateOptionPriceCPU(&optionPriceCPU,  N_PATHS,  N_STEPS,  h_randomData,  S0,  sigma,  sqrdt,  r, K, dt,simulated_paths_cpu);
 
     cout << endl;
-
-    // for(int i=0; i<N_PATHS; i++){
-    //     cout << "cpu : " <<  simulated_paths_cpu[i] << endl;
-    // }
-
-
-
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
 
 
@@ -782,11 +775,6 @@ int main(void) {
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
 
-    float *h_optionPriceGPU2, *output2, *d_optionPriceGPU2, *d_output2;
-    h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
-    output2 = (float *)malloc(sizeof(float));
-    
-    
 
     int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
@@ -794,6 +782,10 @@ int main(void) {
     cout << "number of thread 2 " << threads << endl;
     cout << "number of block 2 " << blocks << endl;
 
+    float *h_optionPriceGPU2, *output2, *d_optionPriceGPU2, *d_output2;
+    h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
+    output2 = (float *)malloc(blocks * sizeof(float));
+    
     
     testCUDA(cudaMalloc((void **)&d_output2,blocks*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
@@ -829,8 +821,35 @@ int main(void) {
 //--------------------------------------------------------------------------------------------------------------------------
 
 
+    float *output3, *d_optionPriceGPU3, *d_output3;
+    output3 = (float *)malloc(blocks * sizeof(float));
+
+    testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output3,sizeof(float)));
+
+    simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    cudaError_t error3 = cudaGetLastError();
+    if (error3 != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+        return -1;
+    }
+    reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS,isPow2(N_PATHS));
+    cudaDeviceSynchronize();
 
 
+
+    cout << endl;
+    sum = 0.0f;
+    for(int i=0; i<blocks; i++){
+        // cout << "gpu : " <<  output2[i] << endl;
+        sum+=output3[i];
+    }
+    cout<< "result gpu cuda computed " << sum/N_PATHS << endl;
+
+    cudaFree(d_optionPriceGPU3);
+    cudaFree(d_output3);
+    free(output3);
+    
 
 
 
