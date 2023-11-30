@@ -730,7 +730,7 @@ int main(void) {
 //-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS ------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------
 
-  float *d_simulated_payoff_bullet, *d_output4, *h_output4;
+  float *d_simulated_payoff_bullet, *h_simulated_payoff_bullet, *h_output4, *d_output4;
   testCUDA(cudaMalloc((void **)&d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
   testCUDA(cudaMalloc((void **)&d_output4, blocks * sizeof(float)));
   h_output4 = (float *)malloc(blocks * sizeof(float));
@@ -741,6 +741,12 @@ int main(void) {
       fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
       return -1;
   }
+  cudaDeviceSynchronize();
+  testCUDA(cudaMemcpy(h_simulated_payoff_bullet, d_simulated_payoff_bullet, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost));
+  for(int i=0; i<N_PATHS; i++){
+      cout << "simulated payoff bullet : " << h_simulated_payoff_bullet[i] << endl;
+  }
+
   reduce3<<<blocks,threads>>>(d_simulated_payoff_bullet,d_output4,N_PATHS);
   error4 = cudaGetLastError();
   if (error4 != cudaSuccess) {
