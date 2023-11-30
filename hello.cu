@@ -526,6 +526,7 @@ __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_pay
     } else {
       d_simulated_payoff[idx] = 0.0f;
     }
+    printf("payoff : %f \n", d_simulated_payoff[idx]);
   }
 }
 
@@ -590,7 +591,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 10000;
+    unsigned int N_PATHS = 10;
     const size_t N_STEPS = 365;
     const float T = 1.0f;
     const float K = 100.0f;
