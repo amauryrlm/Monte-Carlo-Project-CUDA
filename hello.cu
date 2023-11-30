@@ -632,7 +632,7 @@ int main(void) {
 
     cout << endl;
 
-    cout << "Average GPU one block" << output[0]/N_PATHS << endl ;
+    cout << "Average GPU one block : " << output[0]/N_PATHS << endl ;
 
     cudaFree(d_optionPriceGPU);
     cudaFree(d_output);
