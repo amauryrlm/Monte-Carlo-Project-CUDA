@@ -590,7 +590,7 @@ int main(void) {
     cout << "number of steps : " << N_STEPS << endl;
 
 
-    float *d_randomData, *h_randomData, *simulated_paths_cpu, *d_simulated_paths_cpu;
+    float *d_randomData, *h_randomData, *simulated_paths_cpu;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *)malloc(N_PATHS * N_STEPS*sizeof(float));
     simulated_paths_cpu = (float *)malloc(N_PATHS *sizeof(float));
