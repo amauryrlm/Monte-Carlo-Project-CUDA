@@ -843,7 +843,7 @@ int main(void) {
 
     cudaDeviceSynchronize();
 
-    cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost);
+    testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
 
     cout << endl;
