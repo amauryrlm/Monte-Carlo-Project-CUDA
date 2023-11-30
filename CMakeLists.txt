@@ -14,6 +14,7 @@ set(INC ${CMAKE_SOURCE_DIR}/inc)
 include_directories(${INC})
 
 # Find CUDA package
+cmake_policy(SET CMP0146 NEW)
 find_package(CUDA REQUIRED)
 
 # Add your main CUDA executable
