@@ -723,6 +723,9 @@ int main(void) {
 
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
+    cout << "number of paths : " << N_PATHS << endl;
+    cout << "number of steps : " << N_STEPS << endl;
+
 
     float *d_randomData, *h_randomData, *simulated_paths_cpu, *d_simulated_paths_cpu;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
@@ -764,7 +767,7 @@ int main(void) {
 
     cout << endl;
 
-    cout << "Average GPU " << output[0]/N_PATHS << endl ;
+    cout << "Average GPU one block" << output[0]/N_PATHS << endl ;
 
     cudaFree(d_optionPriceGPU);
     cudaFree(d_output);
@@ -849,7 +852,7 @@ int main(void) {
     cout << endl;
     sum = 0.0f;
     for(int i=0; i<blocks; i++){
-        // cout << "gpu : " <<  output2[i] << endl;
+        cout << "gpu cuda : " <<  output2[i] << endl;
         sum+=output3[i];
     }
     cout<< "result gpu cuda computed " << sum/N_PATHS << endl;
