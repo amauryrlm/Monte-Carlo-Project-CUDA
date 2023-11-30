@@ -104,6 +104,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // write result for this block to global mem
   if (tid == 0){
     printf("mySum last %f , %d \n", mySum, blockIdx.x);
+
     g_odata[blockIdx.x] = mySum;
 
   } 
@@ -830,13 +831,20 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output3,sizeof(float)));
 
+    cout << "number of blocks :" << blocksPerGrid << endl;
+    cout << "number of threads :" << threadsPerBlock << endl;
+
     simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaError_t error3 = cudaGetLastError();
     if (error3 != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
         return -1;
     }
-    reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS,isPow2(N_PATHS));
+
+    cout << "number of blocks" << blocks << endl;
+    cout << "number of threads" << threads << endl;
+
+    reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
     error3 = cudaGetLastError();
     if (error3 != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
