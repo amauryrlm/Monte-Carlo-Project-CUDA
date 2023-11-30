@@ -66,7 +66,7 @@ float NP(float x) {
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
-  extern __shared__ float sdata[1024];
+  __shared__ float sdata[1024];
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
@@ -110,7 +110,7 @@ __global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
-  extern __shared__ float sdata[1024];
+  __shared__ float sdata[1024];
 
 
   // perform first level of reduction,
@@ -153,7 +153,7 @@ __global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
-  extern __shared__ float sdata[blockSize];
+  __shared__ float sdata[blockSize];
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
@@ -213,7 +213,7 @@ __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIs
   // Handle to thread block group
   const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
-  extern __shared__ float sdata[blockSize];
+  __shared__ float sdata[blockSize];
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
   unsigned int tid = threadIdx.x;
@@ -495,7 +495,6 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
 __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    float payoff;
     
     if(idx < N_PATHS) {
             float St = S0;
@@ -576,7 +575,6 @@ int main(void) {
     const float B = 95.0f;
     const float S0 = 100.0f;
     const float sigma = 0.2f;
-    const float mu = 0.1f;
     const float r = 0.05f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
