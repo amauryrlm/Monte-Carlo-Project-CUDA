@@ -834,6 +834,13 @@ int main(void) {
         return -1;
     }
     reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS,isPow2(N_PATHS));
+    error3 = cudaGetLastError();
+    if (error3 != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+        return -1;
+    }
+
+
     cudaDeviceSynchronize();
 
     cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost);
