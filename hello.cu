@@ -299,7 +299,7 @@ void black_scholes_CPU(float &call_price, float x0, float strike_price, float T,
     float cnd_d1 = CND(d1);
     float cnd_d2 = CND(d2);
 
-    *call_price   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
+    call_price   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
 }
 
 
