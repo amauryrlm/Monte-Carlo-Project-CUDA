@@ -299,7 +299,7 @@ void black_scholes_CPU(float &call_price, float x0, float strike_price, float T,
     float cnd_d1 = CND(d1);
     float cnd_d2 = CND(d2);
 
-    callResult   = x0 * cnd_d1 - strike * exp(- risk_free_rate * T) * cnd_d2;
+    float callResult   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
 }
 
 
@@ -681,7 +681,7 @@ int main(void) {
 
 
     cout << endl;
-    sum = 0.0f;
+    float sum = 0.0f;
     for(int i=0; i<blocks; i++){
         sum+=output3[i];
     }
