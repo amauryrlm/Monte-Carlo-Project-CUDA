@@ -1,25 +1,17 @@
 #include <iostream>
-// #include <format>
-// #include <functional>
 #include <cuda_runtime.h>
-
-#include "trajectories.hpp"
-#include "common.hpp"
-#include "Xoshiro.hpp"
 #include  "pricinghost.hpp"
 #include <random>
 #include <curand.h>
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 #include <stdio.h>
-
-
 #include <math.h>
+
 using namespace std;
 namespace cg = cooperative_groups;
 
 extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
-
 
 unsigned int nextPow2(unsigned int x) {
   --x;
@@ -42,30 +34,33 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 // macros __FILE__ and __LINE__
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
-///////////////////////////////////////////////////////////////////////////////
-// Polynomial approximation of cumulative normal distribution function
-///////////////////////////////////////////////////////////////////////////////
-static double CND(double d)
+
+// Cumulative normal distribution function
+float NP(float x)
 {
-    const double       A1 = 0.31938153;
-    const double       A2 = -0.356563782;
-    const double       A3 = 1.781477937;
-    const double       A4 = -1.821255978;
-    const double       A5 = 1.330274429;
-    const double RSQRT2PI = 0.39894228040143267793994605993438;
+    float p = 0.2316419f;
+    float b1 = 0.31938153f;
+    float b2 = -0.356563782f;
+    float b3 = 1.781477937f;
+    float b4 = -1.821255978f;
+    float b5 = 1.330274429f;
+    float one_over_twopi = 0.39894228f;
+    float t;
 
-    double
-    K = 1.0 / (1.0 + 0.2316419 * fabs(d));
-
-    double
-    cnd = RSQRT2PI * exp(- 0.5 * d * d) *
-          (K * (A1 + K * (A2 + K * (A3 + K * (A4 + K * A5)))));
-
-    if (d > 0)
-        cnd = 1.0 - cnd;
-
-    return cnd;
+    if (x >= 0.0f)
+    {
+        t = 1.0f / (1.0f + p * x);
+        return (1.0f - one_over_twopi * expf(-x * x / 2.0f) * t *
+               (t * (t * (t * (t * b5 + b4) + b3) + b2) + b1));
+    }
+    else
+    {
+        t = 1.0f / (1.0f - p * x);
+        return (one_over_twopi * expf(-x * x / 2.0f) * t *
+               (t * (t * (t * (t * b5 + b4) + b3) + b2) + b1));
+    }
 }
+
 
 
 
@@ -103,7 +98,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
   // write result for this block to global mem
   if (tid == 0){
-    printf("mySum last %f , %d \n", mySum, blockIdx.x);
+    // printf("mySum last %f , %d \n", mySum, blockIdx.x);
 
     g_odata[blockIdx.x] = mySum;
 
@@ -296,31 +291,16 @@ __global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIs
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Black-Scholes formula for both call and put
-///////////////////////////////////////////////////////////////////////////////
-static void BlackScholesBodyCPU(
-    float &callResult,
-    float &putResult,
-    float Sf, //Stock price
-    float Xf, //Option strike
-    float Tf, //Option years
-    float Rf, //Riskless rate
-    float Vf  //Volatility rate
-)
+void BlackScholesCPU(float &call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility )
 {
-    double S = Sf, X = Xf, T = Tf, R = Rf, V = Vf;
 
-    double sqrtT = sqrt(T);
-    double    d1 = (log(S / X) + (R + 0.5 * V * V) * T) / (V * sqrtT);
-    double    d2 = d1 - V * sqrtT;
-    double CNDD1 = CND(d1);
-    double CNDD2 = CND(d2);
+    float sqrtT = sqrtf(T);
+    float    d1 = (logf(x0 / strike_price) + (risk_free_rate + 0.5 * volatility * volatility) * T) / (volatility * sqrtT);
+    float    d2 = d1 - volatility * sqrtT;
+    float cnd_d1 = CND(d1);
+    float cnd_d2 = CND(d2);
 
-    //Calculate Call and Put simultaneously
-    double expRT = exp(- R * T);
-    callResult   = (float)(S * CNDD1 - X * expRT * CNDD2);
-    putResult    = (float)(X * expRT * (1.0 - CNDD2) - S * (1.0 - CNDD1));
+    callResult   = x0 * cnd_d1 - strike * exp(- risk_free_rate * T) * cnd_d2;
 }
 
 
@@ -860,7 +840,6 @@ int main(void) {
     cout << endl;
     sum = 0.0f;
     for(int i=0; i<blocks; i++){
-        cout << "gpu cuda : " <<  output2[i] << endl;
         sum+=output3[i];
     }
     cout<< "result gpu cuda computed " << sum/N_PATHS << endl;
