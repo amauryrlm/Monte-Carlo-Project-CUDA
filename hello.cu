@@ -606,7 +606,7 @@ int main(void) {
     int threadsPerBlock = 1024;
     unsigned int maxThreads = 1024;
     int P1 = 10;
-    int P2 = 20;
+    int P2 = 50;
 
     getDeviceProperty();
 
