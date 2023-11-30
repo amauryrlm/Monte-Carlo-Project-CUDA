@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(hello LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_BUILD_TYPE Release)
+
 
 # Set the CUDA architecture to 75 for the Tesla T4 GPU
 set(CMAKE_CUDA_ARCHITECTURES 75)
