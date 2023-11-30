@@ -298,8 +298,11 @@ void black_scholes_CPU(float &call_price, float x0, float strike_price, float T,
     float    d2 = d1 - volatility * sqrtT;
     float cnd_d1 = CND(d1);
     float cnd_d2 = CND(d2);
+    cout << "cnd_d1 : " << cnd_d1 << endl;
+    cout << "cnd_d2 : " << cnd_d2 << endl;
 
-    float callResult   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
+    call_price   = x0 * cnd_d1 - strike_price * exp(- risk_free_rate * T) * cnd_d2;
+    cout << "call price : " << call_price << endl;
 }
 
 
