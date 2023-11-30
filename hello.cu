@@ -592,7 +592,7 @@ int main(void) {
 
 // declare variables and constants
     unsigned int N_PATHS = 10;
-    const size_t N_STEPS = 365;
+    const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 100.0f;
     const float B = 95.0f;
@@ -604,6 +604,8 @@ int main(void) {
     vector<float> s(N_PATHS);
     int threadsPerBlock = 1024;
     unsigned int maxThreads = 1024;
+    int P1 = 10;
+    int P2 = 20;
 
     getDeviceProperty();
 
@@ -737,7 +739,7 @@ int main(void) {
   h_output4 = (float *)malloc(blocks * sizeof(float));
   h_simulated_payoff_bullet = (float *)malloc(N_PATHS * sizeof(float));
 
-  simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_simulated_payoff_bullet,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, B, 0.1, 0.9);
+  simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_simulated_payoff_bullet,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt, B, P1, P2);
   cudaError_t error4 = cudaGetLastError();
   if (error4 != cudaSuccess) {
       fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
