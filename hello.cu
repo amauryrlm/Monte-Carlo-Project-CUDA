@@ -640,7 +640,7 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
                 G = d_randomData[idx*N_STEPS + i];
                 St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
-            d_simulated_payoff[idx] = St;
+            d_simulated_payoff[idx] = max(St - K,0.0f);
         }
     }
 
