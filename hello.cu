@@ -448,47 +448,6 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
     }
 }
 
-//for one block
-
-__global__ void simulateOptionPriceGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int tid = threadIdx.x;
-    
-    if (idx < N_PATHS) {
-        float St = S0;
-        float G;
-        for(int i = 0; i < N_STEPS; i++){
-            G = d_randomData[idx*N_STEPS + i];
-            // cout << "G : " << G << endl;
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        }
-
-        St = max(St - K,0.0f);
-
-    // Shared memory for the block
-    __shared__ float sdata[1024];
-
-    // Load input into shared memory
-    sdata[tid] = (idx < N_PATHS) ? St : 0;
-    __syncthreads();
-
-    // Perform reduction in shared memory
-    for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
-        if (tid < s) {
-            sdata[tid] += sdata[tid + s];
-        }
-        __syncthreads();
-    }
-
-    // Write result for this block to output
-    if (tid == 0){
-        output[0] = sdata[0];
-        }
-        
-    } 
-        
-        
-}
 
 __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int stride = blockDim.x;
@@ -533,80 +492,6 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
         }  
 }
 
-
-
-// __global__ void reduce7(const float *__restrict__ g_idata, float *__restrict__ g_odata,
-//                         unsigned int n, bool nIsPow2) {
-
-//   __shared__ float sdata[1024];
-//   const int blockSize = 1024;
-
-//   // perform first level of reduction,
-//   // reading from global memory, writing to shared memory
-//   unsigned int tid = threadIdx.x;
-//   unsigned int gridSize = blockSize * gridDim.x;
-//   unsigned int maskLength = (blockSize & 31);  // 31 = warpSize-1
-//   maskLength = (maskLength > 0) ? (32 - maskLength) : maskLength;
-//   const unsigned int mask = (0xffffffff) >> maskLength;
-
-//   float mySum = 0;
-
-//   // we reduce multiple elements per thread.  The number is determined by the
-//   // number of active thread blocks (via gridDim).  More blocks will result
-//   // in a larger gridSize and therefore fewer elements per thread
-//   if (nIsPow2) {
-//     unsigned int i = blockIdx.x * blockSize * 2 + threadIdx.x;
-//     gridSize = gridSize << 1;
-
-//     while (i < n) {
-//       mySum += g_idata[i];
-//       // ensure we don't read out of bounds -- this is optimized away for
-//       // powerOf2 sized arrays
-//       if ((i + blockSize) < n) {
-//         mySum += g_idata[i + blockSize];
-//       }
-//       i += gridSize;
-//     }
-//   } else {
-//     unsigned int i = blockIdx.x * blockSize + threadIdx.x;
-//     while (i < n) {
-//       mySum += g_idata[i];
-//       i += gridSize;
-//     }
-//   }
-
-//   // Reduce within warp using shuffle or reduce_add if T==int & CUDA_ARCH ==
-//   // SM 8.0
-//   mySum = warpReduceSum<T>(mask, mySum);
-
-//   // each thread puts its local sum into shared memory
-//   if ((tid % warpSize) == 0) {
-//     sdata[tid / warpSize] = mySum;
-//   }
-
-//   __syncthreads();
-
-//   const unsigned int shmem_extent =
-//       (blockSize / warpSize) > 0 ? (blockSize / warpSize) : 1;
-//   const unsigned int ballot_result = __ballot_sync(mask, tid < shmem_extent);
-//   if (tid < shmem_extent) {
-//     mySum = sdata[tid];
-//     // Reduce final warp using shuffle or reduce_add if T==int & CUDA_ARCH ==
-//     // SM 8.0
-//     mySum = warpReduceSum<T>(ballot_result, mySum);
-//   }
-
-//   // write result for this block to global mem
-//   if (tid == 0) {
-//     g_odata[blockIdx.x] = mySum;
-//   }
-// }
-
-// // Performs a reduction step and updates numTotal with how many are remaining
-// template <typename T, typename Group>
-// __device__ T cg_reduce_n(T in, Group &threads) {
-//   return cg::reduce(threads, in, cg::plus<T>());
-// }
 
 __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -761,47 +646,6 @@ int main(void) {
 
     int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
-
-    cout << "number of thread 2 " << threads << endl;
-    cout << "number of block 2  " << blocks << endl;
-
-    float *h_optionPriceGPU2, *output2, *d_optionPriceGPU2, *d_output2;
-    h_optionPriceGPU2 = (float *)malloc(N_PATHS * sizeof(float));
-    output2 = (float *)malloc(blocks * sizeof(float));
-    
-    
-    testCUDA(cudaMalloc((void **)&d_output2,blocks*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_simulated_paths_cpu,N_PATHS*sizeof(float)));
-
-    testCUDA(cudaMemcpy(d_simulated_paths_cpu, simulated_paths_cpu, N_PATHS * sizeof(float), cudaMemcpyHostToDevice));
-
-
-
-    reduce6<<<blocks,threads>>>(d_simulated_paths_cpu,d_output2,N_PATHS,isPow2(N_PATHS));
-    cudaDeviceSynchronize();
-
-    testCUDA(cudaMemcpy(output2, d_output2, blocks * sizeof(float), cudaMemcpyDeviceToHost));
-    cudaDeviceSynchronize();
-
-    cout << endl;
-    float sum = 0.0f;
-    for(int i=0; i<blocks; i++){
-        // cout << "gpu : " <<  output2[i] << endl;
-        sum+=output2[i];
-    }
-
-    cout<< "result gpu cuda " << sum/N_PATHS << endl;
-
-    cudaFree(d_optionPriceGPU2);
-    cudaFree(d_output2);
-    free(h_optionPriceGPU2);
-    free(output2);
-
-
-
-
-//--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------
 
 
     float *output3, *d_optionPriceGPU3, *d_output3;
