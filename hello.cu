@@ -309,7 +309,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
         // cout << "cpu : " <<  St << endl;
         countt += max(St - K, 0.0f);
     }
-    *optionPriceCPU = countt/N_PATHS;
+    *optionPriceCPU = expf(-r) * (countt/N_PATHS);
 }
 
 __global__ void simulateBulletOptionSavePrice(float *d_simulated_paths,float *d_simulated_count, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
