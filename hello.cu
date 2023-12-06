@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cuda_runtime.h>
-#include  "pricinghost.hpp"
 #include <random>
 #include <curand.h>
 #include <cooperative_groups.h>
