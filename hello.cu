@@ -369,16 +369,18 @@ int main(void) {
     free(h_optionPriceGPU);
     free(output);
 
-
+    int threads = 1024;
+    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
     float milliseconds = 0.0f;
     for(int i = 0; i < 6; i++){
       for(int j = 0; j < 6; j++){
 
-        int threads = block_sizes[i];
+        threads = block_sizes[i];
         N_PATHS = number_of_simulations[j];
-        int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+        blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+        blocksPerGrid = (N_PATHS + threads - 1) / threads
 
 
         float *output3, *d_optionPriceGPU3, *d_output3;
@@ -391,7 +393,7 @@ int main(void) {
         
 
 
-        simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+        simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threads>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
         cudaError_t error3 = cudaGetLastError();
         if (error3 != cudaSuccess) {
             fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
