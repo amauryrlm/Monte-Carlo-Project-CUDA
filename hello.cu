@@ -302,7 +302,7 @@ int main(void) {
     int P2 = 50;
 
     int block_sizes [6] = {32, 64, 128, 256, 512, 1024};
-    int number_of_simulations [6] = {100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int number_of_simulations [7] = {100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -374,7 +374,7 @@ int main(void) {
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
     float milliseconds = 0.0f;
-    for(int i = 0; i < 6; i++){
+    for(int i = 0; i < 5; i++){
       for(int j = 0; j < 6; j++){
         cudaEventCreate(&start);
         cudaEventCreate(&stop);
