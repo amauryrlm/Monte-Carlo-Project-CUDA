@@ -396,7 +396,7 @@ int main(void) {
         testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
         testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
         //start time
-        cudaEventRecord(start, 0);
+        testCUDA(cudaEventRecord(start));
         
 
 
@@ -418,7 +418,7 @@ int main(void) {
         cudaDeviceSynchronize();
 
 
-        cudaEventRecord(stop, 0);
+        testCUDA(cudaEventRecord(stop));
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&milliseconds, start, stop);
         times_for_simulations[j] = milliseconds;
