@@ -286,7 +286,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 100000;
+    unsigned int N_PATHS = 1000000;
     const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 155.0;
@@ -301,7 +301,7 @@ int main(void) {
     int P1 = 10;
     int P2 = 50;
 
-    getDeviceProperty();
+    // getDeviceProperty();
 
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
