@@ -170,7 +170,7 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
         float St = S0;
         float G;
         for(int i = 0; i < N_STEPS; i++){
-            G = d_randomData[idx*i];
+            G = d_randomData[idx*N_STEPS + i];
             // cout << "G : " << G << endl;
             St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
         }
@@ -346,11 +346,11 @@ int main(void) {
     unsigned int N_PATHS = 100000;
     const size_t N_STEPS = 10;
     const float T = 1.0f;
-    const float K = 100.0f;
+    const float K = 155.0;
     const float B = 110.0f;
-    const float S0 = 100.0f;
-    const float sigma = 0.2f;
-    const float r = 0.1f;
+    const float S0 = 156.30f;
+    const float sigma = 0.2657f;
+    const float r =  0.0237f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
     int threadsPerBlock = 1024;
