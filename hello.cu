@@ -380,7 +380,7 @@ int main(void) {
         threads = block_sizes[i];
         N_PATHS = number_of_simulations[j];
         blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
-        blocksPerGrid = (N_PATHS + threads - 1) / threads
+        blocksPerGrid = (N_PATHS + threads - 1) / threads;
 
 
         float *output3, *d_optionPriceGPU3, *d_output3;
