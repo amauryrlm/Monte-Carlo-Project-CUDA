@@ -286,7 +286,7 @@ int main(void) {
 
 
 // declare variables and constants
-    unsigned int N_PATHS = 1000000;
+    unsigned int N_PATHS = 100000000;
     const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 155.0;
@@ -376,7 +376,7 @@ int main(void) {
     float milliseconds = 0.0f;
     float mean = 0.0f;
     for(int i = 0; i < 6; i++){
-      for(int j = 0; j < 5; j++){
+      for(int j = 0; j < 6; j++){
         for(int k = 0; k < 10; k++){
 
           cudaEventCreate(&start);
