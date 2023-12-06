@@ -411,7 +411,7 @@ int main(void) {
 
 
 
-        reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
+        reduce4<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
         error3 = cudaGetLastError();
         if (error3 != cudaSuccess) {
             fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
