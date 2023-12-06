@@ -1,3 +1,15 @@
 factorise random number generator 
 enable multi block
 use only one block
+
+
+question
+
+
+generate array with random values at once 
+
+separe kernel copute and reduce
+
+bullet only time step?
+
+date du controle
