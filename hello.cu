@@ -420,7 +420,13 @@ int main(void) {
         cudaDeviceSynchronize();
 
 
-        testCUDA(cudaEventRecord(stop));
+        cudaError_t err;
+
+        err = cudaEventRecord(stop);
+        if (err != cudaSuccess) {
+            fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
+            exit(EXIT_FAILURE);
+        }
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&milliseconds, start, stop);
         times_for_simulations[j] = milliseconds;
