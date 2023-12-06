@@ -213,7 +213,7 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
 
         // Write result for this block to output
         if (tid == 0){
-            output[0] = sdata[0];
+            output[0] = sdata[0] * expf(-r);
             }  
         }  
 }
