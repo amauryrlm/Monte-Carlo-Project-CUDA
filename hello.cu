@@ -376,6 +376,8 @@ int main(void) {
     float milliseconds = 0.0f;
     for(int i = 1; i < 6; i++){
       for(int j = 0; j < 6; j++){
+        cudaEventCreate(&start);
+        cudaEventCreate(&stop);
 
         threads = block_sizes[i];
         N_PATHS = number_of_simulations[j];
@@ -437,6 +439,8 @@ int main(void) {
         cudaFree(d_optionPriceGPU3);
         cudaFree(d_output3);
         free(output3);
+        cudaEventDestroy(start);
+        cudaEventDestroy(stop);
       }
       fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", number_of_simulations[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     }
