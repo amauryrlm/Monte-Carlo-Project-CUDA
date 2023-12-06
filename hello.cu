@@ -530,6 +530,9 @@ int main(void) {
   free(h_output4);
   cudaFree(d_randomData);
 
+  //close file
+  fclose(file);
+
 
 
 	return 0;
