@@ -403,7 +403,7 @@ int main(void) {
           //start time
           
           
-
+          testCUDA(cudaEventRecord(start));
 
           simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threads>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
           cudaError_t error3 = cudaGetLastError();
@@ -411,8 +411,17 @@ int main(void) {
               fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
               return -1;
           }
+          cudaError_t err;
+          err = cudaEventRecord(stop);
+          if (err != cudaSuccess) {
+              fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
+              exit(EXIT_FAILURE);
+          }
+          cudaEventSynchronize(stop);
+          cudaEventElapsedTime(&milliseconds, start, stop);
+          mean += milliseconds;
 
-          testCUDA(cudaEventRecord(start));
+
 
           reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS, isPow2(N_PATHS));
           error3 = cudaGetLastError();
