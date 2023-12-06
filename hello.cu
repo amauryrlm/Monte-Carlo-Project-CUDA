@@ -371,8 +371,6 @@ int main(void) {
     testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
     testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
 
-    cout << "number of blocks : " << blocksPerGrid << endl;
-    cout << "number of threads : " << threadsPerBlock << endl;
 
     simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
     cudaError_t error3 = cudaGetLastError();
@@ -381,8 +379,7 @@ int main(void) {
         return -1;
     }
 
-    cout << "number of blocks" << blocks << endl;
-    cout << "number of threads" << threads << endl;
+
 
     reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
     error3 = cudaGetLastError();
@@ -402,7 +399,7 @@ int main(void) {
     for(int i=0; i<blocks; i++){
         sum+=output3[i];
     }
-    cout<< "result gpu cuda option price vanilla " << sum/N_PATHS << endl;
+    cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
 
     cudaFree(d_optionPriceGPU3);
     cudaFree(d_output3);
@@ -454,7 +451,7 @@ int main(void) {
   for(int i=0; i<blocks; i++){
       sum4+=h_output4[i];
   }
-  cout<< "result gpu cuda computed bullet option " << sum4/N_PATHS << endl;
+  cout<< "result gpu cuda computed bullet option " << expf(-r*T) * sum4/N_PATHS << endl;
 
 
 
