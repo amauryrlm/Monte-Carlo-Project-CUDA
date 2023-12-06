@@ -10,7 +10,7 @@
 #include "reduce.cuh"
 
 using namespace std;
-namespace cg = cooperative_groups;
+
 
 extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
 

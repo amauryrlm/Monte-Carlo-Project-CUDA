@@ -1,3 +1,9 @@
+#include <cooperative_groups.h>
+#include <cooperative_groups/reduce.h>
+
+namespace cg = cooperative_groups;
+
+
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
