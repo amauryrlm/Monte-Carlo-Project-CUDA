@@ -302,11 +302,11 @@ int main(void) {
     int P2 = 50;
 
     int block_sizes [6] = {32, 64, 128, 256, 512, 1024};
-    int number_of_simulations [7] = {10000, 100000, 1000000, 10000000, 100000000, 100000000, 1000000000};
+    int number_of_simulations [5] = {10000, 100000, 1000000, 10000000, 100000000};
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    float times_for_simulations [6];
+    float times_for_simulations [7];
 
     FILE *file = fopen("simulation_results.csv", "w");
     fprintf(file, "number of simulations, 100, 1000, 10000, 100000, 1000000, 10000000\n");
@@ -371,13 +371,12 @@ int main(void) {
 
     int threads = 1024;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
-    float sum;
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
     float milliseconds = 0.0f;
     float mean = 0.0f;
     for(int i = 0; i < 6; i++){
-      for(int j = 0; j < 5; j++){
+      for(int j = 0; j < 4; j++){
         for(int k = 0; k < 10; k++){
 
           cudaEventCreate(&start);
@@ -388,7 +387,11 @@ int main(void) {
           blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
           blocksPerGrid = (N_PATHS + threads - 1) / threads;
 
+          cout << endl << "number of paths : " << N_PATHS << endl;
+          cout << "number of threads : " << threads << endl;
 
+          cout << "number of blocks : " << blocks << endl;
+          cout << "number of blocks per grid : " << blocksPerGrid << endl;
 
 
 
@@ -436,11 +439,11 @@ int main(void) {
 
 
           cout << endl;
-          sum = 0.0f;
+          float sum = 0.0f;
           for(int i=0; i<blocks; i++){
               sum+=output3[i];
           }
-          
+          cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
 
           cudaFree(d_optionPriceGPU3);
           cudaFree(d_output3);
@@ -449,12 +452,6 @@ int main(void) {
           cudaEventDestroy(stop);
         }
         times_for_simulations[j] = mean/static_cast<float>(10);
-        cout << endl << "number of paths : " << N_PATHS << endl;
-        cout << "number of threads : " << threads << endl;
-
-        cout << "number of blocks : " << blocks << endl;
-        cout << "number of blocks per grid : " << blocksPerGrid << endl;
-        cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
       }
       fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     }
