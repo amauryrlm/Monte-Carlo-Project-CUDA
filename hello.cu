@@ -301,6 +301,19 @@ int main(void) {
     int P1 = 10;
     int P2 = 50;
 
+    int block_sizes [6] = {32, 64, 128, 256, 512, 1024};
+    int number_of_simulations [6] = {1000, 10000, 100000, 1000000, 10000000, 100000000};
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    float times_for_simulations [6];
+
+    FILE *file = fopen("simulation_results.csv", "w");
+    fprintf(file, "number of simulations, 1000, 10000, 100000, 1000000, 10000000, 100000000\n");
+
+
+
+
     // getDeviceProperty();
 
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
@@ -359,51 +372,63 @@ int main(void) {
 
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
+    float milliseconds = 0.0f;
+    for(int i = 0; i < 6; i++){
+      for(int j = 0; j < 6; j++){
+
+        int threads = block_sizes[i];
+        N_PATHS = number_of_simulations[j];
+        int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
 
-    int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
-    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+        float *output3, *d_optionPriceGPU3, *d_output3;
+        output3 = (float *)malloc(blocks * sizeof(float));
+
+        testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
+        testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
+        //start time
+        cudaEventRecord(start, 0);
+        
 
 
-    float *output3, *d_optionPriceGPU3, *d_output3;
-    output3 = (float *)malloc(blocks * sizeof(float));
+        simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+        cudaError_t error3 = cudaGetLastError();
+        if (error3 != cudaSuccess) {
+            fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+            return -1;
+        }
 
-    testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
-    testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
 
 
-    simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-    cudaError_t error3 = cudaGetLastError();
-    if (error3 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-        return -1;
+        reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
+        error3 = cudaGetLastError();
+        if (error3 != cudaSuccess) {
+            fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+            return -1;
+        }
+
+
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop);
+        cudaEventElapsedTime(&milliseconds, start, stop);
+        times_for_simulations[j] = milliseconds;
+
+        testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
+
+
+        cout << endl;
+        float sum = 0.0f;
+        for(int i=0; i<blocks; i++){
+            sum+=output3[i];
+        }
+        cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
+
+        cudaFree(d_optionPriceGPU3);
+        cudaFree(d_output3);
+        free(output3);
+      }
+      fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", number_of_simulations[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     }
-
-
-
-    reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
-    error3 = cudaGetLastError();
-    if (error3 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-        return -1;
-    }
-
-
-    cudaDeviceSynchronize();
-
-    testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
-
-
-    cout << endl;
-    float sum = 0.0f;
-    for(int i=0; i<blocks; i++){
-        sum+=output3[i];
-    }
-    cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
-
-    cudaFree(d_optionPriceGPU3);
-    cudaFree(d_output3);
-    free(output3);
 
 
 
