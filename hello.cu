@@ -411,12 +411,14 @@ int main(void) {
             fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
             return -1;
         }
+        cudaDeviceSynchronize();
 
 
         cudaEventRecord(stop, 0);
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&milliseconds, start, stop);
         times_for_simulations[j] = milliseconds;
+        cout << "time for simulation : " << milliseconds << " ms" << endl;
 
         testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
