@@ -382,6 +382,9 @@ int main(void) {
         blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
         blocksPerGrid = (N_PATHS + threads - 1) / threads;
 
+        cout << endl << "number of paths : " << N_PATHS << endl;
+        cout << "number of threads : " << threads << endl;
+
 
         float *output3, *d_optionPriceGPU3, *d_output3;
         output3 = (float *)malloc(blocks * sizeof(float));
