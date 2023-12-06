@@ -302,11 +302,11 @@ int main(void) {
     int P2 = 50;
 
     int block_sizes [6] = {32, 64, 128, 256, 512, 1024};
-    int number_of_simulations [7] = {100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+    int number_of_simulations [7] = {10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000};
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    float times_for_simulations [7];
+    float times_for_simulations [6];
 
     FILE *file = fopen("simulation_results.csv", "w");
     fprintf(file, "number of simulations, 100, 1000, 10000, 100000, 1000000, 10000000\n");
