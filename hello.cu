@@ -376,7 +376,7 @@ int main(void) {
     float milliseconds = 0.0f;
     float mean = 0.0f;
     for(int i = 0; i < 6; i++){
-      for(int j = 0; j < 6; j++){
+      for(int j = 0; j < 5; j++){
         for(int k = 0; k < 10; k++){
 
           cudaEventCreate(&start);
