@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "BlackandScholes.hpp"
-#include "reduce.cu"
+#include "reduce.cuh"
 
 using namespace std;
 namespace cg = cooperative_groups;
