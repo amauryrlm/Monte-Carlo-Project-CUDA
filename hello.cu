@@ -309,7 +309,7 @@ int main(void) {
     float times_for_simulations [6];
 
     FILE *file = fopen("simulation_results.csv", "w");
-    fprintf(file, "number of simulations, 100, 1000, 10000, 100000, 1000000, 10000000\n");
+    fprintf(file, "number of threads, 100, 1000, 10000, 100000, 1000000, 10000000\n");
 
 
 
@@ -401,7 +401,7 @@ int main(void) {
           testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
           testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
           //start time
-          testCUDA(cudaEventRecord(start));
+          
           
 
 
@@ -412,7 +412,7 @@ int main(void) {
               return -1;
           }
 
-
+          testCUDA(cudaEventRecord(start));
 
           reduce4<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
           error3 = cudaGetLastError();
@@ -420,7 +420,6 @@ int main(void) {
               fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
               return -1;
           }
-          cudaDeviceSynchronize();
 
 
           cudaError_t err;
