@@ -371,6 +371,7 @@ int main(void) {
 
     int threads = 1024;
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    float sum;
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
     float milliseconds = 0.0f;
@@ -435,7 +436,7 @@ int main(void) {
 
 
           cout << endl;
-          float sum = 0.0f;
+          sum = 0.0f;
           for(int i=0; i<blocks; i++){
               sum+=output3[i];
           }
