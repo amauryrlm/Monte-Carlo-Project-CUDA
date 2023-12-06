@@ -301,7 +301,7 @@ int main(void) {
     int P1 = 10;
     int P2 = 50;
 
-    int block_sizes [6] = {32, 64, 128, 256, 512, 1024};
+    int block_sizes [6] = {1, 64, 128, 256, 512, 1024};
     int number_of_simulations [6] = {100, 1000, 10000, 100000, 1000000, 10000000};
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
