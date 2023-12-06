@@ -22,5 +22,4 @@ add_executable(main hello.cu)
 # Link the cuRAND library to your main CUDA executable
 target_link_libraries(main ${CUDA_LIBRARIES} ${CUDA_curand_LIBRARY})
 
-# Your other executable
-add_executable(csv traj_to_csv.cpp)
+
