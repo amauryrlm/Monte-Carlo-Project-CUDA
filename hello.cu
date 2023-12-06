@@ -422,17 +422,7 @@ int main(void) {
           }
 
 
-          cudaError_t err;
 
-          err = cudaEventRecord(stop);
-          if (err != cudaSuccess) {
-              fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
-              exit(EXIT_FAILURE);
-          }
-          cudaEventSynchronize(stop);
-          cudaEventElapsedTime(&milliseconds, start, stop);
-          mean += milliseconds;
-          cout << "time for simulation : " << milliseconds << " ms" << endl;
 
           testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -442,7 +432,18 @@ int main(void) {
           for(int i=0; i<blocks; i++){
               sum+=output3[i];
           }
-          cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
+          float result = expf(-r*T)*sum/N_PATHS;
+          cudaError_t err;
+          err = cudaEventRecord(stop);
+          if (err != cudaSuccess) {
+              fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
+              exit(EXIT_FAILURE);
+          }
+          cudaEventSynchronize(stop);
+          cudaEventElapsedTime(&milliseconds, start, stop);
+          mean += milliseconds;
+          cout << "time for simulation : " << milliseconds << " ms" << endl;
+          cout<< "result gpu cuda option price vanilla " << result << endl;
 
           cudaFree(d_optionPriceGPU3);
           cudaFree(d_output3);
