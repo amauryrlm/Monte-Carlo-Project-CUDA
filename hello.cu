@@ -350,7 +350,7 @@ int main(void) {
     const float B = 110.0f;
     const float S0 = 100.0f;
     const float sigma = 0.2f;
-    const float r = 0.05f;
+    const float r = 0.1f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
     vector<float> s(N_PATHS);
@@ -536,7 +536,10 @@ int main(void) {
   testCUDA(cudaMemcpy(h_simulated_count, d_simulated_count, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost)); 
 
   
-  
+  cudaFree(d_simulated_paths);
+  cudaFree(d_simulated_count);
+  free(h_simulated_paths);
+  free(h_simulated_count);
   cudaFree(d_simulated_payoff_bullet);
   cudaFree(d_output4);
   free(h_output4);
