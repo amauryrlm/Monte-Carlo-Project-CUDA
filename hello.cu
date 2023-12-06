@@ -442,15 +442,7 @@ int main(void) {
               sum+=output3[i];
           }
           float result = expf(-r*T)*sum/N_PATHS;
-          cudaError_t err;
-          err = cudaEventRecord(stop);
-          if (err != cudaSuccess) {
-              fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
-              exit(EXIT_FAILURE);
-          }
-          cudaEventSynchronize(stop);
-          cudaEventElapsedTime(&milliseconds, start, stop);
-          mean += milliseconds;
+
           cout << "time for simulation : " << milliseconds << " ms" << endl;
           cout<< "result gpu cuda option price vanilla " << result << endl;
 
