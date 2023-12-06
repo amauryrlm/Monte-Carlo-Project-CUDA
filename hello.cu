@@ -385,6 +385,10 @@ int main(void) {
         cout << endl << "number of paths : " << N_PATHS << endl;
         cout << "number of threads : " << threads << endl;
 
+        cout << "number of blocks : " << blocks << endl;
+        cout << "number of blocks per grid : " << blocksPerGrid << endl;
+
+
 
         float *output3, *d_optionPriceGPU3, *d_output3;
         output3 = (float *)malloc(blocks * sizeof(float));
