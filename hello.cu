@@ -387,11 +387,7 @@ int main(void) {
           blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
           blocksPerGrid = (N_PATHS + threads - 1) / threads;
 
-          cout << endl << "number of paths : " << N_PATHS << endl;
-          cout << "number of threads : " << threads << endl;
 
-          cout << "number of blocks : " << blocks << endl;
-          cout << "number of blocks per grid : " << blocksPerGrid << endl;
 
 
 
@@ -443,7 +439,7 @@ int main(void) {
           for(int i=0; i<blocks; i++){
               sum+=output3[i];
           }
-          cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
+          
 
           cudaFree(d_optionPriceGPU3);
           cudaFree(d_output3);
@@ -452,6 +448,12 @@ int main(void) {
           cudaEventDestroy(stop);
         }
         times_for_simulations[j] = mean/static_cast<float>(10);
+        cout << endl << "number of paths : " << N_PATHS << endl;
+        cout << "number of threads : " << threads << endl;
+
+        cout << "number of blocks : " << blocks << endl;
+        cout << "number of blocks per grid : " << blocksPerGrid << endl;
+        cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
       }
       fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     }
