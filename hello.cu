@@ -459,7 +459,7 @@ int main(void) {
     for(int i=0; i<blocks; i++){
         sum+=output3[i];
     }
-    cout<< "result gpu cuda computed " << sum/N_PATHS << endl;
+    cout<< "result gpu cuda option price vanilla " << sum/N_PATHS << endl;
 
     cudaFree(d_optionPriceGPU3);
     cudaFree(d_output3);
@@ -474,7 +474,7 @@ int main(void) {
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult,S0, K, T, r,  sigma);
-    cout << endl << "call BS : " << callResult << endl;
+    cout << endl << "call Black Scholes : " << callResult << endl;
 
 
 
