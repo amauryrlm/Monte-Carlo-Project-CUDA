@@ -353,7 +353,6 @@ int main(void) {
     const float r = 0.1f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
-    vector<float> s(N_PATHS);
     int threadsPerBlock = 1024;
     unsigned int maxThreads = 1024;
     int P1 = 10;
@@ -475,7 +474,7 @@ int main(void) {
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult,S0, K, T, r,  sigma);
-    cout << "call BS : " << callResult << endl;
+    cout << endl << "call BS : " << callResult << endl;
 
 
 
