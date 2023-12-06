@@ -374,7 +374,7 @@ int main(void) {
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
     float milliseconds = 0.0f;
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 6; i++){
       for(int j = 0; j < 5; j++){
         cudaEventCreate(&start);
         cudaEventCreate(&stop);
@@ -448,7 +448,7 @@ int main(void) {
         cudaEventDestroy(start);
         cudaEventDestroy(stop);
       }
-      fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", number_of_simulations[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
+      fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     }
 
 
