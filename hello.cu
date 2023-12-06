@@ -9,6 +9,7 @@
 #include "BlackandScholes.hpp"
 #include "reduce.cuh"
 #include "tool.cuh"
+#include "option_price.hpp"
 
 using namespace std;
 
