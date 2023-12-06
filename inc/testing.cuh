@@ -17,7 +17,7 @@
  * @param length
  * @param seed
  */
-void initRandomArray(float **d_randomData, float **h_randomData, size_t length, long seed = 1234ULL) {
+void init_random_array(float **d_randomData, float **h_randomData, size_t length, long seed = 1234ULL) {
 
     size_t n_random_bytes = length * sizeof(float);
 
@@ -28,8 +28,15 @@ void initRandomArray(float **d_randomData, float **h_randomData, size_t length, 
 }
 
 
+enum ReductionType {
+    SequentialAddressing = 3,
+    FirstAddDuringLoad = 4,
+    UnrollLastWarp = 5,
+    CompletelyUnrolled = 6
+    // MultipleAddsPerThread = 7
+};
 
-class SimulationParameters {
+class Simulation {
 
 public:
 
@@ -38,7 +45,7 @@ public:
     float * d_random_array = nullptr;
     float * h_random_array = nullptr;
 
-    SimulationParameters(
+    Simulation (
         size_t n_trajectories = 10,
         size_t n_steps = 100,
         float volatilty = 0.2,
@@ -58,8 +65,89 @@ public:
         , B{barrier}
     {
 
-        this->init_random_array();
+        this->initialize_random_array();
 
+    }
+
+    /**
+     * @brief Compute the sum of the contents stored in Simulation.h_random_array.
+     *
+     * @return float
+     */
+    float sum_random_array() {
+
+        if (!this->h_random_array) {
+            this->initialize_random_array();
+        }
+
+        float out = 0.0;
+        int n = this->length();
+        for (int i = 0; i < n; i++) {
+            out += this->h_random_array[i];
+        }
+
+        return out;
+    }
+
+
+    /**
+     * @brief Perform a test reduction, returning a vector storing the result of each block.
+     *
+     * @param n_blocks
+     * @param n_threads_per_block
+     * @param reduction
+     * @return std::vector<float>
+     */
+    std::vector<float> test_reduction(size_t n_blocks, size_t n_threads_per_block, int reduction) {
+
+        // Is our random array initialized?
+        if (!this->d_random_array) {
+            this->initialize_random_array();
+        }
+
+        float * g_idata = this->d_random_array;
+        float * g_odata;
+
+        // Allocate space for the output data
+        testCUDA(cudaMalloc(&g_odata, n_blocks * sizeof(float)));
+        size_t n = this->length();
+
+        // Now compute the value of the reduction
+
+        switch (reduction) {
+
+            case SequentialAddressing: // 3
+
+                reduce3<<<n_blocks, n_threads_per_block>>>(g_idata, g_odata, n);
+                break;
+
+            case FirstAddDuringLoad: // 4
+
+                reduce4<<<n_blocks, n_threads_per_block>>>(g_idata, g_odata, n);
+                break;
+
+            case UnrollLastWarp: // 5
+
+                reduce5<<<n_blocks, n_threads_per_block>>>(g_idata, g_odata, n);
+                break;
+
+            case CompletelyUnrolled: // 6
+
+                // Is our length a power of 2 ?
+                bool is_power_2 = isPow2(n);
+                reduce6<<<n_blocks, n_threads_per_block>>>(g_idata, g_odata, n, is_power_2);
+                break;
+
+        }
+
+        // Move bytes from g_odata into a vector on the cpu.
+        std::vector<float> out(n_blocks);
+
+        testCUDA(cudaMemcpy(out.data(), g_odata, n_blocks * sizeof(float), cudaMemcpyDeviceToHost));
+
+        cudaFree(g_odata);
+
+        return out;
     }
 
 
@@ -71,7 +159,7 @@ public:
 
         if(!this->d_random_array || !this->h_random_array) {
             std::cout << "Initializing random array with " << this->length() << " elements\n";
-            this->init_random_array();
+            this->initialize_random_array();
         }
 
         std::cout << "Simulating trajectories using reduction method: \n";
@@ -87,7 +175,7 @@ public:
             this->h_random_array,
             this->initial_spot_price(),
             this->volatility(),
-            sqrt(this->dt()),
+            this->sqrt_dt(),
             this->risk_free_rate(),
             this->contract_strike(),
             this->dt(),
@@ -103,7 +191,7 @@ public:
         return this->n_steps * this->n_trajectories;
     }
 
-    void init_random_array(size_t seed = 1234ULL) {
+    void initialize_random_array(size_t seed = 1234ULL) {
 
         // Check if the pointers are empty
         if (this->d_random_array) {
@@ -114,7 +202,7 @@ public:
             free(this->h_random_array);
         }
 
-        initRandomArray(&(this->d_random_array), &(this->h_random_array), this->length(), seed);
+        init_random_array(&(this->d_random_array), &(this->h_random_array), this->length(), seed);
     }
 
     float volatility() {
@@ -153,6 +241,10 @@ public:
 
     float dt() {
         return this->contract_maturity() / this->n_steps;
+    }
+
+    float sqrt_dt() {
+        return sqrt(this->dt());
     }
 
 

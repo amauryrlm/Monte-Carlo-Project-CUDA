@@ -36,12 +36,6 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
 
-// Cumulative normal distribution function
-
-
-
-
-
 __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
@@ -385,9 +379,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-    cout << endl << "number generated" << endl;
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-    cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 
 }
@@ -397,9 +389,7 @@ void generate_random_array(float *d_randomData, float *h_randomData, int length,
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, length, 0.0, 1.0);
-    cout << endl << "number generated" << endl;
     testCUDA(cudaMemcpy(h_randomData, d_randomData, length * sizeof(float), cudaMemcpyDeviceToHost));
-    cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 }
 

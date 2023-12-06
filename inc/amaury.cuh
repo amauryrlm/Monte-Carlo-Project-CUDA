@@ -1,23 +1,18 @@
 #include <iostream>
-// #include <format>
-// #include <functional>
 #include <cuda_runtime.h>
-
-#include "trajectories.hpp"
-#include "common.hpp"
-#include "Xoshiro.hpp"
 #include  "pricinghost.hpp"
 #include <random>
 #include <curand.h>
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 #include <stdio.h>
-
-
 #include <math.h>
+#include "BlackandScholes.hpp"
+
 using namespace std;
 namespace cg = cooperative_groups;
 
+extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
 
 unsigned int nextPow2(unsigned int x) {
   --x;
@@ -40,35 +35,52 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 // macros __FILE__ and __LINE__
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
-///////////////////////////////////////////////////////////////////////////////
-// Polynomial approximation of cumulative normal distribution function
-///////////////////////////////////////////////////////////////////////////////
-static double CND(double d)
-{
-    const double       A1 = 0.31938153;
-    const double       A2 = -0.356563782;
-    const double       A3 = 1.781477937;
-    const double       A4 = -1.821255978;
-    const double       A5 = 1.330274429;
-    const double RSQRT2PI = 0.39894228040143267793994605993438;
+__global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
-    double
-    K = 1.0 / (1.0 + 0.2316419 * fabs(d));
+    // Handle to thread block group
+    cg::thread_block cta = cg::this_thread_block();
+    __shared__ float sdata[1024];
 
-    double
-    cnd = RSQRT2PI * exp(- 0.5 * d * d) *
-          (K * (A1 + K * (A2 + K * (A3 + K * (A4 + K * A5)))));
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+    sdata[tid] = g_idata[i];
+    cg::sync(cta);
 
-    if (d > 0)
-        cnd = 1.0 - cnd;
+    // do reduction in shared mem
+    for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
 
-    return cnd;
+        if (tid < s) {
+            sdata[tid] += sdata[tid + s];
+        }
+
+        cg::sync(cta);
+
+    }
+
+    // for (unsigned int s=1; s < blockDim.x; s*= 2) {
+    //     if (tid % (2 * s) == 0) {
+    //         sdata[tid] += sdata[tid + s];
+    //     }
+    // }
+
+  // write result for this block to global mem
+  if (tid == 0){
+
+    g_odata[blockIdx.x] = sdata[0];
+
+  }
 }
 
-__global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
+
+
+__global__ void reduce4(float *g_idata, float *g_odata, unsigned int n) {
   // Handle to thread block group
+  const int blockSize = 1024;
   cg::thread_block cta = cg::this_thread_block();
-  extern __shared__ float sdata[];
+  __shared__ float sdata[1024];
+
 
   // perform first level of reduction,
   // reading from global memory, writing to shared memory
@@ -77,13 +89,13 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
   float mySum = (i < n) ? g_idata[i] : 0;
 
-  if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
+  if (i + 1024 < n) mySum += g_idata[i + 1024];
 
   sdata[tid] = mySum;
   cg::sync(cta);
 
   // do reduction in shared mem
-  for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
+  for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
     if (tid < s) {
       sdata[tid] = mySum = mySum + sdata[tid + s];
     }
@@ -91,37 +103,163 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
     cg::sync(cta);
   }
 
+  cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+  if (cta.thread_rank() < 32) {
+    // Fetch final intermediate sum from 2nd warp
+    if (blockSize >= 64) mySum += sdata[tid + 32];
+    // Reduce final warp using shuffle
+    for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+      mySum += tile32.shfl_down(mySum, offset);
+    }
+  }
+
   // write result for this block to global mem
-  if (tid == 0) g_odata[blockIdx.x] = mySum;
+  if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
+}
+
+__global__ void reduce5(float *g_idata, float *g_odata, unsigned int n) {
+  // Handle to thread block group
+  const int blockSize = 1024;
+  cg::thread_block cta = cg::this_thread_block();
+  __shared__ float sdata[blockSize];
+
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int i = blockIdx.x * (blockSize * 2) + threadIdx.x;
+
+  float mySum = (i < n) ? g_idata[i] : 0;
+
+  if (i + blockSize < n) mySum += g_idata[i + blockSize];
+
+  sdata[tid] = mySum;
+  cg::sync(cta);
+
+  // do reduction in shared mem
+  if ( (blockSize >= 1024) && (tid < 512)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 512];
+  }
+  cg::sync(cta);
+ if ((blockSize >= 512) && (tid < 256)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 256];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 256) && (tid < 128)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 128];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 128) && (tid < 64)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 64];
+  }
+
+
+  cg::sync(cta);
+
+  cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+  if (cta.thread_rank() < 32) {
+    // Fetch final intermediate sum from 2nd warp
+    if (blockSize >= 64) mySum += sdata[tid + 32];
+    // Reduce final warp using shuffle
+    for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+      mySum += tile32.shfl_down(mySum, offset);
+    }
+  }
+
+  // write result for this block to global mem
+  if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Black-Scholes formula for both call and put
-///////////////////////////////////////////////////////////////////////////////
-static void BlackScholesBodyCPU(
-    float &callResult,
-    float &putResult,
-    float Sf, //Stock price
-    float Xf, //Option strike
-    float Tf, //Option years
-    float Rf, //Riskless rate
-    float Vf  //Volatility rate
-)
-{
-    double S = Sf, X = Xf, T = Tf, R = Rf, V = Vf;
 
-    double sqrtT = sqrt(T);
-    double    d1 = (log(S / X) + (R + 0.5 * V * V) * T) / (V * sqrtT);
-    double    d2 = d1 - V * sqrtT;
-    double CNDD1 = CND(d1);
-    double CNDD2 = CND(d2);
 
-    //Calculate Call and Put simultaneously
-    double expRT = exp(- R * T);
-    callResult   = (float)(S * CNDD1 - X * expRT * CNDD2);
-    putResult    = (float)(X * expRT * (1.0 - CNDD2) - S * (1.0 - CNDD1));
+__global__ void reduce6(float *g_idata, float *g_odata, unsigned int n, bool nIsPow2) {
+  // Handle to thread block group
+  const int blockSize = 1024;
+  cg::thread_block cta = cg::this_thread_block();
+  __shared__ float sdata[blockSize];
+  // perform first level of reduction,
+  // reading from global memory, writing to shared memory
+  unsigned int tid = threadIdx.x;
+  unsigned int gridSize = blockSize * gridDim.x;
+
+  float mySum = 0;
+
+  // we reduce multiple elements per thread.  The number is determined by the
+  // number of active thread blocks (via gridDim).  More blocks will result
+  // in a larger gridSize and therefore fewer elements per thread
+  if (nIsPow2) {
+    unsigned int i = blockIdx.x * blockSize * 2 + threadIdx.x;
+    gridSize = gridSize << 1;
+
+    while (i < n) {
+      mySum += g_idata[i];
+      // ensure we don't read out of bounds -- this is optimized away for
+      // powerOf2 sized arrays
+      if ((i + blockSize) < n) {
+        mySum += g_idata[i + blockSize];
+      }
+      i += gridSize;
+    }
+  } else {
+    unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+    while (i < n) {
+      mySum += g_idata[i];
+      i += gridSize;
+    }
+  }
+
+  // each thread puts its local sum into shared memory
+  sdata[tid] = mySum;
+  cg::sync(cta);
+
+// do reduction in shared mem
+  if ( (blockSize >= 1024) && (tid < 512)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 512];
+  }
+  cg::sync(cta);
+ if ((blockSize >= 512) && (tid < 256)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 256];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 256) && (tid < 128)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 128];
+  }
+
+  cg::sync(cta);
+
+  if ((blockSize >= 128) && (tid < 64)) {
+    sdata[tid] = mySum = mySum + sdata[tid + 64];
+  }
+  cg::sync(cta);
+
+
+  cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+  if (cta.thread_rank() < 32) {
+    // Fetch final intermediate sum from 2nd warp
+    if (blockSize >= 64) mySum += sdata[tid + 32];
+    // Reduce final warp using shuffle
+    for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+      mySum += tile32.shfl_down(mySum, offset);
+    }
+  }
+
+  // write result for this block to global mem
+  if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
+
+
+
+
+
 
 
 
@@ -238,9 +376,7 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-    cout << endl << "number generated" << endl;
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-    cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 
 }
@@ -250,9 +386,7 @@ void generate_random_array(float *d_randomData, float *h_randomData, int length,
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, length, 0.0, 1.0);
-    cout << endl << "number generated" << endl;
     testCUDA(cudaMemcpy(h_randomData, d_randomData, length * sizeof(float), cudaMemcpyDeviceToHost));
-    cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 }
 
@@ -278,47 +412,6 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
     }
 }
 
-//for one block
-
-__global__ void simulateOptionPriceGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int tid = threadIdx.x;
-
-    if (idx < N_PATHS) {
-        float St = S0;
-        float G;
-        for(int i = 0; i < N_STEPS; i++){
-            G = d_randomData[idx*N_STEPS + i];
-            // cout << "G : " << G << endl;
-            St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        }
-
-        St = max(St - K,0.0f);
-
-    // Shared memory for the block
-    __shared__ float sdata[1024];
-
-    // Load input into shared memory
-    sdata[tid] = (idx < N_PATHS) ? St : 0;
-    __syncthreads();
-
-    // Perform reduction in shared memory
-    for (unsigned int s = N_PATHS / 2; s > 0; s >>= 1) {
-        if (tid < s) {
-            sdata[tid] += sdata[tid + s];
-        }
-        __syncthreads();
-    }
-
-    // Write result for this block to output
-    if (tid == 0){
-        output[0] = sdata[0];
-        }
-
-    }
-
-
-}
 
 __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
     int stride = blockDim.x;
@@ -362,10 +455,10 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
             }
         }
 }
-__global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float *output) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    float payoff;
 
+
+__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < N_PATHS) {
             float St = S0;
             float G;
@@ -373,9 +466,29 @@ __global__ void simulateOptionPriceMultipleBlockGPUSumReduce(float *d_simulated_
                 G = d_randomData[idx*N_STEPS + i];
                 St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
             }
-            d_simulated_payoff[idx] = St;
+            d_simulated_payoff[idx] = max(St - K,0.0f);
         }
     }
+
+__global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if(idx < N_PATHS) {
+    int count = 0;
+    float St = S0;
+    float G;
+    for(int i = 0; i < N_STEPS; i++){
+        G = d_randomData[idx*N_STEPS + i];
+        St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+        if(B > St) count +=1;
+        }
+    if((count >= P1) && (count <= P2)){
+      d_simulated_payoff[idx] = max(St - K,0.0f);
+    } else {
+      d_simulated_payoff[idx] = 0.0f;
+    }
+  }
+}
 
 
 void getDeviceProperty(){
@@ -421,7 +534,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
 
         }
 
-        simulated_paths_cpu[i] = St;
+        simulated_paths_cpu[i] = max(St - K, 0.0f);
         // cout << "cpu : " <<  St << endl;
         countt += max(St - K, 0.0f);
     }
@@ -429,52 +542,70 @@ void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, flo
 }
 
 
+/**
+ * @brief Allocate space for and fill the elements of an array with size `length`.
+ *
+ * @param d_randomData
+ * @param h_randomData
+ * @param length
+ * @param seed
+ */
+void initRandomArray(float **d_randomData, float **h_randomData, size_t length, long seed = 1234ULL) {
+
+    size_t n_random_bytes = length * sizeof(float);
+
+    testCUDA(cudaMalloc(d_randomData, n_random_bytes));
+    *h_randomData = (float *) malloc(n_random_bytes);
+    generate_random_array(*d_randomData, *h_randomData, length, seed);
+
+}
+
 // // Let's create a structure that wraps up the parameters of our simulation
 // struct
 
 
-// /**
-//  * @brief Test different reduction methods
-//  *
-//  * @param n_trajectories
-//  * @param n_blocks
-//  * @param reduction
-//  */
-// void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
+/**
+ * @brief Test different reduction methods
+ *
+ * @param n_trajectories
+ * @param n_blocks
+ * @param reduction
+ */
+void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
 
-//     // Parameters:
+    // Parameters:
 
-//     // Defaults
-//     const float risk_free_rate = 0.1;      // r
-//     const float initial_spot_price = 100;  // x_0
-//     const float contract_strike = 100;     // K
-//     const float contract_maturity = 1;     // T
-//     const float volatitility = 0.2;        // sigma
+    // Defaults
+    const float risk_free_rate = 0.1;      // r
+    const float initial_spot_price = 100;  // x_0
+    const float contract_strike = 100;     // K
+    const float contract_maturity = 1;     // T
+    const float volatitility = 0.2;        // sigma
 
-//     // Uninitalized
-//     float barrier = 0;
+    // Uninitalized
+    float barrier = 0;
 
-//     size_t seed = 1234ULL;
+    size_t seed = 1234ULL;
 
-//     // Variables needed for simulations
-
-
-//     // Step one: Get random data from the gpu
-//     float *d_randomData, *h_randomData;
-
-//     initRandomArray(&d_randomData, &h_randomData, n_trajectories * n_steps, seed);
-
-//     // Step two: Simulate different trajectories
-//     // - need to simulate trajectories on the gpu and the cpu
+    // Variables needed for simulations
 
 
-//     // Intended effect: Allocate
+    // Step one: Get random data from the gpu
+    float *d_randomData, *h_randomData;
+
+    initRandomArray(&d_randomData, &h_randomData, n_trajectories * n_steps, seed);
+
+    // Step two: Simulate different trajectories
+    // - need to simulate trajectories on the gpu and the cpu
 
 
-//     // I want to call different reductions, both on the CPU and GPU
+    // Intended effect: Allocate
 
-//     // First step: wrap up the CPU code into a function
-// }
+
+    // I want to call different reductions, both on the CPU and GPU
+
+    // First step: wrap up the CPU code into a function
+}
 
 
 // Compute a trajectory using the CPU
