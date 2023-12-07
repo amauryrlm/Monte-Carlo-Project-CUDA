@@ -296,7 +296,7 @@ int main(void) {
     const float r =  0.1f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
-    int threadsPerBlock = 1024;
+    int threadsPerBlock = 32;
     unsigned int maxThreads = 1024;
     int P1 = 10;
     int P2 = 50;
