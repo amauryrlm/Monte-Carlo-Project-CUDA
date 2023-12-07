@@ -281,6 +281,7 @@ __global__ void simulateBulletOptionSavePrice(float *d_simulated_paths,float *d_
 
 
 
+
 int main(void) {
 
 
@@ -298,8 +299,8 @@ int main(void) {
     float sqrdt = sqrt(dt);
     int threadsPerBlock = 32;
     unsigned int maxThreads = 1024;
-    int P1 = 10;
-    int P2 = 50;
+    int P1 = 0;
+    int P2 = 100;
 
     int block_sizes [6] = {1024, 512, 256, 128, 64, 32};
     int number_of_simulations [6] = {10000, 100000, 1000000, 10000000};
@@ -358,7 +359,7 @@ int main(void) {
     }
     cudaMemcpy(h_optionPriceGPU, d_optionPriceGPU, N_PATHS * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(output, d_output, sizeof(float), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
+  
 
     cout << endl;
 
