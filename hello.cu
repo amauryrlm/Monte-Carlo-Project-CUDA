@@ -315,7 +315,7 @@ int main(void) {
 
 
 
-    // getDeviceProperty();
+    getDeviceProperty();
 
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
