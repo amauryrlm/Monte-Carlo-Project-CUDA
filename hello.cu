@@ -287,7 +287,7 @@ int main(void) {
 
 // declare variables and constants
     unsigned int N_PATHS = 1000000;
-    const size_t N_STEPS = 1;
+    const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 100.0;
     const float B = 110.0f;
