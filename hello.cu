@@ -291,7 +291,7 @@ int main(void) {
     const size_t N_STEPS = 100;
     const float T = 1.0f;
     const float K = 100.0;
-    const float B = 110.0f;
+    const float B = 120.0f;
     const float S0 = 100.00f;
     const float sigma = 0.2;
     const float r =  0.1f;
@@ -299,8 +299,8 @@ int main(void) {
     float sqrdt = sqrt(dt);
     int threadsPerBlock = 32;
     unsigned int maxThreads = 1024;
-    int P1 = 0;
-    int P2 = 100;
+    int P1 = 10;
+    int P2 = 50;
 
     int block_sizes [6] = {1024, 512, 256, 128, 64, 32};
     int number_of_simulations [6] = {10000, 100000, 1000000, 10000000};
