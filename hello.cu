@@ -289,11 +289,11 @@ int main(void) {
     unsigned int N_PATHS = 1000000;
     const size_t N_STEPS = 1;
     const float T = 1.0f;
-    const float K = 155.0;
+    const float K = 100.0;
     const float B = 110.0f;
-    const float S0 = 156.30f;
-    const float sigma = 0.2657f;
-    const float r =  0.0237f;
+    const float S0 = 100.00f;
+    const float sigma = 0.2;
+    const float r =  0.1f;
     float dt = float(T)/float(N_STEPS);
     float sqrdt = sqrt(dt);
     int threadsPerBlock = 1024;
@@ -373,89 +373,134 @@ int main(void) {
     int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 //--------------------------------GPU WITH MULTIPLE BLOCK ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
-    float milliseconds = 0.0f;
-    float mean = 0.0f;
-    for(int i = 0; i < 6; i++){
-      for(int j = 0; j < 3; j++){
-        for(int k = 0; k < 10; k++){
+    // float milliseconds = 0.0f;
+    // float mean = 0.0f;
+    // for(int i = 0; i < 6; i++){
+    //   for(int j = 0; j < 3; j++){
+    //     for(int k = 0; k < 10; k++){
 
-          cudaEventCreate(&start);
-          cudaEventCreate(&stop);
+    //       cudaEventCreate(&start);
+    //       cudaEventCreate(&stop);
 
-          threads = block_sizes[i];
-          N_PATHS = number_of_simulations[j];
-          blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
-          blocksPerGrid = (N_PATHS + threads - 1) / threads;
+    //       threads = block_sizes[i];
+    //       N_PATHS = number_of_simulations[j];
+    //       blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    //       blocksPerGrid = (N_PATHS + threads - 1) / threads;
 
-          cout << endl << "number of paths : " << N_PATHS << endl;
-          cout << "number of threads : " << threads << endl;
+    //       cout << endl << "number of paths : " << N_PATHS << endl;
+    //       cout << "number of threads : " << threads << endl;
 
-          cout << "number of blocks : " << blocks << endl;
-          cout << "number of blocks per grid : " << blocksPerGrid << endl;
+    //       cout << "number of blocks : " << blocks << endl;
+    //       cout << "number of blocks per grid : " << blocksPerGrid << endl;
 
 
 
-          float *output3, *d_optionPriceGPU3, *d_output3;
-          output3 = (float *)malloc(blocks * sizeof(float));
+    //       float *output3, *d_optionPriceGPU3, *d_output3;
+    //       output3 = (float *)malloc(blocks * sizeof(float));
 
-          testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
-          testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
-          //start time
+    //       testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
+    //       testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
+    //       //start time
           
           
-          testCUDA(cudaEventRecord(start));
+    //       testCUDA(cudaEventRecord(start));
 
-          simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threads>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
-          cudaError_t error3 = cudaGetLastError();
-          if (error3 != cudaSuccess) {
-              fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-              return -1;
-          }
-          cudaError_t err;
-          err = cudaEventRecord(stop);
-          if (err != cudaSuccess) {
-              fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
-              exit(EXIT_FAILURE);
-          }
-          cudaEventSynchronize(stop);
-          cudaEventElapsedTime(&milliseconds, start, stop);
-          mean += milliseconds;
-
-
-
-          reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS, isPow2(N_PATHS));
-          error3 = cudaGetLastError();
-          if (error3 != cudaSuccess) {
-              fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-              return -1;
-          }
+    //       simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threads>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    //       cudaError_t error3 = cudaGetLastError();
+    //       if (error3 != cudaSuccess) {
+    //           fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+    //           return -1;
+    //       }
+    //       cudaError_t err;
+    //       err = cudaEventRecord(stop);
+    //       if (err != cudaSuccess) {
+    //           fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(err));
+    //           exit(EXIT_FAILURE);
+    //       }
+    //       cudaEventSynchronize(stop);
+    //       cudaEventElapsedTime(&milliseconds, start, stop);
+    //       mean += milliseconds;
 
 
 
+    //       reduce6<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS, isPow2(N_PATHS));
+    //       error3 = cudaGetLastError();
+    //       if (error3 != cudaSuccess) {
+    //           fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+    //           return -1;
+    //       }
 
-          testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
 
-          cout << endl;
-          float sum = 0.0f;
-          for(int i=0; i<blocks; i++){
-              sum+=output3[i];
-          }
-          float result = expf(-r*T)*sum/N_PATHS;
 
-          cout << "time for simulation : " << milliseconds << " ms" << endl;
-          cout<< "result gpu cuda option price vanilla " << result << endl;
+    //       testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
-          cudaFree(d_optionPriceGPU3);
-          cudaFree(d_output3);
-          free(output3);
-          cudaEventDestroy(start);
-          cudaEventDestroy(stop);
-        }
-        times_for_simulations[j] = mean/static_cast<float>(10);
-      }
-      fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
+
+    //       cout << endl;
+    //       float sum = 0.0f;
+    //       for(int i=0; i<blocks; i++){
+    //           sum+=output3[i];
+    //       }
+    //       float result = expf(-r*T)*sum/N_PATHS;
+
+    //       cout << "time for simulation : " << milliseconds << " ms" << endl;
+    //       cout<< "result gpu cuda option price vanilla " << result << endl;
+
+    //       cudaFree(d_optionPriceGPU3);
+    //       cudaFree(d_output3);
+    //       free(output3);
+    //       cudaEventDestroy(start);
+    //       cudaEventDestroy(stop);
+    //     }
+    //     times_for_simulations[j] = mean/static_cast<float>(10);
+    //   }
+    //   fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
+    // }
+int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+
+
+    float *output3, *d_optionPriceGPU3, *d_output3;
+    output3 = (float *)malloc(blocks * sizeof(float));
+
+    testCUDA(cudaMalloc((void **)&d_optionPriceGPU3,N_PATHS*sizeof(float)));
+    testCUDA(cudaMalloc((void **)&d_output3,blocks * sizeof(float)));
+
+
+    simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid,threadsPerBlock>>>( d_optionPriceGPU3,  K,  r,  T, sigma,  N_PATHS,  d_randomData,  N_STEPS, S0, dt, sqrdt);
+    cudaError_t error3 = cudaGetLastError();
+    if (error3 != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+        return -1;
     }
+
+
+
+    reduce3<<<blocks,threads>>>(d_optionPriceGPU3,d_output3,N_PATHS);
+    error3 = cudaGetLastError();
+    if (error3 != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+        return -1;
+    }
+
+
+    cudaDeviceSynchronize();
+
+    testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
+
+
+    cout << endl;
+    float sum = 0.0f;
+    for(int i=0; i<blocks; i++){
+        sum+=output3[i];
+    }
+    cout<< "result gpu cuda option price vanilla " << expf(-r*T)*sum/N_PATHS << endl;
+
+    cudaFree(d_optionPriceGPU3);
+    cudaFree(d_output3);
+    free(output3);
+
+
 
 
 
