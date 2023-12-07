@@ -287,7 +287,7 @@ int main(void) {
 
 // declare variables and constants
     unsigned int N_PATHS = 1000000;
-    const size_t N_STEPS = 100;
+    const size_t N_STEPS = 1;
     const float T = 1.0f;
     const float K = 155.0;
     const float B = 110.0f;
@@ -301,8 +301,8 @@ int main(void) {
     int P1 = 10;
     int P2 = 50;
 
-    int block_sizes [6] = {1, 64, 128, 256, 512, 1024};
-    int number_of_simulations [6] = {100, 1000, 10000, 100000, 1000000, 10000000};
+    int block_sizes [6] = {1024, 512, 256, 128, 64, 32};
+    int number_of_simulations [6] = {10000, 100000, 1000000, 10000000};
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
