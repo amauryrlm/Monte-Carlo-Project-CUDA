@@ -456,8 +456,8 @@ int main(void) {
     //   }
     //   fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n", block_sizes[i], times_for_simulations[0], times_for_simulations[1], times_for_simulations[2], times_for_simulations[3], times_for_simulations[4], times_for_simulations[5]);
     // }
-int threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
-    int blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
+    // threads = (N_PATHS < maxThreads * 2) ? nextPow2((N_PATHS + 1) / 2) : maxThreads;
+    // blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
 
     float *output3, *d_optionPriceGPU3, *d_output3;
