@@ -283,6 +283,8 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
         // write result for this block to global mem
         if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 
+        printf("mySum : %f\n", mySum);
+
     }
 }
 
