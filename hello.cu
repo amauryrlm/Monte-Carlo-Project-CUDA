@@ -207,7 +207,8 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 
 
 __global__ void
-simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates, int Ik = 0, float Sk = 0.0f, int Tk = 0) {
+simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates, int Ik = 0, float Sk = 0.0f,
+                                          int Tk = 0) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
@@ -491,7 +492,6 @@ int main(void) {
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
     cout << endl << "call Black Scholes : " << callResult << endl;
-
 
 
     return 0;
