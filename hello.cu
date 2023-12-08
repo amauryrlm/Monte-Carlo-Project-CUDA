@@ -329,6 +329,35 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     curandDestroyGenerator(gen);
 
 }
+void simulateOptionPriceCPU(float* optionPriceCPU, float* h_randomData, OptionData option_data) {
+    float G;
+    float countt = 0.0f;
+    float K = option_data.K;
+    float r = option_data.r;
+    float sigma = option_data.v;
+    float T = option_data.T;
+    float S0 = option_data.S0;
+    float dt = option_data.step;
+    float sqrdt = sqrtf(dt);
+    int N_PATHS = option_data.N_PATHS;
+    int N_STEPS = option_data.N_STEPS;
+    
+
+
+    for (int i = 0; i < N_PATHS;i++) {
+        float St = S0;
+        for (int j = 0; j < N_STEPS; j++) {
+            G = h_randomData[i * N_STEPS + j];
+            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+
+            }
+
+        simulated_paths_cpu[i] = max(St - K, 0.0f);
+        // cout << "cpu : " <<  St << endl;
+        countt += max(St - K, 0.0f);
+        }
+    *optionPriceCPU = expf(-r) * (countt / N_PATHS);
+    }
 
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
     
@@ -350,8 +379,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
 
 
     float optionPriceCPU = 0.0f;
-    simulateOptionPriceCPU(&optionPriceCPU, N_PATHS, N_STEPS, h_randomData, S0, sigma, sqrdt, r, K, dt,
-                           simulated_paths_cpu);
+    simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
     cout << endl;
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
@@ -362,29 +390,6 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
 int main(void) {
 
 
-
-    // Option parameters
-        int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-
-    cout << "number of paths : " << N_PATHS << endl;
-    cout << "number of steps : " << N_STEPS << endl;
-
-
-    float *d_randomData, *h_randomData, *simulated_paths_cpu;
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
-    h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-    simulated_paths_cpu = (float *) malloc(N_PATHS * sizeof(float));
-    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
-
-
-    cout << "random  " << h_randomData[0] << endl;
-
-    float optionPriceCPU = 0.0f;
-    simulateOptionPriceCPU(&optionPriceCPU, N_PATHS, N_STEPS, h_randomData, S0, sigma, sqrdt, r, K, dt,
-                           simulated_paths_cpu);
-
-    cout << endl;
-    cout << "Average CPU : " << optionPriceCPU << endl << endl; option_data;
     option_data.S0 = 100.0f;
     option_data.T = 1.0f;
     option_data.K = 100.0f;
