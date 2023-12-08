@@ -205,7 +205,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     float sqrdt = sqrtf(T);
 
     cg::thread_block cta = cg::this_thread_block();
-    __shared__ float sdata[blockSize];
+    __shared__ float sdata[1024];
 
     
     if (idx < N_PATHS) {
