@@ -466,8 +466,8 @@ int main(void) {
     option_data.r = 0.1f;
     option_data.v = 0.2f;
     option_data.B = 120.0f;
-    option_data.P1 = 10;
-    option_data.P2 = 50;
+    option_data.P1 = 0;
+    option_data.P2 = 100;
     option_data.N_PATHS = 100000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
