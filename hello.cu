@@ -202,6 +202,8 @@ __global__ void
 simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
+    int blockSize = blockDim.x;
+
     float S0 = d_OptionData.S0;
     float T = d_OptionData.T;
     float K = d_OptionData.K;
