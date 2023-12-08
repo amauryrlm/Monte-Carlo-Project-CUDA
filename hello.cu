@@ -231,7 +231,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
     if (idx < N_PATHS) {
         curandState state = globalStates[idx];
         int count = Ik;
-        float St = Sk;
+        float St = S0;
         float G;
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
