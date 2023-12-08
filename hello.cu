@@ -386,6 +386,8 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
 }
 
 
+
+
 int main(void) {
 
     OptionData option_data;
@@ -543,44 +545,44 @@ int main(void) {
     // blocks = (N_PATHS + (threads * 2 - 1)) / (threads * 2);
 
 
-    float *output3, *d_optionPriceGPU3, *d_output3;
-    output3 = (float *) malloc(blocks * sizeof(float));
+    // float *output3, *d_optionPriceGPU3, *d_output3;
+    // output3 = (float *) malloc(blocks * sizeof(float));
 
-    testCUDA(cudaMalloc((void **) &d_optionPriceGPU3, N_PATHS * sizeof(float)));
-    testCUDA(cudaMalloc((void **) &d_output3, blocks * sizeof(float)));
-
-
-    simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_optionPriceGPU3);
-    cudaError_t error3 = cudaGetLastError();
-    if (error3 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-        return -1;
-    }
+    // testCUDA(cudaMalloc((void **) &d_optionPriceGPU3, N_PATHS * sizeof(float)));
+    // testCUDA(cudaMalloc((void **) &d_output3, blocks * sizeof(float)));
 
 
-    reduce3<<<blocks, threads>>>(d_optionPriceGPU3, d_output3);
-    error3 = cudaGetLastError();
-    if (error3 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
-        return -1;
-    }
+    // simulateOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_optionPriceGPU3);
+    // cudaError_t error3 = cudaGetLastError();
+    // if (error3 != cudaSuccess) {
+    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+    //     return -1;
+    // }
 
 
-    cudaDeviceSynchronize();
+    // reduce3<<<blocks, threads>>>(d_optionPriceGPU3, d_output3);
+    // error3 = cudaGetLastError();
+    // if (error3 != cudaSuccess) {
+    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error3));
+    //     return -1;
+    // }
 
-    testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
+
+    // cudaDeviceSynchronize();
+
+    // testCUDA(cudaMemcpy(output3, d_output3, blocks * sizeof(float), cudaMemcpyDeviceToHost));
 
 
-    cout << endl;
-    float sum = 0.0f;
-    for (int i = 0; i < blocks; i++) {
-        sum += output3[i];
-    }
-    cout << "result gpu cuda option price vanilla " << expf(-r * T) * sum / N_PATHS << endl;
+    // cout << endl;
+    // float sum = 0.0f;
+    // for (int i = 0; i < blocks; i++) {
+    //     sum += output3[i];
+    // }
+    // cout << "result gpu cuda option price vanilla " << expf(-r * T) * sum / N_PATHS << endl;
 
-    cudaFree(d_optionPriceGPU3);
-    cudaFree(d_output3);
-    free(output3);
+    // cudaFree(d_optionPriceGPU3);
+    // cudaFree(d_output3);
+    // free(output3);
 
 
 
@@ -600,78 +602,78 @@ int main(void) {
 
 
 
-//-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS ------------------------------------------------------------
-//------------------------------------------------------------------------------------------------------------------------------
+// //-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS ------------------------------------------------------------
+// //------------------------------------------------------------------------------------------------------------------------------
 
-    float *d_simulated_payoff_bullet, *h_simulated_payoff_bullet, *h_output4, *d_output4;
-    testCUDA(cudaMalloc((void **) &d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
-    testCUDA(cudaMalloc((void **) &d_output4, blocks * sizeof(float)));
-    h_output4 = (float *) malloc(blocks * sizeof(float));
-    h_simulated_payoff_bullet = (float *) malloc(N_PATHS * sizeof(float));
+//     float *d_simulated_payoff_bullet, *h_simulated_payoff_bullet, *h_output4, *d_output4;
+//     testCUDA(cudaMalloc((void **) &d_simulated_payoff_bullet, N_PATHS * sizeof(float)));
+//     testCUDA(cudaMalloc((void **) &d_output4, blocks * sizeof(float)));
+//     h_output4 = (float *) malloc(blocks * sizeof(float));
+//     h_simulated_payoff_bullet = (float *) malloc(N_PATHS * sizeof(float));
 
-    simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_simulated_payoff_bullet, K, r, T,
-                                                                                  sigma, N_PATHS, d_randomData, N_STEPS,
-                                                                                  S0, dt, sqrdt, B, P1, P2);
-    cudaError_t error4 = cudaGetLastError();
-    if (error4 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
-        return -1;
-    }
-    cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_simulated_payoff_bullet, d_simulated_payoff_bullet, N_PATHS * sizeof(float),
-                        cudaMemcpyDeviceToHost));
+//     simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_simulated_payoff_bullet, K, r, T,
+//                                                                                   sigma, N_PATHS, d_randomData, N_STEPS,
+//                                                                                   S0, dt, sqrdt, B, P1, P2);
+//     cudaError_t error4 = cudaGetLastError();
+//     if (error4 != cudaSuccess) {
+//         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
+//         return -1;
+//     }
+//     cudaDeviceSynchronize();
+//     testCUDA(cudaMemcpy(h_simulated_payoff_bullet, d_simulated_payoff_bullet, N_PATHS * sizeof(float),
+//                         cudaMemcpyDeviceToHost));
 
-    reduce3<<<blocks, threads>>>(d_simulated_payoff_bullet, d_output4, N_PATHS);
-    error4 = cudaGetLastError();
-    if (error4 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
-        return -1;
-    }
-    cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_output4, d_output4, blocks * sizeof(float), cudaMemcpyDeviceToHost));
-    float sum4 = 0.0f;
-    for (int i = 0; i < blocks; i++) {
-        sum4 += h_output4[i];
-    }
-    cout << "result gpu cuda computed bullet option " << expf(-r * T) * sum4 / N_PATHS << endl;
-
-
-
-    //-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS AND SAVE PATHS------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------------------------
-
-    float *d_simulated_paths, *d_simulated_count, *h_simulated_paths, *h_simulated_count;
-    testCUDA(cudaMalloc((void **) &d_simulated_paths, N_PATHS * N_STEPS * sizeof(float)));
-    testCUDA(cudaMalloc((void **) &d_simulated_count, N_PATHS * N_STEPS * sizeof(float)));
-    h_simulated_paths = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-    h_simulated_count = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-
-    simulateBulletOptionSavePrice<<<blocksPerGrid, threadsPerBlock>>>(d_simulated_paths, d_simulated_count, K, r, T,
-                                                                      sigma, N_PATHS, d_randomData, N_STEPS, S0, dt,
-                                                                      sqrdt, B, P1, P2);
-    cudaError_t error5 = cudaGetLastError();
-    if (error5 != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error5));
-        return -1;
-    }
-    cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_simulated_paths, d_simulated_paths, N_PATHS * N_STEPS * sizeof(float),
-                        cudaMemcpyDeviceToHost));
-    testCUDA(cudaMemcpy(h_simulated_count, d_simulated_count, N_PATHS * N_STEPS * sizeof(float),
-                        cudaMemcpyDeviceToHost));
+//     reduce3<<<blocks, threads>>>(d_simulated_payoff_bullet, d_output4, N_PATHS);
+//     error4 = cudaGetLastError();
+//     if (error4 != cudaSuccess) {
+//         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error4));
+//         return -1;
+//     }
+//     cudaDeviceSynchronize();
+//     testCUDA(cudaMemcpy(h_output4, d_output4, blocks * sizeof(float), cudaMemcpyDeviceToHost));
+//     float sum4 = 0.0f;
+//     for (int i = 0; i < blocks; i++) {
+//         sum4 += h_output4[i];
+//     }
+//     cout << "result gpu cuda computed bullet option " << expf(-r * T) * sum4 / N_PATHS << endl;
 
 
-    cudaFree(d_simulated_paths);
-    cudaFree(d_simulated_count);
-    free(h_simulated_paths);
-    free(h_simulated_count);
-    cudaFree(d_simulated_payoff_bullet);
-    cudaFree(d_output4);
-    free(h_output4);
-    cudaFree(d_randomData);
 
-    //close file
-    fclose(file);
+//     //-------------------------------BULLET OPTION WITH MULTIPLE BLOCKS AND SAVE PATHS------------------------------------------------------------
+//     //-------------------------------------------------------------------------------------------------------------------------------------------
+
+//     float *d_simulated_paths, *d_simulated_count, *h_simulated_paths, *h_simulated_count;
+//     testCUDA(cudaMalloc((void **) &d_simulated_paths, N_PATHS * N_STEPS * sizeof(float)));
+//     testCUDA(cudaMalloc((void **) &d_simulated_count, N_PATHS * N_STEPS * sizeof(float)));
+//     h_simulated_paths = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+//     h_simulated_count = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+
+//     simulateBulletOptionSavePrice<<<blocksPerGrid, threadsPerBlock>>>(d_simulated_paths, d_simulated_count, K, r, T,
+//                                                                       sigma, N_PATHS, d_randomData, N_STEPS, S0, dt,
+//                                                                       sqrdt, B, P1, P2);
+//     cudaError_t error5 = cudaGetLastError();
+//     if (error5 != cudaSuccess) {
+//         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error5));
+//         return -1;
+//     }
+//     cudaDeviceSynchronize();
+//     testCUDA(cudaMemcpy(h_simulated_paths, d_simulated_paths, N_PATHS * N_STEPS * sizeof(float),
+//                         cudaMemcpyDeviceToHost));
+//     testCUDA(cudaMemcpy(h_simulated_count, d_simulated_count, N_PATHS * N_STEPS * sizeof(float),
+//                         cudaMemcpyDeviceToHost));
+
+
+//     cudaFree(d_simulated_paths);
+//     cudaFree(d_simulated_count);
+//     free(h_simulated_paths);
+//     free(h_simulated_count);
+//     cudaFree(d_simulated_payoff_bullet);
+//     cudaFree(d_output4);
+//     free(h_output4);
+//     cudaFree(d_randomData);
+
+//     //close file
+//     fclose(file);
 
 
     return 0;
