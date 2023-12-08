@@ -86,28 +86,28 @@ __global__ void setup_kernel(curandState* state, uint64_t seed)
 //     d_option_count[idx] = count;
 // }
 
-int bullet_option_NMC_wrapper(int thread_per_block, OptionData op) {
+// int bullet_option_NMC_wrapper(int thread_per_block, OptionData op) {
 
-    int blocksPerGrid = (op.N_PATHS + thread_per_block - 1) / thread_per_block;
+//     int blocksPerGrid = (op.N_PATHS + thread_per_block - 1) / thread_per_block;
 
-    float *d_option_price, *d_option_count;
-    testCUDA(cudaMalloc((void **) &d_option_price, op.N_PATHS * sizeof(float)));
-    testCUDA(cudaMalloc((void **) &d_option_count, op.N_PATHS * sizeof(float)));
+//     float *d_option_price, *d_option_count;
+//     testCUDA(cudaMalloc((void **) &d_option_price, op.N_PATHS * sizeof(float)));
+//     testCUDA(cudaMalloc((void **) &d_option_count, op.N_PATHS * sizeof(float)));
 
-    bullet_option_outter_trajectories_kernel<<<blocksPerGrid, thread_per_block>>>(d_option_price, d_option_count);
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
-    cudaDeviceSynchronize();
+//     bullet_option_outter_trajectories_kernel<<<blocksPerGrid, thread_per_block>>>(d_option_price, d_option_count);
+//     cudaError_t error = cudaGetLastError();
+//     if (error != cudaSuccess) {
+//         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+//         return -1;
+//     }
+//     cudaDeviceSynchronize();
 
 
-    cudaFree(d_option_price);
-    cudaFree(d_option_count);
-    return 0;
+//     cudaFree(d_option_price);
+//     cudaFree(d_option_count);
+//     return 0;
 
-}
+// }
 
 
 __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r, float T, float sigma, int N_PATHS,
@@ -193,7 +193,7 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
 __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, curandState* globalStates) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
-    int blockSize = blockDim.x;
+    const int blockSize = blockDim.x;
     curandState state = globalStates[idx];
 
     float K = d_OptionData.K;
@@ -201,8 +201,8 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     float T = d_OptionData.T;
     float sigma = d_OptionData.v;
     float S0 = d_OptionData.S0;
-    float sqrdt = sqrtf(dt);
     int N_PATHS = d_OptionData.N_PATHS;
+    float sqrdt = sqrtf(T);
 
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[blockSize];
@@ -324,17 +324,18 @@ int main(void) {
 
     // Option parameters
     OptionData option_data;
-    option.S0 = 100.0f;
-    option.T = 1.0f;
-    option.K = 100.0f;
-    option.r = 0.1f;
-    option.v = 0.2f;
-    option.B = 120.0f;
-    option.P1 = 10;
-    option.P2 = 50;
-    option.N_PATHS = 1000000;
-    option.N_STEPS = 100;
-    option.step = option.T / static_cast<float>(option.N_STEPS);
+    option_data.S0 = 100.0f;
+    option_data.T = 1.0f;
+    option_data.K = 100.0f;
+    option_data.r = 0.1f;
+    option_data.v = 0.2f;
+    option_data.B = 120.0f;
+    option_data.P1 = 10;
+    option_data.P2 = 50;
+    option_data.N_PATHS = 1000000;
+    option_data.N_STEPS = 100;
+    option_data.step = option.T / static_cast<float>(option.N_STEPS);
+    
 
     // Copy option data to constant memory
     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
