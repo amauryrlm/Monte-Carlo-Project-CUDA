@@ -207,7 +207,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 
 
 __global__ void
-simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates, int Ik = 0, float Sk = d_OptionData.S0, int Tk = 0) {
+simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates, int Ik = 0, float Sk = 0.0f, int Tk = 0) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
@@ -231,9 +231,10 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
     if (idx < N_PATHS) {
         curandState state = globalStates[idx];
         int count = Ik;
-        float St = S0;
+        float St = (Sk == 0.0f) ? S0 : Sk;
         float G;
-        for (int i = 0; i < N_STEPS; i++) {
+        int remaining_steps = N_STEPS - Tk;
+        for (int i = 0; i < remaining_steps; i++) {
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
