@@ -31,11 +31,7 @@ __constant__ OptionData d_OptionData;
 using namespace std;
 
 
-__global__ void setup_kernel(curandState* state, uint64_t seed)
-{
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    curand_init(seed, tid, 0, &state[tid]);
-}
+
 
 
 // Function that catches the error
@@ -164,6 +160,12 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 
+}
+
+__global__ void setup_kernel(curandState* state, uint64_t seed)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    curand_init(seed, tid, 0, &state[tid]);
 }
 
 __global__ void bullet_option_outter_trajectories_kernel(float *d_option_price, float *d_option_count) {
