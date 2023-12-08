@@ -55,38 +55,38 @@ __global__ void setup_kernel(curandState* state, uint64_t seed)
     curand_init(seed, tid, 0, &state[tid]);
 }
 
-__global__ void bullet_option_outter_trajectories_kernel(float *d_option_price, float *d_option_count) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    float K = d_OptionData.K;
-    float r = d_OptionData.r;
-    float sigma = d_OptionData.v;
-    int N_PATHS = d_OptionData.N_PATHS;
-    float B = d_OptionData.B;
-    int P1 = d_OptionData.P1;
-    int P2 = d_OptionData.P2;
-    float S0 = d_OptionData.S0;
-    float dt = d_OptionData.step;
-    float sqrdt = sqrtf(dt);
-    int N_STEPS = d_OptionData.N_STEPS;
-    float St = S0;
-    float G;
+// __global__ void bullet_option_outter_trajectories_kernel(float *d_option_price, float *d_option_count) {
+//     int idx = blockIdx.x * blockDim.x + threadIdx.x;
+//     float K = d_OptionData.K;
+//     float r = d_OptionData.r;
+//     float sigma = d_OptionData.v;
+//     int N_PATHS = d_OptionData.N_PATHS;
+//     float B = d_OptionData.B;
+//     int P1 = d_OptionData.P1;
+//     int P2 = d_OptionData.P2;
+//     float S0 = d_OptionData.S0;
+//     float dt = d_OptionData.step;
+//     float sqrdt = sqrtf(dt);
+//     int N_STEPS = d_OptionData.N_STEPS;
+//     float St = S0;
+//     float G;
 
 
-    int count = 0;
-    for (int i = 0; i < N_STEPS; i++) {
-        G = curand_normal(&state);
-        St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-        if (B > St) count += 1;
-    }
-    if ((count >= P1) && (count <= P2)) {
-        d_option_price[idx] = max(St - K, 0.0f);
-    } else {
-        d_option_price[idx] = 0.0f;
-    }
-    d_option_count[idx] = count;
-}
+//     int count = 0;
+//     for (int i = 0; i < N_STEPS; i++) {
+//         G = curand_normal(&state);
+//         St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+//         if (B > St) count += 1;
+//     }
+//     if ((count >= P1) && (count <= P2)) {
+//         d_option_price[idx] = max(St - K, 0.0f);
+//     } else {
+//         d_option_price[idx] = 0.0f;
+//     }
+//     d_option_count[idx] = count;
+// }
 
-void bullet_option_NMC_wrapper(int thread_per_block, OptionData op) {
+int bullet_option_NMC_wrapper(int thread_per_block, OptionData op) {
 
     int blocksPerGrid = (op.N_PATHS + thread_per_block - 1) / thread_per_block;
 
@@ -105,6 +105,7 @@ void bullet_option_NMC_wrapper(int thread_per_block, OptionData op) {
 
     cudaFree(d_option_price);
     cudaFree(d_option_count);
+    return 0;
 
 }
 
@@ -302,7 +303,7 @@ simulateBulletOptionSavePrice(float *d_simulated_paths, float *d_simulated_count
     }
 }
 
-printOptionData(OptionData od){
+void printOptionData(OptionData od){
     cout << "S0 : " << od.S0 << endl;
     cout << "T : " << od.T << endl;
     cout << "K : " << od.K << endl;
