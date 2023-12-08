@@ -594,7 +594,7 @@ int main(void) {
 //--------------------------------------------------------------------------------------------------------------------------
 
     float callResult = 0.0f;
-    black_scholes_CPU(callResult, S0, K, T, r, sigma);
+    black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
     cout << endl << "call Black Scholes : " << callResult << endl;
 
 
