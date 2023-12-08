@@ -334,7 +334,9 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, seed);
     curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
+    cout << endl << "number generated" << endl;
     testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    cout << "host copied" << endl;
     curandDestroyGenerator(gen);
 
 }
@@ -377,7 +379,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
 
     float optionPriceCPU = 0.0f;
-    simulateOptionPriceCPU(&optionPriCPU, h_randomData, option_data);
+    simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
     cout << endl;
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
@@ -424,7 +426,8 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-
+    cout << "blocksPerGrid bullet : " << blocksPerGrid << endl;
+    // generate states array for random number generation
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
