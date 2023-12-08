@@ -171,7 +171,7 @@ __global__ void setup_kernel(curandState* state, uint64_t seed)
 }
 
 __global__ void bullet_option_outter_trajectories_kernel(float *d_option_price, float *d_option_count) {
-    idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     float K = d_OptionData.K;
     float r = d_OptionData.r;
     float T = d_OptionData.T;
@@ -311,7 +311,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
-    curandState localState = globalState[idx];
+    curandState localState = globalStateS[idx];
 
     float K = d_OptionData.K;
     float r = d_OptionData.r;
