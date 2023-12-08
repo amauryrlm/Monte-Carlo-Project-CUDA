@@ -213,7 +213,6 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
     int blockSize = blockDim.x;
 
     float S0 = d_OptionData.S0;
-    float T = d_OptionData.T;
     float K = d_OptionData.K;
     float r = d_OptionData.r;
     float sigma = d_OptionData.v;
@@ -372,8 +371,6 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
-    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-
 
     float *d_randomData, *h_randomData;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
