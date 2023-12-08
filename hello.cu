@@ -46,8 +46,8 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 
 __global__ void setup_kernel(curandState *state, uint64_t seed) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    curand_init(seed, idx, 0, &state[idx]);
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    curand_init(seed, tid, 0, &state[tid]);
 }
 
 
@@ -78,14 +78,14 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
 //                                         float *output) {
 //     int stride = blockDim.x;
 //     int idx = threadIdx.x;
-//     int idx = threadIdx.x;
+//     int tid = threadIdx.x;
 
 //     // Shared memory for the block
 //     __shared__ float sdata[1024];
 //     float sum = 0.0f;
 
 //     if (idx < N_PATHS) {
-//         sdata[idx] = 0.0f;
+//         sdata[tid] = 0.0f;
 
 //         while (idx < N_PATHS) {
 //             float St = S0;
@@ -99,20 +99,20 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
 //             idx += stride;
 //         }
 //         // Load input into shared memory
-//         sdata[idx] = (idx < N_PATHS) ? sum : 0;
+//         sdata[tid] = (tid < N_PATHS) ? sum : 0;
 
 //         __syncthreads();
 
 //         // Perform reduction in shared memory
 //         for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
-//             if (idx < s && (idx + s) < N_PATHS) {
-//                 sdata[idx] += sdata[idx + s];
+//             if (tid < s && (tid + s) < N_PATHS) {
+//                 sdata[tid] += sdata[tid + s];
 //             }
 //             __syncthreads();
 //         }
 
 //         // Write result for this block to output
-//         if (idx == 0) {
+//         if (tid == 0) {
 //             output[0] = sdata[0] * expf(-r);
 //         }
 //     }
@@ -135,7 +135,7 @@ simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r,
 
 __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, curandState *globalStates) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int idx = threadIdx.x;
+    int tid = threadIdx.x;
     int blockSize = blockDim.x;
     float K = d_OptionData.K;
     float r = d_OptionData.r;
@@ -156,27 +156,27 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         G = curand_normal(&state);
         St *= expf((r - sigma * sigma * 0.5) * T + sigma * sqrdt * G);
         mySum = max(St - K, 0.0f);
-        sdata[idx] = mySum;
+        sdata[tid] = mySum;
         cg::sync(cta);
 
-        if ((blockSize >= 1024) && (idx < 512)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 512];
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
         }
         cg::sync(cta);
-        if ((blockSize >= 512) && (idx < 256)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 256];
-        }
-
-        cg::sync(cta);
-
-        if ((blockSize >= 256) && (idx < 128)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 128];
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
         }
 
         cg::sync(cta);
 
-        if ((blockSize >= 128) && (idx < 64)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 64];
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
         }
         cg::sync(cta);
 
@@ -185,7 +185,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 
         if (cta.thread_rank() < 32) {
             // Fetch final intermediate sum from 2nd warp
-            if (blockSize >= 64) mySum += sdata[idx + 32];
+            if (blockSize >= 64) mySum += sdata[tid + 32];
             // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
@@ -201,7 +201,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 __global__ void
 simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalStates) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
+    int tid = threadIdx.x;
     float S0 = d_OptionData.S0;
     float T = d_OptionData.T;
     float K = d_OptionData.K;
@@ -234,27 +234,27 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
         } else {
             sdata[idx] = 0.0f;
         }
-        float mySum = sdata[idx];
+        float mySum = sdata[tid];
         cg::sync(cta);
 
-        if ((blockSize >= 1024) && (idx < 512)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 512];
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
         }
         cg::sync(cta);
-        if ((blockSize >= 512) && (idx < 256)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 256];
-        }
-
-        cg::sync(cta);
-
-        if ((blockSize >= 256) && (idx < 128)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 128];
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
         }
 
         cg::sync(cta);
 
-        if ((blockSize >= 128) && (idx < 64)) {
-            sdata[idx] = mySum = mySum + sdata[idx + 64];
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
         }
         cg::sync(cta);
 
@@ -263,7 +263,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
 
         if (cta.thread_rank() < 32) {
             // Fetch final intermediate sum from 2nd warp
-            if (blockSize >= 64) mySum += sdata[idx + 32];
+            if (blockSize >= 64) mySum += sdata[tid + 32];
             // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
