@@ -10,6 +10,8 @@
 #include "reduce.cuh"
 #include "tool.cuh"
 #include "option_price.hpp"
+#include <curand_kernel.h>
+
 
 struct OptionData {
     float S0;
