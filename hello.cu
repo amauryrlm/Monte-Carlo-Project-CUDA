@@ -335,13 +335,12 @@ void simulateOptionPriceCPU(float* optionPriceCPU, float* h_randomData, OptionDa
     float K = option_data.K;
     float r = option_data.r;
     float sigma = option_data.v;
-    float T = option_data.T;
     float S0 = option_data.S0;
     float dt = option_data.step;
     float sqrdt = sqrtf(dt);
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
-    
+
 
 
     for (int i = 0; i < N_PATHS;i++) {
@@ -352,8 +351,6 @@ void simulateOptionPriceCPU(float* optionPriceCPU, float* h_randomData, OptionDa
 
             }
 
-        simulated_paths_cpu[i] = max(St - K, 0.0f);
-        // cout << "cpu : " <<  St << endl;
         countt += max(St - K, 0.0f);
         }
     *optionPriceCPU = expf(-r) * (countt / N_PATHS);
@@ -369,10 +366,9 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
     cout << "number of steps : " << N_STEPS << endl;
 
 
-    float *d_randomData, *h_randomData, *simulated_paths_cpu;
+    float *d_randomData, *h_randomData;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-    simulated_paths_cpu = (float *) malloc(N_PATHS * sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
 
@@ -389,7 +385,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
 
 int main(void) {
 
-
+    OptionData option_data;
     option_data.S0 = 100.0f;
     option_data.T = 1.0f;
     option_data.K = 100.0f;
