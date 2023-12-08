@@ -245,6 +245,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
             sdata[idx] = 0.0f;
         }
         float mySum = sdata[tid];
+        printf("mySum : %f\n", mySum);
         cg::sync(cta);
 
         if ((blockSize >= 1024) && (tid < 512)) {
