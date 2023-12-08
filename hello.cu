@@ -316,6 +316,47 @@ void printOptionData(OptionData od){
     cout << "N_STEPS : " << od.N_STEPS << endl;
     cout << "step : " << od.step << endl;
 }
+void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS, unsigned long long seed = 1234ULL){
+
+    // create generator all fill array with generated values
+    curandGenerator_t gen;
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(gen, seed);
+    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
+    cout << endl << "number generated" << endl;
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    cout << "host copied" << endl;
+    curandDestroyGenerator(gen);
+
+}
+
+float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
+    
+  int N_PATHS = option_data.N_PATHS;
+  int N_STEPS = option_data.N_STEPS;
+  int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+
+    cout << "number of paths : " << N_PATHS << endl;
+    cout << "number of steps : " << N_STEPS << endl;
+
+
+    float *d_randomData, *h_randomData, *simulated_paths_cpu;
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+    simulated_paths_cpu = (float *) malloc(N_PATHS * sizeof(float));
+    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
+
+
+
+
+    float optionPriceCPU = 0.0f;
+    simulateOptionPriceCPU(&optionPriceCPU, N_PATHS, N_STEPS, h_randomData, S0, sigma, sqrdt, r, K, dt,
+                           simulated_paths_cpu);
+
+    cout << endl;
+    cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    return optionPriceCPU;
+}
 
 
 int main(void) {
@@ -323,44 +364,7 @@ int main(void) {
 
 
     // Option parameters
-    OptionData option_data;
-    option_data.S0 = 100.0f;
-    option_data.T = 1.0f;
-    option_data.K = 100.0f;
-    option_data.r = 0.1f;
-    option_data.v = 0.2f;
-    option_data.B = 120.0f;
-    option_data.P1 = 10;
-    option_data.P2 = 50;
-    option_data.N_PATHS = 1000000;
-    option_data.N_STEPS = 100;
-    option_data.step = option.T / static_cast<float>(option.N_STEPS);
-    
-
-    // Copy option data to constant memory
-    cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-    printOptionData(option_data);
-
-
-    float sqrdt = sqrt(dt);
-    int threadsPerBlock = 32;
-    unsigned int maxThreads = 1024;
-
-
-    int block_sizes[6] = {1024, 512, 256, 128, 64, 32};
-    int number_of_simulations[6] = {10000, 100000, 1000000, 10000000};
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    float times_for_simulations[6];
-
-    FILE *file = fopen("simulation_results.csv", "w");
-    fprintf(file, "number of threads, 100, 1000, 10000, 100000, 1000000, 10000000\n");
-
-
-    getDeviceProperty();
-
-    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+        int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
     cout << "number of paths : " << N_PATHS << endl;
     cout << "number of steps : " << N_STEPS << endl;
@@ -380,7 +384,36 @@ int main(void) {
                            simulated_paths_cpu);
 
     cout << endl;
-    cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    cout << "Average CPU : " << optionPriceCPU << endl << endl; option_data;
+    option_data.S0 = 100.0f;
+    option_data.T = 1.0f;
+    option_data.K = 100.0f;
+    option_data.r = 0.1f;
+    option_data.v = 0.2f;
+    option_data.B = 120.0f;
+    option_data.P1 = 10;
+    option_data.P2 = 50;
+    option_data.N_PATHS = 1000000;
+    option_data.N_STEPS = 100;
+    option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
+
+
+    // Copy option data to constant memory
+    cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    printOptionData(option_data);
+
+
+    int threadsPerBlock = 1024;
+    unsigned int maxThreads = 1024;
+
+
+    float times_for_simulations[6];
+
+    getDeviceProperty();
+
+    wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
+
+
 
 
 
