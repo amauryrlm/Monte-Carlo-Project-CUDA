@@ -12,6 +12,14 @@
 #include "option_price.hpp"
 #include <curand_kernel.h>
 
+#define CHECK_MALLOC(ptr) \
+    do { \
+        if ((ptr) == NULL) { \
+            fprintf(stderr, "Memory allocation failed for %s at %s:%d\n", #ptr, __FILE__, __LINE__); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while(0)
+
 
 struct OptionData {
     float S0;
@@ -421,6 +429,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+    cout << "blocksPerGrid bullet : " << blocksPerGrid << endl;
     // generate states array for random number generation
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
@@ -429,6 +438,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     float *d_odata;
     testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
     float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
+    CHECK_MALLOC(h_odata);
 
     simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
     cudaError_t error = cudaGetLastError();
