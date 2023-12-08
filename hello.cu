@@ -200,7 +200,6 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     float T = d_OptionData.T;
     float sigma = d_OptionData.v;
     float S0 = d_OptionData.S0;
-    float dt = d_OptionData.step;
     float sqrdt = sqrtf(dt);
     int N_PATHS = d_OptionData.N_PATHS;
 
@@ -212,7 +211,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         float St = S0;
         float G, mySum;
         G = curand_normal(&state);
-        St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+        St *= expf((r - sigma * sigma * 2) * T + sigma * sqrdt * G);
         mySum = max(St - K, 0.0f);
         sdata[tid] = mySum;
         cg::sync(cta);
