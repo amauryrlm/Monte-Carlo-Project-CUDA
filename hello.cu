@@ -199,6 +199,9 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     float r = d_OptionData.r;
     float T = d_OptionData.T;
     float sigma = d_OptionData.v;
+    float S0 = d_OptionData.S0;
+    float dt = d_OptionData.step;
+    float sqrdt = sqrtf(dt);
     int N_PATHS = d_OptionData.N_PATHS;
 
     curand_init(1234, idx, 0, &state[id]);
@@ -209,10 +212,11 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     
     if (idx < N_PATHS) {
         float St = S0;
-        float G;
+        float G, mySum;
 
         St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-        sdata[tid] = max(St - K, 0.0f);
+        mySum = max(St - K, 0.0f);
+        sdata[tid] = mySum;
         cg::sync(cta);
 
         if ((blockSize >= 1024) && (tid < 512)) {
