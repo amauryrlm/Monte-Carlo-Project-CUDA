@@ -210,7 +210,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         float St = S0;
         float G, mySum;
         G = curand_normal(&state);
-        St *= expf((r - sigma * sigma * 2) * T + sigma * sqrdt * G);
+        St *= expf((r - sigma * sigma * 0.5) * T + sigma * sqrdt * G);
         mySum = max(St - K, 0.0f);
         sdata[tid] = mySum;
         cg::sync(cta);
