@@ -234,6 +234,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
         } else {
             sdata[idx] = 0.0f;
         }
+        float mySum = sdata[idx];
         cg::sync(cta);
 
         if ((blockSize >= 1024) && (idx < 512)) {
