@@ -245,7 +245,6 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
             sdata[tid] = 0.0f;
         }
         float mySum = sdata[tid];
-        printf("mySum : %f\n", mySum);
         cg::sync(cta);
 
         if ((blockSize >= 1024) && (tid < 512)) {
@@ -283,8 +282,6 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
-
-        printf("mySum : %f\n", mySum);
 
     }
 }
@@ -478,7 +475,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 2048;
+    option_data.N_PATHS = 100000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
