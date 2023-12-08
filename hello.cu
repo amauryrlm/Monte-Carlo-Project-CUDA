@@ -303,6 +303,7 @@ simulateBulletOptionSavePrice(float *d_simulated_paths, float *d_simulated_count
 }
 
 void printOptionData(OptionData od) {
+    cout << endl;
     cout << "S0 : " << od.S0 << endl;
     cout << "T : " << od.T << endl;
     cout << "K : " << od.K << endl;
@@ -314,6 +315,7 @@ void printOptionData(OptionData od) {
     cout << "N_PATHS : " << od.N_PATHS << endl;
     cout << "N_STEPS : " << od.N_STEPS << endl;
     cout << "step : " << od.step << endl;
+    cout << endl;
 }
 
 void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS,
