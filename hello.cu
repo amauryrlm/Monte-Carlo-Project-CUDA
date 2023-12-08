@@ -33,9 +33,6 @@ __constant__ OptionData d_OptionData;
 using namespace std;
 
 
-
-
-
 // Function that catches the error
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
@@ -48,9 +45,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
 
-
-__global__ void setup_kernel(curandState* state, uint64_t seed)
-{
+__global__ void setup_kernel(curandState *state, uint64_t seed) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     curand_init(seed, tid, 0, &state[tid]);
 }
@@ -176,21 +171,23 @@ __global__ void simulateOptionPriceGPU(float *d_optionPriceGPU, float K, float r
 //         }
 //     }
 // }
-__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
+__global__ void
+simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T, float sigma, int N_PATHS,
+                                    float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if(idx < N_PATHS) {
-            float St = S0;
-            float G;
-            for(int i = 0; i < N_STEPS; i++){
-                G = d_randomData[idx*N_STEPS + i];
-                St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            }
-            d_simulated_payoff[idx] = max(St - K,0.0f);
-        }
-    }
 
-__global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, curandState* globalStates) {
+    if (idx < N_PATHS) {
+        float St = S0;
+        float G;
+        for (int i = 0; i < N_STEPS; i++) {
+            G = d_randomData[idx * N_STEPS + i];
+            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+        }
+        d_simulated_payoff[idx] = max(St - K, 0.0f);
+    }
+}
+
+__global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, curandState *globalStates) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
@@ -207,7 +204,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[1024];
 
-    
+
     if (idx < N_PATHS) {
         curandState state = globalStates[idx];
         float St = S0;
@@ -257,7 +254,8 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 }
 
 
-__global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T, float sigma,
+__global__ void
+simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T, float sigma,
                                           int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt,
                                           float sqrdt, float B, float P1, float P2) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -304,7 +302,7 @@ simulateBulletOptionSavePrice(float *d_simulated_paths, float *d_simulated_count
     }
 }
 
-void printOptionData(OptionData od){
+void printOptionData(OptionData od) {
     cout << "S0 : " << od.S0 << endl;
     cout << "T : " << od.T << endl;
     cout << "K : " << od.K << endl;
@@ -317,7 +315,9 @@ void printOptionData(OptionData od){
     cout << "N_STEPS : " << od.N_STEPS << endl;
     cout << "step : " << od.step << endl;
 }
-void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS, unsigned long long seed = 1234ULL){
+
+void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS,
+                         unsigned long long seed = 1234ULL) {
 
     // create generator all fill array with generated values
     curandGenerator_t gen;
@@ -330,7 +330,8 @@ void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, 
     curandDestroyGenerator(gen);
 
 }
-void simulateOptionPriceCPU(float* optionPriceCPU, float* h_randomData, OptionData option_data) {
+
+void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionData option_data) {
     float G;
     float countt = 0.0f;
     float K = option_data.K;
@@ -343,33 +344,30 @@ void simulateOptionPriceCPU(float* optionPriceCPU, float* h_randomData, OptionDa
     int N_STEPS = option_data.N_STEPS;
 
 
-
-    for (int i = 0; i < N_PATHS;i++) {
+    for (int i = 0; i < N_PATHS; i++) {
         float St = S0;
         for (int j = 0; j < N_STEPS; j++) {
             G = h_randomData[i * N_STEPS + j];
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
 
-            }
+        }
 
         countt += max(St - K, 0.0f);
-        }
-    *optionPriceCPU = expf(-r) * (countt / N_PATHS);
     }
+    *optionPriceCPU = expf(-r) * (countt / N_PATHS);
+}
 
-float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
-    
-  int N_PATHS = option_data.N_PATHS;
-  int N_STEPS = option_data.N_STEPS;
-  int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
+
+    int N_PATHS = option_data.N_PATHS;
+    int N_STEPS = option_data.N_STEPS;
+    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
 
     float *d_randomData, *h_randomData;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
-
-
 
 
     float optionPriceCPU = 0.0f;
@@ -379,46 +377,42 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock){
     cout << "Average CPU : " << optionPriceCPU << endl << endl;
     free(h_randomData);
     cudaFree(d_randomData);
-    
+
     return optionPriceCPU;
 }
 
-float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock){
-    
-  int N_PATHS = option_data.N_PATHS;
-  int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-  // generate states array for random number generation
-  curandState *d_states;
-  testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
-  setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
-  
-  float *d_odata;
-  testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
-  float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
+float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
-  simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
-  cudaError_t error = cudaGetLastError();
-  if (error != cudaSuccess) {
-      fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-      return -1;
-  }
-  cudaDeviceSynchronize();
-  testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
-  float sum = 0.0f;
-  for (int i = 0; i < blocksPerGrid; i++) {
-      sum += h_odata[i];
-  }
-  float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
-  cout << "Average GPU : " << optionPriceGPU << endl << endl;
-  free(h_odata);
-  cudaFree(d_odata);
-  cudaFree(d_states);
-  return optionPriceGPU;
+    int N_PATHS = option_data.N_PATHS;
+    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+    // generate states array for random number generation
+    curandState *d_states;
+    testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
+
+    float *d_odata;
+    testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
+    float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
+
+    simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
+    cudaDeviceSynchronize();
+    testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
+    float sum = 0.0f;
+    for (int i = 0; i < blocksPerGrid; i++) {
+        sum += h_odata[i];
+    }
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
+    cout << "Average GPU : " << optionPriceGPU << endl << endl;
+    free(h_odata);
+    cudaFree(d_odata);
+    cudaFree(d_states);
+    return optionPriceGPU;
 }
-
-
-
-
 
 
 int main(void) {
@@ -432,7 +426,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 1000000;
+    option_data.N_PATHS = 1024;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
