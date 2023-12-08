@@ -193,7 +193,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
-    curandState localState = globalStates[idx];
+    curandState state = globalStates[idx];
 
     float K = d_OptionData.K;
     float r = d_OptionData.r;
@@ -204,8 +204,6 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     float sqrdt = sqrtf(dt);
     int N_PATHS = d_OptionData.N_PATHS;
 
-    curand_init(1234, idx, 0, &state[id]);
-
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[blockSize];
 
@@ -213,7 +211,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     if (idx < N_PATHS) {
         float St = S0;
         float G, mySum;
-
+        G = curand_normal(&state);
         St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
         mySum = max(St - K, 0.0f);
         sdata[tid] = mySum;
