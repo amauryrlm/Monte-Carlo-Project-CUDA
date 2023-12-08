@@ -240,9 +240,9 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
             if (B > St) count += 1;
         }
         if ((count >= P1) && (count <= P2)) {
-            sdata[idx] = max(St - K, 0.0f);
+            sdata[tid] = max(St - K, 0.0f);
         } else {
-            sdata[idx] = 0.0f;
+            sdata[tid] = 0.0f;
         }
         float mySum = sdata[tid];
         printf("mySum : %f\n", mySum);
