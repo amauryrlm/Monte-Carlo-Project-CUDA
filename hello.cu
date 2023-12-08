@@ -452,7 +452,7 @@ int main(void) {
 
     wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
 
-
+    wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
 
 
 
