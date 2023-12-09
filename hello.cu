@@ -312,12 +312,11 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
 
 
     if (idx < N_PATHS) {
-        curandState state = globalStates[idx];
-        int count = Ik;
+        curandState state = d_states[idx];
+        int count = 0;
         float St = S0;
         float G;
-        int remaining_steps = N_STEPS - Tk;
-        for (int i = 0; i < remaining_steps; i++) {
+        for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
@@ -530,7 +529,7 @@ float wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock,
     testCUDA(cudaMalloc(&d_states, number_of_blocks * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
 
-    float *d_option_prices, d_stock_prices, d_sums_i;
+    float *d_option_prices, *d_stock_prices, *d_sums_i;
     testCUDA(cudaMalloc(&d_option_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, N_PATHS * N_STEPS * sizeof(float)));
