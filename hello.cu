@@ -521,7 +521,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
 }
 
-float wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
+void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
 
