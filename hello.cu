@@ -645,7 +645,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error2));
     // }
     // cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, (N_PATHS * N_STEPS + 1) * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
