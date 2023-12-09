@@ -455,7 +455,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     __shared__ float sdata[1024];
 
     long unsigned int number_of_simulations = N_PATHS * N_STEPS;
-    number_of_blocks = griddim.x
+    int number_of_blocks = griddim.x;
 
     while (blockId < number_of_simulations) {
         curandState state = d_states[blockId];
