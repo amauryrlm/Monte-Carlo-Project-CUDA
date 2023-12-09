@@ -368,7 +368,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         if (cta.thread_rank() == 0) {
             printf("mySum : %f\n", mySum);
             d_option_prices[0] = mySum;
-            printf("d_option_prices[N_PATHS*N_STEPS+1] : %f\n", d_option_prices[0]);
+            printf("d_option_prices[0] : %f\n", d_option_prices[0]);
         }
 
     }
@@ -657,7 +657,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     }
     // }
 
-    cout << "Average GPU bullet option nmc : " << h_option_prices[N_PATHS * N_STEPS + 1] << endl << endl;
+    cout << "Average GPU bullet option nmc : " << h_option_prices[0] << endl << endl;
 
 
 }
