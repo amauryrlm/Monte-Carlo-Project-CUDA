@@ -844,8 +844,8 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     cudaFree(d_states_outter);
 
 
-    testCUDA(cudaMalloc(&d_states_inner, threadsPerBlock * sizeof(curandState)));
-    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_inner, 1234);
+    testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock sizeof(curandState)));
+    setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
     // error = cudaGetLastError();
     // if (error != cudaSuccess) {
     //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
