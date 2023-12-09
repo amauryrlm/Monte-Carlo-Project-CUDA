@@ -367,8 +367,8 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             printf("mySum : %f\n", mySum);
-            d_option_prices[N_PATHS*N_STEPS+1] = mySum
-            printf("d_option_prices[N_PATHS*N_STEPS+1] : %f\n", d_option_prices[N_PATHS*N_STEPS+1]);
+            d_option_prices[0] = mySum
+            printf("d_option_prices[N_PATHS*N_STEPS+1] : %f\n", d_option_prices[0]);
         }
 
     }
@@ -622,11 +622,11 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
 
     float *d_option_prices, *d_stock_prices, *d_sums_i;
-    testCUDA(cudaMalloc(&d_option_prices, (N_PATHS * N_STEPS + 1) * sizeof(float)));
+    testCUDA(cudaMalloc(&d_option_prices, sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, N_PATHS * N_STEPS * sizeof(float)));
 
-    float *h_option_prices = (float *) malloc((N_PATHS * N_STEPS + 1) * sizeof(float));
+    float *h_option_prices = (float *) malloc(sizeof(float));
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
@@ -645,7 +645,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error2));
     // }
     // cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, (N_PATHS * N_STEPS + 1) * sizeof(float), cudaMemcpyDeviceToHost));
+    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
