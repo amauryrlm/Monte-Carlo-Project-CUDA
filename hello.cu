@@ -831,7 +831,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     CHECK_MALLOC(h_sums_i);
 
 
-    testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
 
