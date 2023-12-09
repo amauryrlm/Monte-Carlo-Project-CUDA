@@ -538,13 +538,12 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
-    simulateBulletOptionOutter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,
-                                                                      d_sums_i);
+    simulateBulletOptionOutter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,d_sums_i);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
     }
+    
 
     cudaDeviceSynchronize();
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
