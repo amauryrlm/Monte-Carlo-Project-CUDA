@@ -588,7 +588,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
 
-    wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, number_of_blocks);
+    wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 100);
 
 
     float callResult = 0.0f;
