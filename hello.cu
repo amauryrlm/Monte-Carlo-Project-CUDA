@@ -807,7 +807,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 }
 
 
-float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPerBlock) {
+float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -842,7 +842,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     cudaFree(d_states_outter);
 
 
-    testCUDA(cudaMalloc(&d_states_inner, N_PATHS * N_PATHS * N_STEPS * sizeof(curandState)));
+    testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_inner, 1234);
     error = cudaGetLastError();
     if (error != cudaSuccess) {
