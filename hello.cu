@@ -362,7 +362,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *globalStates, fl
         }
 
         // write result for this block to global mem
-        if (cta.thread_rank() == 0) atomicAdd(&(d_option_prices[N_PATHS*N_STEPS]), mySum);
+        if (cta.thread_rank() == 0) atomicAdd(&(d_option_prices[0]), mySum);
 
     }
 
