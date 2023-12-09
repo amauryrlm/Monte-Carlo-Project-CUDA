@@ -460,6 +460,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         int count = d_sums_i[blockId];
         float St = d_stock_prices[blockId];
         float G;
+        tid = threadIdx.x;
 
         while (tid < N_PATHS) {
             for (int i = 0; i < N_STEPS; i++) {
