@@ -294,7 +294,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
-    int maxnumbreprice = d_OptionData.N_PATHS * d_OptionData.N_STEPS + 1;
+    int maxnumbreprice = d_OptionData.N_PATHS * d_OptionData.N_STEPS;
 
     float S0 = d_OptionData.S0;
     float K = d_OptionData.K;
