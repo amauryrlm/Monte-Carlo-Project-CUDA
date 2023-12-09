@@ -850,7 +850,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
 
 
 
-    return optionPriceGPU;
+    return h_option_prices[N_PATHS * N_STEPS];
 
 }
 
