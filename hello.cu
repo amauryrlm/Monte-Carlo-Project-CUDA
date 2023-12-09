@@ -655,7 +655,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     }
     // }
 
-    cout << "Average GPU bullet option nmc : " << expf(-option_data.r*option_data.T)h_option_prices[N_PATHS * N_STEPS + 1] / N_PATHS << endl << endl;
+    cout << "Average GPU bullet option nmc : " << expf(-option_data.r * option_data.T)  * h_option_prices[N_PATHS * N_STEPS + 1] / N_PATHS << endl << endl;
 
 
 }
