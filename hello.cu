@@ -670,7 +670,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 1;
+    option_data.N_PATHS = 100000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
@@ -688,7 +688,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
 
-    wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 100);
+    // wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 100);
 
 
     float callResult = 0.0f;
