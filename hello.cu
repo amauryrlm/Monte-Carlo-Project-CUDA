@@ -684,7 +684,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     for (int i = 0; i < blocksPerGrid; i++) {
         sum += h_odata[i];
     }
-    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / static_cast<float>(N_PATHS);
     cout << "Average GPU bullet option : " << optionPriceGPU << endl << endl;
 
     free(h_odata);
