@@ -290,11 +290,9 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
 //1024 traj per block each time until end
 __global__ void
 simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float *d_stock_prices, float *d_sums_i) {
-
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
-    int maxnumbreprice = d_OptionData.N_PATHS * d_OptionData.N_STEPS;
 
     float S0 = d_OptionData.S0;
     float K = d_OptionData.K;
@@ -313,7 +311,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
 
 
     if (idx < N_PATHS) {
-        curandState state = d_states[idx];
+        curandState state = globalStates[idx];
         int count = 0;
         float St = S0;
         float G;
@@ -321,8 +319,6 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
-            d_stock_prices[idx * N_STEPS + i] = St;
-            d_sums_i[idx * N_STEPS + i] = count;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
@@ -366,14 +362,10 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         }
 
         // write result for this block to global mem
-        if (cta.thread_rank() == 0) {
-            printf("mySum : %f\n", mySum);
-            //atomic add
-            atomicAdd(&(d_option_prices[N_PATHS*N_STEPS]), mySum);
-            printf("d_option_prices[N_PATHS*N_STEPS + 1 ] : %f\n", d_option_prices[N_PATHS * N_STEPS]);
-        }
+        if (cta.thread_rank() == 0) atomicAdd(&(d_option_prices[N_PATHS*N_STEPS]), mySum);
 
     }
+
 
 
 }
