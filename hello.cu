@@ -619,70 +619,69 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int number_of_blocks = gridDim.x;
     curandState state = d_states[blockId];
 
-    
-        
     int count = d_sums_i[blockId];
     float St = d_stock_prices[blockId];
-    printf(" block id : %d, count : %d, St : %f\n", blockId, count, St);
     float G;
     tid = threadIdx.x;
 
-    // while (tid < N_PATHS) {
-    //     for (int i = 0; i < N_STEPS; i++) {
-    //         G = curand_normal(&state);
-    //         St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-    //         if (B > St) count += 1;
-    //     }
-    //     if ((count >= P1) && (count <= P2)) {
-    //         sdata[tid] = max(St - K, 0.0f);
-    //     } else {
-    //         sdata[tid] = 0.0f;
-    //     }
-    //     float mySum = sdata[tid];
-    //     cg::sync(cta);
+    while (tid < N_PATHS) {
+        for (int i = 0; i < N_STEPS; i++) {
+            G = curand_normal(&state);
+            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            if (B > St) count += 1;
+        }
+        if ((count >= P1) && (count <= P2)) {
+            sdata[tid] = max(St - K, 0.0f);
+        } else {
+            sdata[tid] = 0.0f;
+        }
+        float mySum = sdata[tid];
+        cg::sync(cta);
 
-    //     if ((blockSize >= 1024) && (tid < 512)) {
-    //         sdata[tid] = mySum = mySum + sdata[tid + 512];
-    //     }
-    //     cg::sync(cta);
-    //     if ((blockSize >= 512) && (tid < 256)) {
-    //         sdata[tid] = mySum = mySum + sdata[tid + 256];
-    //     }
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
+        }
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
+        }
 
-    //     cg::sync(cta);
+        cg::sync(cta);
 
-    //     if ((blockSize >= 256) && (tid < 128)) {
-    //         sdata[tid] = mySum = mySum + sdata[tid + 128];
-    //     }
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
 
-    //     cg::sync(cta);
+        cg::sync(cta);
 
-    //     if ((blockSize >= 128) && (tid < 64)) {
-    //         sdata[tid] = mySum = mySum + sdata[tid + 64];
-    //     }
-    //     cg::sync(cta);
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
 
 
-    //     cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
-    //     if (cta.thread_rank() < 32) {
-    //         // Fetch final intermediate sum from 2nd warp
-    //         if (blockSize >= 64) mySum += sdata[tid + 32];
-    //         // Reduce final warp using shuffle
-    //         for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
-    //             mySum += tile32.shfl_down(mySum, offset);
-    //         }
-    //     }
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
 
-    //     // write result for this block to global mem
-    //     if (cta.thread_rank() == 0) {
-    //         //atomic add
-    //         atomicAdd(&(d_option_prices[blockId]), mySum);
-    //     }
-    //     tid += blockSize;
-    // }
-    // blockId += number_of_blocks;
-    
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+            printf(" block id : %d, count : %d, St : %f , mySum : %f, d_option_prices[blockId] : %f\n", blockId, count,
+                   St, mySum, d_option_prices[blockId]);
+
+        }
+        tid += blockSize;
+    }
+
 }
 
 
@@ -852,12 +851,13 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
         return -1;
     }
 
-    compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,d_stock_prices, d_sums_i);
+    compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
+                                                                           d_stock_prices, d_sums_i);
     error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
-    }                                      
+    }
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -949,7 +949,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_atomic_nmc(option_data, threadsPerBlock,10);
+    wrapper_gpu_bullet_option_atomic_nmc(option_data, threadsPerBlock, 10);
 
 
     // wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 1);
