@@ -294,6 +294,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
+    int maxnumbreprice = d_OptionData.N_PATHS * d_OptionData.N_STEPS + 1;
 
     float S0 = d_OptionData.S0;
     float K = d_OptionData.K;
@@ -367,8 +368,8 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             printf("mySum : %f\n", mySum);
-            d_option_prices[0] = mySum;
-            printf("d_option_prices[0] : %f\n", d_option_prices[0]);
+            d_option_prices[maxnumbreprice] = mySum;
+            printf("d_option_prices[N_PATHS*N_STEPS + 1 ] : %f\n", d_option_prices[maxnumbreprice]);
         }
 
     }
@@ -616,17 +617,19 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
+    int maxnumbreprice = N_PATHS * N_STEPS +1;
+
 
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, number_of_blocks * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
 
     float *d_option_prices, *d_stock_prices, *d_sums_i;
-    testCUDA(cudaMalloc(&d_option_prices, sizeof(float)));
+    testCUDA(cudaMalloc(&d_option_prices, maxnumbreprice * sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, N_PATHS * N_STEPS * sizeof(float)));
 
-    float *h_option_prices = (float *) malloc(sizeof(float));
+    float *h_option_prices = (float *) malloc(maxnumbreprice * sizeof(float));
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
@@ -645,7 +648,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error2));
     // }
     // cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, sizeof(float), cudaMemcpyDeviceToHost));
+    testCUDA(cudaMemcpy(h_option_prices, d_option_prices, maxnumbreprice * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
@@ -657,7 +660,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     //     }
     // }
 
-    cout << "Average GPU bullet option nmc : " << h_option_prices[0] << endl << endl;
+    cout << "Average GPU bullet option nmc : " << h_option_prices[maxnumbreprice] << endl << endl;
 
 
 }
