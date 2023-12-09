@@ -367,8 +367,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             printf("mySum : %f\n", mySum);
-            //using atomic add
-            atomicAdd(&(d_option_prices[N_PATHS*N_STEPS+1]), mySum);
+            d_option_prices[N_PATHS*N_STEPS+1] = mySum
             printf("d_option_prices[N_PATHS*N_STEPS+1] : %f\n", d_option_prices[N_PATHS*N_STEPS+1]);
         }
 
@@ -631,7 +630,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
-    simulateBulletOptionOutter<<<1, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,
+    simulateBulletOptionOutter<<<1, 1024>>>(d_option_prices, d_states, d_stock_prices,
                                                                       d_sums_i);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
