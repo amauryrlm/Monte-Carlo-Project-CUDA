@@ -634,7 +634,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         sdata[tid] = max(St - K, 0.0f);
     } else {
         sdata[tid] = 0.0f;
-        if (cta.thread_rank() == 0) printf("cest 0")
+        if (cta.thread_rank() == 0) printf("cest 0");
 
     }
     float mySum = sdata[tid];
