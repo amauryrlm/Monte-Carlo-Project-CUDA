@@ -434,12 +434,10 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
 
 __global__ void
 compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, float *d_stock_prices, float *d_sums_i) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
     int blockId = blockIdx.x;
 
-    float S0 = d_OptionData.S0;
     float K = d_OptionData.K;
     float r = d_OptionData.r;
     float sigma = d_OptionData.v;
