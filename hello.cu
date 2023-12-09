@@ -598,6 +598,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
 __global__ void
 compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, float *d_stock_prices, float *d_sums_i) {
     int tid = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int blockSize = blockDim.x;
     int blockId = blockIdx.x;
 
@@ -617,7 +618,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 
     long unsigned int number_of_simulations = N_PATHS * N_STEPS;
     int number_of_blocks = gridDim.x;
-    curandState state = d_states[blockId];
+    curandState state = d_states[idx];
 
     int count = d_sums_i[blockId];
     float St = d_stock_prices[blockId];
