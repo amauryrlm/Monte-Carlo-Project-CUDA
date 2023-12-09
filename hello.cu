@@ -367,7 +367,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             //atomic add
-            atomicAdd(&(d_option_prices[0]), mySum);
+            atomicAdd(&(d_option_prices[N_PATHS * N_STEPS + 1]), mySum);
         }
 
     }
@@ -620,7 +620,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
 
     float *d_option_prices, *d_stock_prices, *d_sums_i;
-    testCUDA(cudaMalloc(&d_option_prices, N_PATHS * N_STEPS * sizeof(float)));
+    testCUDA(cudaMalloc(&d_option_prices, (N_PATHS * N_STEPS + 1) * sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, N_PATHS * N_STEPS * sizeof(float)));
 
@@ -647,13 +647,15 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for (int i = 0; i < N_PATHS; i++) {
-        for (int j = 0; j < N_STEPS; j++) {
-            cout << "simulations : " << i << " steps : " << j << " stock price : " << h_stock_prices[i * N_STEPS + j]
-                 << " sum : " << h_sums_i[i * N_STEPS + j] << " option price : " << h_option_prices[i * N_STEPS + j]
-                 << endl;
-        }
-    }
+    // for (int i = 0; i < N_PATHS; i++) {
+    //     for (int j = 0; j < N_STEPS; j++) {
+    //         cout << "simulations : " << i << " steps : " << j << " stock price : " << h_stock_prices[i * N_STEPS + j]
+    //              << " sum : " << h_sums_i[i * N_STEPS + j] << " option price : " << h_option_prices[i * N_STEPS + j]
+    //              << endl;
+    //     }
+    // }
+
+    cout << "Average GPU bullet option nmc : " << expf(-option_data.r*option_data.T)h_option_prices[N_PATHS * N_STEPS + 1] / N_PATHS << endl << endl;
 
 
 }
