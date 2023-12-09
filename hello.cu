@@ -367,7 +367,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             //atomic add
-            atomicAdd(&(d_option_prices[N_PATHS * N_STEPS + 1]), mySum);
+            d_option_prices[N_PATHS * N_STEPS + 1] = mySum;
         }
 
     }
@@ -673,7 +673,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 5;
+    option_data.N_PATHS = 1024;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
