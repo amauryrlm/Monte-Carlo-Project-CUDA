@@ -841,6 +841,16 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
 
+
+    testCUDA(cudaMalloc(&d_states_inner, N_PATHS * N_PATHS * N_STEPS * sizeof(curandState)));
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_inner, 1234);
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
+
+
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
