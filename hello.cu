@@ -844,6 +844,13 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     cudaFree(d_states_outter);
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
+    testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
+    testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
+    for(int i = 0; i < N_PATHS; i++){
+        for(int j = 0; j < N_STEPS; j++){
+            cout << " trajec " << i << " step " << j << " : " << h_stock_prices[i*N_STEPS + j] << " " << h_sums_i[i*N_STEPS + j] << endl;
+        }
+    }
     cout << "h_option_prices : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
 
 
