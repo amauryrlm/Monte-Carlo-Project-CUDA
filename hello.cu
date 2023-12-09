@@ -634,13 +634,10 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         sdata[tid] = max(St - K, 0.0f);
     } else {
         sdata[tid] = 0.0f;
-        if (cta.thread_rank() == 0) printf("cest 0");
-
     }
     float mySum = sdata[tid];
     cg::sync(cta);
-    if (cta.thread_rank() == 0) printf("mySum : %f\n", mySum);
-
+    printf(" blockId : %d, tid : %d, St : %f, count : %d \n", blockId, tid, St, count);
     if ((blockSize >= 1024) && (tid < 512)) {
         sdata[tid] = mySum = mySum + sdata[tid + 512];
     }
