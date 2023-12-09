@@ -655,13 +655,6 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for (int i = 1000; i < N_PATHS; i++) {
-        for (int j = 0; j < N_STEPS; j++) {
-            cout << "simulations : " << i << " steps : " << j << " stock price : " << h_stock_prices[i * N_STEPS + j]
-                 << " sum : " << h_sums_i[i * N_STEPS + j] << " option price : " << h_option_prices[i * N_STEPS + j]
-                 << endl;
-        }
-    }
 
     cout << "Average GPU bullet option nmc : " << h_option_prices[maxnumbreprice - 1 ] << endl << endl;
 
@@ -680,7 +673,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 1024;
+    option_data.N_PATHS = 100000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
