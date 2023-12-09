@@ -814,6 +814,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
+    int N_STEPS = option_data.N_STEPS;
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     int number_of_options = N_PATHS * N_STEPS  + 1;
 
