@@ -847,13 +847,11 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     cout << "h_option_prices : " << h_option_prices[N_PATHS * N_STEPS] << endl;
 
-    curandState *d_states_inner;
-    testCUDA(cudaMalloc(&d_states_inner, N_PATHS * N_STEPS * sizeof(curandState)));
+
 
 
     free(h_odata);
     cudaFree(d_odata);
-    cudaFree(d_states_inner);
     return optionPriceGPU;
 
 }
