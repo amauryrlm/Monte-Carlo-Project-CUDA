@@ -850,8 +850,6 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
 
 
 
-    free(h_odata);
-    cudaFree(d_odata);
     return optionPriceGPU;
 
 }
