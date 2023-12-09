@@ -395,11 +395,10 @@ simulateBulletOptionPriceMultipleBlockGPUatomicNMC(float *g_odata, curandState *
 
     if (idx < N_PATHS) {
         curandState state = globalStates[idx];
-        int count = Ik;
-        float St = (Sk == 0.0f) ? S0 : Sk;
+        int count = 0;
+        float St = S0;
         float G;
-        int remaining_steps = N_STEPS - Tk;
-        for (int i = 0; i < remaining_steps; i++) {
+        for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
