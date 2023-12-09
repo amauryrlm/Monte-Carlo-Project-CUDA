@@ -323,7 +323,6 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
             if (B > St) count += 1;
             d_stock_prices[idx * N_STEPS + i] = St;
             d_sums_i[idx * N_STEPS + i] = count;
-            d_option_prices[idx * N_STEPS + i] = 1.0f;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
