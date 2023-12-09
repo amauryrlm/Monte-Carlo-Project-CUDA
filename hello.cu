@@ -635,7 +635,9 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
-    simulateBulletOptionOutter<<<1, 1024>>>(d_option_prices, d_states, d_stock_prices,
+    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+
+    simulateBulletOptionOutter<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,
                                                                       d_sums_i);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
