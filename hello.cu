@@ -289,7 +289,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
 
 //1024 traj per block each time until end
 __global__ void
-simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float *d_stock_prices, float *d_sums_i) {
+simulateBulletOptionOutter(float *d_option_prices, curandState *globalStates, float *d_stock_prices, float *d_sums_i) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
