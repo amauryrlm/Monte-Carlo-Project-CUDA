@@ -369,8 +369,9 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *d_states, float 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             printf("mySum : %f\n", mySum);
-            d_option_prices[maxnumbreprice] = mySum;
-            printf("d_option_prices[N_PATHS*N_STEPS + 1 ] : %f\n", d_option_prices[maxnumbreprice]);
+            //atomic add
+            atomicAdd(&(d_option_prices[N_PATHS*N_STEPS]), mySum);
+            printf("d_option_prices[N_PATHS*N_STEPS + 1 ] : %f\n", d_option_prices[N_PATHS * N_STEPS]);
         }
 
     }
