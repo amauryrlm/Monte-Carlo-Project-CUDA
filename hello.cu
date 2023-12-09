@@ -624,7 +624,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     testCUDA(cudaMalloc(&d_stock_prices, N_PATHS * N_STEPS * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, N_PATHS * N_STEPS * sizeof(float)));
 
-    float *h_option_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+    float *h_option_prices = (float *) malloc((N_PATHS * N_STEPS + 1) * sizeof(float));
     float *h_stock_prices = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     float *h_sums_i = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
 
