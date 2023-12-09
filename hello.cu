@@ -289,7 +289,7 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
 
 __global__ void
 simulateBulletOptionPriceMultipleBlockGPUatomic(float *g_odata, curandState *globalStates, int Ik = 0, float Sk = 0.0f,
-                                          int Tk = 0) {
+                                                int Tk = 0) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
@@ -401,8 +401,8 @@ simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
-            d_sums_i[idx*N_STEPS + i] = count;
-            d_stock_prices[idx*N_STEPS + i] = St;
+            d_sums_i[idx * N_STEPS + i] = count;
+            d_stock_prices[idx * N_STEPS + i] = St;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
@@ -447,7 +447,7 @@ simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_
 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
-            atomicAdd(&(g_odata[N_PATHS*N_STEPS]), mySum);
+            atomicAdd(&(g_odata[N_PATHS * N_STEPS]), mySum);
         }
 
     }
@@ -534,7 +534,6 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *globalStates, fl
         }
 
     }
-
 
 
 }
@@ -685,7 +684,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 }
 
 
-
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
@@ -786,7 +784,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 
     float *d_odata;
     testCUDA(cudaMalloc(&d_odata, sizeof(float)));
-    float *h_odata = (float *) malloc( sizeof(float));
+    float *h_odata = (float *) malloc(sizeof(float));
     CHECK_MALLOC(h_odata);
 
     simulateBulletOptionPriceMultipleBlockGPUatomic<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
@@ -796,8 +794,8 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
         return -1;
     }
     cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_odata, d_odata,  sizeof(float), cudaMemcpyDeviceToHost));
-    
+    testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
+
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
     cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
 
@@ -814,10 +812,10 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-    int number_of_options = N_PATHS * N_STEPS  + 1;
+    int number_of_options = N_PATHS * N_STEPS + 1;
 
     curandState *d_states_outter, *d_states_inner;
-    float * d_option_prices, *d_stock_prices, *d_sums_i;
+    float *d_option_prices, *d_stock_prices, *d_sums_i;
     testCUDA(cudaMalloc(&d_option_prices, number_of_options * sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, number_of_options * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, number_of_options * sizeof(float)));
@@ -833,7 +831,8 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
 
-    simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices, d_sums_i);
+    simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
+                                                                    d_sums_i);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
@@ -845,9 +844,9 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
-    cout << "h_option_prices : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
-
-
+    cout << "h_option_prices : "
+         << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
+         << endl;
 
 
     return h_option_prices[N_PATHS * N_STEPS];
@@ -858,7 +857,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
 void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
-    int maxnumbreprice = N_PATHS * N_STEPS +1;
+    int maxnumbreprice = N_PATHS * N_STEPS + 1;
 
 
     curandState *d_states;
@@ -877,7 +876,7 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
 
     simulateBulletOptionOutter<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,
-                                                                      d_sums_i);
+                                                                   d_sums_i);
     cudaError_t error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
