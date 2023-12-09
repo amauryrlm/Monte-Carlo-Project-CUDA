@@ -448,7 +448,6 @@ simulateBulletOptionPriceMultipleBlockGPUatomicNMC(float *g_odata, curandState *
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             atomicAdd(&(g_odata[N_PATHS*N_STEPS]), mySum);
-            printf("g_odata[0] : %f\n", g_odata[N_PATHS*N_STEPS]);
         }
 
     }
