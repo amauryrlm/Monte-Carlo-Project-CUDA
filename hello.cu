@@ -620,26 +620,31 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int number_of_blocks = gridDim.x;
     curandState state = d_states[idx];
 
-    int count = d_sums_i[blockId];
-    float St = d_stock_prices[blockId];
+    int count;
+    float St;
     float G;
     tid = threadIdx.x;
+    tid_sim = tid;
     int remaining_steps = N_STEPS - count;
 
-
-    for (int i = 0; i < remaining_steps; i++) {
-        G = curand_normal(&state);
-        St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-        if (B > St) count += 1;
-    }
-    if ((count >= P1) && (count <= P2)) {
-        sdata[tid] = max(St - K, 0.0f);
-    } else {
-        sdata[tid] = 0.0f;
+    while (tid_sim < N_PATHS) {
+        count = d_sums_i[blockId];
+        St = d_stock_prices[blockId]
+        for (int i = 0; i < remaining_steps; i++) {
+            G = curand_normal(&state);
+            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            if (B > St) count += 1;
+        }
+        if ((count >= P1) && (count <= P2)) {
+            sdata[tid] += max(St - K, 0.0f);
+        } else {
+            sdata[tid] += 0.0f;
+        }
+        tid_sim += blockSize;
     }
     float mySum = sdata[tid];
     cg::sync(cta);
-    printf(" blockId : %d, tid : %d, St : %f, count : %d \n", blockId, tid, St, count);
+    printf(" blockId : %d, tid : %d, St : %f, count : %d \n", blockId, tid, sdata[tid], count);
     if ((blockSize >= 1024) && (tid < 512)) {
         sdata[tid] = mySum = mySum + sdata[tid + 512];
     }
