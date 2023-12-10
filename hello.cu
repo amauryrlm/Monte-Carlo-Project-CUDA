@@ -644,7 +644,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     }
     float mySum = sdata[tid];
     cg::sync(cta);
-    printf(" blockId : %d, tid : %d, St : %f, count : %d \n", blockId, tid, sdata[tid], count);
     if ((blockSize >= 1024) && (tid < 512)) {
         sdata[tid] = mySum = mySum + sdata[tid + 512];
     }
@@ -681,7 +680,9 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     // write result for this block to global mem
     if (cta.thread_rank() == 0) {
         //atomic add
+        mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
         atomicAdd(&(d_option_prices[blockId]), mySum);
+        printf("blockId : %d, d_option_prices[blockId] : %f\n", blockId, d_option_prices[blockId]);
 
     }
 
