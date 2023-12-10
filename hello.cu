@@ -925,8 +925,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             G = curand_normal(&state);
             St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
-            // d_sums_i[(number_of_simulation_per_block * blockIdx.x + tid) * N_STEPS + i] = count;
-            // d_stock_prices[(number_of_simulation_per_block * blockIdx.x + tid) * N_STEPS + i] = St;
+            d_sums_i[((number_of_simulation_per_block - 1) * blockIdx.x + tid) * N_STEPS + i] = count;
+            d_stock_prices[((number_of_simulation_per_block - 1) * blockIdx.x + tid) * N_STEPS + i] = St;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
