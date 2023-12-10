@@ -876,8 +876,8 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
     
-    cout << "h_option_prices : " << h_option_prices[number_of_simulations-1] << " h_stock_prices : " << h_stock_prices[number_of_simulations-1] << " h_sums_i : "
-        << h_sums_i[number_of_simulations-1] << endl;
+    cout << "h_option_prices : " << h_option_prices[number_of_options-2] << " h_stock_prices : " << h_stock_prices[number_of_options-2] << " h_sums_i : "
+        << h_sums_i[number_of_options-2] << endl;
     
     cout << "h_option_prices : "
          << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
