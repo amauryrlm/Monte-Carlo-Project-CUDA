@@ -869,9 +869,8 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     std::cout << "Used memory: " << (totalMem - freeMem) / 1024.0 / 1024.0 << " MB\n";
 
 
-    testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
-    curandState *h_states_inner = (curandState *) malloc(blocksPerGrid * threadsPerBlock * sizeof(curandState));
-    setup_kernel<<<number_of_blocks, 1024>>>(d_states_inner, 1235);
+    testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
+    setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
     testCUDA(cudaGetLastError());
 
 
