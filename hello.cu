@@ -867,22 +867,22 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     std::cout << "Total memory 1 : " << totalMem / 1024 / 1024 << " MB\n";
     std::cout << "Used memory 1 : " << (totalMem - freeMem) / 1024 / 1024 << " MB\n";
 
-    number_of_blocks = 10000;
-    cudaError_t status;
-    while (true) {
-        status = cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
+    number_of_blocks = 300000;
+    // cudaError_t status;
+    // while (true) {
+    //     status = cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
 
-        if (status == cudaSuccess) {
-            // Allocation successful, free memory and try a larger size
-            cudaFree(d_states_inner);
-            d_states_inner = nullptr;
-            number_of_blocks += 10000;
-        } else {
-            break;
-        }
-    }
-    cout << "max number of blocks : " << number_of_blocks << endl;
-    number_of_blocks *= 0.8f;
+    //     if (status == cudaSuccess) {
+    //         // Allocation successful, free memory and try a larger size
+    //         cudaFree(d_states_inner);
+    //         d_states_inner = nullptr;
+    //         number_of_blocks += 10000;
+    //     } else {
+    //         break;
+    //     }
+    // }
+    // cout << "max number of blocks : " << number_of_blocks << endl;
+    // number_of_blocks *= 0.8f;
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
