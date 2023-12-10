@@ -997,6 +997,8 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     testCUDA(cudaGetLastError());
 
     compute_nmc_one_block_per_point_with_outter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,d_sums_i);
+    cudaDeviceSynchronize();
+
     testCUDA(cudaGetLastError());
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -1004,6 +1006,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
 
     cout << "h_stock_prices[N_PATHS * N_STEPS - 1] : " << h_stock_prices[N_PATHS * N_STEPS - 1] << " h_sums_i[N_PATHS * N_STEPS - 1] : " << h_sums_i[N_PATHS * N_STEPS - 1] << endl;
+    cout << "h_option_prices[N_PATHS * N_STEPS] : " << h_option_prices[N_PATHS * N_STEPS] << endl;
 
     
 
@@ -1016,7 +1019,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     cudaFree(d_stock_prices);
     cudaFree(d_sums_i);
 
-    return h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / N_PATHS;
+    return 0.0f;
 
 }
 
