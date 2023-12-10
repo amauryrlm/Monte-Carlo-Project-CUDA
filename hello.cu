@@ -875,6 +875,22 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
+
+
+    size_t freeMem2;
+    size_t totalMem2;
+    cudaError_t status2 = cudaMemGetInfo(&freeMem2, &totalMem2);
+
+    if (status2 != cudaSuccess) {
+        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status2) << std::endl;
+        return 1;
+    }
+
+    std::cout << "Free memory 2 : " << freeMem2 / 1024.0 / 1024.0 << " MB\n";
+    std::cout << "Total memory 2 : " << totalMem2 / 1024.0 / 1024.0 << " MB\n";
+    std::cout << "Used memory 2 : " << (totalMem2 - freeMem2) / 1024.0 / 1024.0 << " MB\n";
+
+
     error = cudaGetLastError();
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
@@ -919,7 +935,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 1000;
+    option_data.N_PATHS = 10000;
     option_data.N_PATHS_INNER = 1000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
