@@ -962,6 +962,7 @@ get_max_number_of_blocks(OptionData option_data, int threadsPerBlock) {
             d_states_inner = nullptr;
             number_of_blocks += 10000;
         } else {
+            cudaFree(d_states_inner);
             break;
         }
     }
