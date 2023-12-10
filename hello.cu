@@ -483,7 +483,7 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *globalStates, fl
         float G;
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
-            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
         }
         if ((count >= P1) && (count <= P2)) {
@@ -905,7 +905,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 100000;
+    option_data.N_PATHS = 50000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
