@@ -882,7 +882,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     //     }
     // }
     // cout << "max number of blocks : " << number_of_blocks << endl;
-    number_of_blocks = 200000;
+    number_of_blocks = 100000;
     cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
