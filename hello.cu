@@ -58,6 +58,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 __global__ void setup_kernel(curandState *state, uint64_t seed) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     curand_init(seed, tid, 0, &state[tid]);
+    printf("tid : %d, state : %d\n", tid, state[tid]);
 }
 
 
@@ -870,7 +871,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     curandState *h_states_inner = (curandState *) malloc(blocksPerGrid * threadsPerBlock * sizeof(curandState));
-    setup_kernel<<<number_of_blocks, 1025>>>(d_states_inner, 1235);
+    setup_kernel<<<number_of_blocks, 1024>>>(d_states_inner, 1235);
     testCUDA(cudaGetLastError());
 
 
