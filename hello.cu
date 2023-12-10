@@ -906,7 +906,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     int number_of_simulation_per_block = N_PATHS / number_of_blocks + 1;
 
-    if(idx == 0) printf("number_of_simulation_per_block : %d, number_of_blocks : %d\n", number_of_simulation_per_block, number_of_blocks);
+    if(idx == 0) printf("number_of_simulation_per_block : %d, number_of_blocks : %d, N_PATHS : %d\n", number_of_simulation_per_block, number_of_blocks, N_PATHS);
 
 
 
@@ -915,6 +915,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
 
     if (tid < number_of_simulation_per_block && (tid * number_of_blocks + blockIdx.x) < N_PATHS) {
+        printf("tid : %d, tid * number_of_blocks + blockIdx.x : %d\n", tid, tid * number_of_blocks + blockIdx.x);
         curandState state = d_states[idx];
         int count = 0;
         float St = S0;
@@ -1040,7 +1041,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 1000000;
+    option_data.N_PATHS = 20;
     option_data.N_PATHS_INNER = 10000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
@@ -1063,7 +1064,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 250000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 240000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 6);
 
 
     float callResult = 0.0f;
