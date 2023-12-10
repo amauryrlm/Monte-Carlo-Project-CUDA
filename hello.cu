@@ -628,7 +628,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int tid_sim = tid;
     while (blockId < number_of_simulations) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
-        sdata[tid] = 0.0f;
+        
         while (tid_sim < N_PATHS) {
             count = d_sums_i[blockId];
             St = d_stock_prices[blockId];
@@ -688,6 +688,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 
         }
         blockId += number_of_blocks;
+        sdata[tid] = 0.0f;
     }
 
 
