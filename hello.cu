@@ -827,6 +827,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 float
 wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
+    testCUDA(cudaGetLastError());
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
