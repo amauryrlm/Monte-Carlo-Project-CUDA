@@ -851,11 +851,8 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
+    testCUDA(cudaGetLastError());
+
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
 
@@ -876,6 +873,7 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
+    testCUDA(cudaGetLastError());
 
 
     size_t freeMem2;
@@ -900,11 +898,8 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
-    error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
+    testCUDA(cudaGetLastError());
+
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
