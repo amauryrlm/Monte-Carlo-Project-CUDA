@@ -869,7 +869,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     number_of_blocks = 1000;
     while (true) {
-    cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState))
+        status = cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
 
         if (status == cudaSuccess) {
             // Allocation successful, free memory and try a larger size
