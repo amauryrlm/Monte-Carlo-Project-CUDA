@@ -823,7 +823,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
-    int blocksPerGrid = (N_PATHS * N_STEPS + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     int number_of_options = N_PATHS * N_STEPS + 1;
 
     curandState *d_states_outter, *d_states_inner;
@@ -879,9 +879,15 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     // cout << "h_option_prices : " << h_option_prices[2356] << " h_stock_prices : " << h_stock_prices[2356] << " h_sums_i : "
     //     << h_sums_i[2356] << endl;
 
-    cout << "h_option_prices : "
-         << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
-         << endl;
+    // cout << "h_option_prices : "
+    //      << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
+    //      << endl;
+    for (int i = 0; i<N_PATHS * N_STEPS; i++) {
+        if (h_sums_i[i] == 10) {
+            cout << "h_option_prices : " << h_option_prices[i] << " h_stock_prices : " << h_stock_prices[i] << " h_sums_i : "
+                 << h_sums_i[i] << endl;
+        }
+    }
 
 
     return h_option_prices[N_PATHS * N_STEPS];
