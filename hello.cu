@@ -626,8 +626,8 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int remaining_steps;
     tid = threadIdx.x;
     int tid_sim = tid;
-    while(blockId < number_of_simulations){
-        remaining_steps = N_STEPS - ((blockId % N_STEPS)+1);
+    while (blockId < number_of_simulations) {
+        remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         sdata[tid] = 0.0f;
         while (tid_sim < N_PATHS) {
             count = d_sums_i[blockId];
@@ -684,8 +684,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             //atomic add
             mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
             atomicAdd(&(d_option_prices[blockId]), mySum);
-            printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f\n", blockId,
-                d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
+            printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f, mysum %f \n", blockId, d_option_prices[blockId], count, St, mySum);
 
         }
         blockId += number_of_blocks;
@@ -693,7 +692,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 
 
 }
-
 
 
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
@@ -875,10 +873,10 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
-    
+
     // cout << "h_option_prices : " << h_option_prices[2356] << " h_stock_prices : " << h_stock_prices[2356] << " h_sums_i : "
     //     << h_sums_i[2356] << endl;
-    
+
     cout << "h_option_prices : "
          << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
          << endl;
