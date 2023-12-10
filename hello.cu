@@ -687,7 +687,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
-        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
+        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps); 
 
         blockId += number_of_blocks;
     }
