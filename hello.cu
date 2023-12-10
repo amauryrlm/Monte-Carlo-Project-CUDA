@@ -58,7 +58,6 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 __global__ void setup_kernel(curandState *state, uint64_t seed) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     curand_init(seed, tid, 0, &state[tid]);
-    printf("tid : %d, state : %d\n", tid, state[tid]);
 }
 
 
