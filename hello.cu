@@ -845,6 +845,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     CHECK_MALLOC(h_stock_prices);
     CHECK_MALLOC(h_sums_i);
 
+    
 
     testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
@@ -866,8 +867,22 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     std::cout << "Total memory 1 : " << totalMem / 1024 / 1024 << " MB\n";
     std::cout << "Used memory 1 : " << (totalMem - freeMem) / 1024 / 1024 << " MB\n";
 
+    number_of_blocks = 1000;
+    while (true) {
+    cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState))
 
-    testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
+        if (status == cudaSuccess) {
+            // Allocation successful, free memory and try a larger size
+            cudaFree(d_array);
+            number_of_blocks += 500;
+        } else {
+            // Allocation failed, maximum size reached
+            break;
+        }
+    }
+    cout << "max number of blocks : " << number_of_blocks << endl;
+    cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState))
+
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
     testCUDA(cudaGetLastError());
 
