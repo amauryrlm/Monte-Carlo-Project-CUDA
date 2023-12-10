@@ -318,7 +318,7 @@ simulateBulletOptionPriceMultipleBlockGPUatomic(float *g_odata, curandState *glo
         int remaining_steps = N_STEPS - Tk;
         for (int i = 0; i < remaining_steps; i++) {
             G = curand_normal(&state);
-            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
         }
         if ((count >= P1) && (count <= P2)) {
@@ -399,7 +399,7 @@ simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_
         float G;
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
-            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
             d_sums_i[idx * N_STEPS + i] = count;
             d_stock_prices[idx * N_STEPS + i] = St;
