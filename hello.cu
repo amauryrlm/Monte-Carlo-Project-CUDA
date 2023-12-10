@@ -858,17 +858,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
 
-    size_t freeMem;
-    size_t totalMem;
-    testCUDA(cudaMemGetInfo(&freeMem, &totalMem));
 
-
-    std::cout << "Free memory 1 : " << freeMem / 1024 / 1024 << " MB\n";
-    std::cout << "Total memory 1 : " << totalMem / 1024 / 1024 << " MB\n";
-    std::cout << "Used memory 1 : " << (totalMem - freeMem) / 1024 / 1024 << " MB\n";
-
-
-    cudaDeviceReset();
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
