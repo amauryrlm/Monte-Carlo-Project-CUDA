@@ -611,6 +611,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int P1 = d_OptionData.P1;
     int P2 = d_OptionData.P2;
     int N_PATHS = d_OptionData.N_PATHS;
+    int N_PATHS_INNER = d_odata.N_PATHS_INNER;
     int N_STEPS = d_OptionData.N_STEPS;
     float dt = d_OptionData.step;
     float sqrdt = sqrtf(dt);
@@ -632,7 +633,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         float mySum = 0.0f;
         tid_sim = tid;
-        while (tid_sim < N_PATHS) {
+        while (tid_sim < N_PATHS_INNER) {
 
             count = d_sums_i[blockId];
             St = d_stock_prices[blockId];
@@ -688,7 +689,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             //atomic add
-            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
@@ -974,7 +975,7 @@ int main(void) {
     option_data.P1 = 10;
     option_data.P2 = 50;
     option_data.N_PATHS = 100000;
-    option_data.N_PATHS_INNER = 1000;
+    option_data.N_PATHS_INNER = 10000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
