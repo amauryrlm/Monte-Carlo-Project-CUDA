@@ -883,10 +883,10 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     //      << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
     //      << endl;
     for (int i = 0; i<N_PATHS * N_STEPS; i++) {
-        if (h_sums_i[i] == 10) {
-            cout << "h_option_prices : " << h_option_prices[i] << " h_stock_prices : " << h_stock_prices[i] << " h_sums_i : "
-                 << h_sums_i[i] << endl;
-        }
+
+        cout << "h_option_prices : " << h_option_prices[i] << " h_stock_prices : " << h_stock_prices[i] << " h_sums_i : "
+                << h_sums_i[i] << endl;
+        
     }
 
 
