@@ -1002,7 +1002,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
+    int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 200000);
 
 
