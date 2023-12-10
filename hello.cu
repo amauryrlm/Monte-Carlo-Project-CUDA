@@ -822,7 +822,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 }
 
 
-float wrapper_gpu_bullet_option_nmc_one_point_per_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
+float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -856,6 +856,20 @@ float wrapper_gpu_bullet_option_nmc_one_point_per_block(OptionData option_data, 
     }
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
+
+    size_t freeMem;
+    size_t totalMem;
+    cudaError_t status = cudaMemGetInfo(&freeMem, &totalMem);
+
+    if (status != cudaSuccess) {
+        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status) << std::endl;
+        return 1;
+    }
+
+    std::cout << "Free memory: " << freeMem / 1024.0 / 1024.0 << " MB\n";
+    std::cout << "Total memory: " << totalMem / 1024.0 / 1024.0 << " MB\n";
+    std::cout << "Used memory: " << (totalMem - freeMem) / 1024.0 / 1024.0 << " MB\n";
+
 
 
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
@@ -904,7 +918,8 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 20000;
+    option_data.N_PATHS = 1000;
+    option_data.N_PATHS_INNER = 1000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
@@ -922,7 +937,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_nmc_one_point_per_block(option_data, threadsPerBlock, 10);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 10);
 
 
     // wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 1);
