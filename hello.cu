@@ -629,7 +629,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     float G;
     tid = threadIdx.x;
     int tid_sim = tid;
-    int remaining_steps = N_STEPS - count;
+    int remaining_steps = N_STEPS - ((blockId % N_STEPS)+1);
 
     while (tid_sim < N_PATHS) {
         count = d_sums_i[blockId];
@@ -922,6 +922,8 @@ void wrapper_gpu_bullet_option_nmc(OptionData option_data, int threadsPerBlock, 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
+    cout << "h_option_prices : " << h_option_prices[0] << " h_stock_prices : " << h_stock_prices[0] << " h_sums_i : "
+         << h_sums_i[0] << endl;
 
 
     cout << "Average GPU bullet option nmc : " << h_option_prices[0] << endl << endl;
