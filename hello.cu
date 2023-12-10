@@ -625,10 +625,11 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     float G;
     int remaining_steps;
     tid = threadIdx.x;
-    int tid_sim = tid;
+    int tid_sim;
     while (blockId < number_of_simulations) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         float mySum = 0.0f;
+        tid_sim = tid;
         while (tid_sim < N_PATHS) {
             
             count = d_sums_i[blockId];
