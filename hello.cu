@@ -687,7 +687,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
-        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f, mysum %f , remaining step : %d \n", blockId, d_option_prices[blockId], count, St, mySum, remaining_steps);
+        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f, mysum %f , remaining step : %d \n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_, mySum, remaining_steps);
 
         blockId += number_of_blocks;
     }
@@ -823,7 +823,7 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
-    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (N_PATHS * N_STEPS + threadsPerBlock - 1) / threadsPerBlock;
     int number_of_options = N_PATHS * N_STEPS + 1;
 
     curandState *d_states_outter, *d_states_inner;
