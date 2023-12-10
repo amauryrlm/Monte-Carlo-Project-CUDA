@@ -862,9 +862,9 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     testCUDA(cudaMemGetInfo(&freeMem, &totalMem));
 
 
-    std::cout << "Free memory: " << freeMem  << " MB\n";
-    std::cout << "Total memory: " << totalMem << " MB\n";
-    std::cout << "Used memory: " << (totalMem - freeMem)  << " MB\n";
+    std::cout << "Free memory 1 : " << freeMem / 1024 / 1024 << " MB\n";
+    std::cout << "Total memory 1 : " << totalMem / 1024 / 1024 << " MB\n";
+    std::cout << "Used memory 1 : " << (totalMem - freeMem) / 1024 / 1024 << " MB\n";
 
 
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
@@ -883,13 +883,12 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     int max_number_of_curandState = freeMem2 / size_of_curandState;
 
-    cout << "max_number_of_curandState : " << max_number_of_curandState << endl;
+    cout << "max_number_of_curandState : " << max_number_of_curandState / 1024 / 1024 << " MB\n";
 
 
-    std::cout << "Free memory 2 : " << freeMem2  << " MB\n";
-    std::cout << "Total memory 2 : " << totalMem2 << " MB\n";
-    std::cout << "Used memory 2 : " << (totalMem2 - freeMem2)  << " MB\n";
-    
+    std::cout << "Free memory 2 : " << freeMem2 / 1024 / 1024 << " MB\n";
+    std::cout << "Total memory 2 : " << totalMem2 / 1024 / 1024 << " MB\n";
+    std::cout << "Used memory 2 : " << (totalMem2 - freeMem2) / 1024 / 1024 << " MB\n";
 
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
