@@ -909,7 +909,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     __shared__ float sdata[1024];
 
 
-    if (idx < N_PATHS) {
+    if (tid < number_of_simulation_per_block) {
         curandState state = d_states[idx];
         int count = 0;
         float St = S0;
