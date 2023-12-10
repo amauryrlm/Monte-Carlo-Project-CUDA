@@ -640,7 +640,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             }
             if ((count >= P1) && (count <= P2)) {
                 mySum += max(St - K, 0.0f);
-                if (blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf(" YESSSSS blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps); 
+                // if (blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf(" YESSSSS blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps); 
 
                 
             } else {
