@@ -827,7 +827,6 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 float
 wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
-    testCUDA(cudaGetLastError());
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
@@ -854,7 +853,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
@@ -873,7 +872,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     size_t freeMem2;
@@ -889,7 +888,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
