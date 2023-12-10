@@ -812,7 +812,6 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
     testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
 
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
-    cout << "Average GPU bullet option atomic h_odata[0] : " << h_odata[0] << endl << endl;
     cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
 
     free(h_odata);
