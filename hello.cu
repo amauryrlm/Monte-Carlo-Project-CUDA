@@ -870,7 +870,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     curandState *h_states_inner = (curandState *) malloc(blocksPerGrid * threadsPerBlock * sizeof(curandState));
-    setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
+    setup_kernel<<<number_of_blocks, 1025>>>(d_states_inner, 1235);
     testCUDA(cudaGetLastError());
 
 
