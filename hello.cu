@@ -1088,8 +1088,6 @@ int main(void) {
 
     int threadsPerBlock = 1024;
 
-    cout << "sizeof (curandState ) : " << sizeof(curandState) << endl;
-
     // Copy option data to constant memory
     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
     printOptionData(option_data);
