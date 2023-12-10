@@ -621,9 +621,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     curandState state = d_states[idx];
 
     int count = d_sums_i[blockId];
-    if (tid == 0) {
-        printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
-    }
     float St;
     float G;
     tid = threadIdx.x;
