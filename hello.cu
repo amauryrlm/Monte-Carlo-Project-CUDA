@@ -890,6 +890,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     
 
+    
+
     float S0 = d_OptionData.S0;
     float K = d_OptionData.K;
     float r = d_OptionData.r;
@@ -903,6 +905,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     float sqrdt = sqrtf(dt);
 
     int number_of_simulation_per_block = N_PATHS / number_of_blocks + 1;
+
+    if(idx == 0) printf("number_of_simulation_per_block : %d\n", number_of_simulation_per_block);
 
 
     cg::thread_block cta = cg::this_thread_block();
@@ -1058,7 +1062,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 250000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 250000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 240000);
 
 
     float callResult = 0.0f;
