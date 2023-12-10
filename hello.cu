@@ -620,75 +620,79 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int number_of_blocks = gridDim.x;
     curandState state = d_states[idx];
 
-    int count = d_sums_i[blockId];
+    int count;
     float St;
     float G;
+    int remaining_steps;
     tid = threadIdx.x;
     int tid_sim = tid;
-    int remaining_steps = N_STEPS - ((blockId % N_STEPS)+1);
-
-    while (tid_sim < N_PATHS) {
-        count = d_sums_i[blockId];
-        St = d_stock_prices[blockId];
-        for (int i = 0; i < remaining_steps; i++) {
-            G = curand_normal(&state);
-            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-            if (B > St) count += 1;
+    while(blockId < number_of_simulations){
+        remaining_steps = N_STEPS - ((blockId % N_STEPS)+1);
+        while (tid_sim < N_PATHS) {
+            count = d_sums_i[blockId];
+            St = d_stock_prices[blockId];
+            for (int i = 0; i < remaining_steps; i++) {
+                G = curand_normal(&state);
+                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                if (B > St) count += 1;
+            }
+            if ((count >= P1) && (count <= P2)) {
+                sdata[tid] += max(St - K, 0.0f);
+            } else {
+                sdata[tid] += 0.0f;
+            }
+            tid_sim += blockSize;
         }
-        if ((count >= P1) && (count <= P2)) {
-            sdata[tid] += max(St - K, 0.0f);
-        } else {
-            sdata[tid] += 0.0f;
+        float mySum = sdata[tid];
+        cg::sync(cta);
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
         }
-        tid_sim += blockSize;
-    }
-    float mySum = sdata[tid];
-    cg::sync(cta);
-    if ((blockSize >= 1024) && (tid < 512)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 512];
-    }
-    cg::sync(cta);
-    if ((blockSize >= 512) && (tid < 256)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 256];
-    }
-
-    cg::sync(cta);
-
-    if ((blockSize >= 256) && (tid < 128)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 128];
-    }
-
-    cg::sync(cta);
-
-    if ((blockSize >= 128) && (tid < 64)) {
-        sdata[tid] = mySum = mySum + sdata[tid + 64];
-    }
-    cg::sync(cta);
-
-
-    cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
-
-    if (cta.thread_rank() < 32) {
-        // Fetch final intermediate sum from 2nd warp
-        if (blockSize >= 64) mySum += sdata[tid + 32];
-        // Reduce final warp using shuffle
-        for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
-            mySum += tile32.shfl_down(mySum, offset);
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
         }
-    }
 
-    // write result for this block to global mem
-    if (cta.thread_rank() == 0) {
-        //atomic add
-        mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
-        atomicAdd(&(d_option_prices[blockId]), mySum);
-        printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f\n", blockId,
-               d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
+        cg::sync(cta);
 
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
+
+
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
+
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+            printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f\n", blockId,
+                d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
+
+        }
+        blockId += number_of_blocks;
     }
 
 
 }
+
 
 
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
