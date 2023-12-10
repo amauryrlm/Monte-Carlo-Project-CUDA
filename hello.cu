@@ -687,7 +687,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
-        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f, mysum %f , remaining step : %d \n", blockId, d_option_prices[blockId], d_sums_i[blockId], St, mySum, remaining_steps);
+        if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
 
         blockId += number_of_blocks;
     }
@@ -855,21 +855,21 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     cudaFree(d_states_outter);
 
 
-    // testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
-    // setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
-    // error = cudaGetLastError();
-    // if (error != cudaSuccess) {
-    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-    //     return -1;
-    // }
+    testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
+    setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
 
-    // compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
-    //                                                                        d_stock_prices, d_sums_i);
-    // error = cudaGetLastError();
-    // if (error != cudaSuccess) {
-    //     fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-    //     return -1;
-    // }
+    compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
+                                                                           d_stock_prices, d_sums_i);
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -882,13 +882,6 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     // cout << "h_option_prices : "
     //      << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
     //      << endl;
-    for (int i = 0; i<N_PATHS * N_STEPS; i++) {
-
-        cout << "simnulation : " << i << " h_option_prices : " << h_option_prices[i] << " h_stock_prices : "
-             << h_stock_prices[i] << " h_sums_i : "
-             << h_sums_i[i] << endl;
-        
-    }
 
 
     return h_option_prices[N_PATHS * N_STEPS];
