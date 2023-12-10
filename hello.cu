@@ -884,8 +884,6 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     std::cout << "Used memory 2 : " << (totalMem2 - freeMem2) / 1024.0 / 1024.0 << " MB\n";
     
 
-    testCUDA(cudaMemcpy(h_states_inner, d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState),
-                        cudaMemcpyDeviceToHost));
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
