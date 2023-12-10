@@ -883,7 +883,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     int max_number_of_curandState = freeMem2 / size_of_curandState;
 
-    print("max_number_of_curandState : ", max_number_of_curandState);
+    cout << "max_number_of_curandState : " << max_number_of_curandState << endl;
 
 
     std::cout << "Free memory 2 : " << freeMem2  << " MB\n";
