@@ -875,6 +875,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
         if (status == cudaSuccess) {
             // Allocation successful, free memory and try a larger size
             cudaFree(d_states_inner);
+            d_states_inner = nullptr;
             number_of_blocks += 10000;
         } else {
             // Allocation failed, maximum size reached
