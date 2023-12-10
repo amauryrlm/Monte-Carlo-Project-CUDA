@@ -371,7 +371,7 @@ simulateBulletOptionPriceMultipleBlockGPUatomic(float *g_odata, curandState *glo
 }
 
 __global__ void
-simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_stock_prices, float *d_sums_i) {
+simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_stock_prices, int *d_sums_i) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
     int blockSize = blockDim.x;
@@ -596,7 +596,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
 
 
 __global__ void
-compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, float *d_stock_prices, float *d_sums_i) {
+compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, float *d_stock_prices, int *d_sums_i) {
     int tid = threadIdx.x;
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int blockSize = blockDim.x;
