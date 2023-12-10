@@ -31,6 +31,7 @@ struct OptionData {
     int P1;
     int P2;
     int N_PATHS;
+    int N_PATHS_INNER;
     int N_STEPS;
     float step;
 };
