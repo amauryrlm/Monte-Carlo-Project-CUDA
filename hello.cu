@@ -647,7 +647,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             }
             tid_sim += blockSize;
         }
-        if (blockId == 9999939) printf("blockId : %d, tid %d, mySum : %f\n", blockId, tid, mySum);
+        if (blockId == 12) printf("blockId : %d, tid %d, mySum : %f\n", blockId, tid, mySum);
         sdata[tid] = mySum;
         cg::sync(cta);
         if ((blockSize >= 1024) && (tid < 512)) {
