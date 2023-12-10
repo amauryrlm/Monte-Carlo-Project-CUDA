@@ -630,8 +630,10 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         float mySum = 0.0f;
         while (tid_sim < N_PATHS) {
+            
             count = d_sums_i[blockId];
             St = d_stock_prices[blockId];
+            if (blockId == 10) printf("blockId : %d, tid_sim : %d, remaining_steps : %d, St : %f , count : %d\n", blockId, tid_sim, remaining_steps, St, count);
             
             for (int i = 0; i < remaining_steps; i++) {
                 G = curand_normal(&state);
@@ -647,7 +649,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             }
             tid_sim += blockSize;
         }
-        if (blockId == 9) printf("blockId : %d, tid %d, mySum : %f\n", blockId, tid, mySum);
         sdata[tid] = mySum;
         cg::sync(cta);
         if ((blockSize >= 1024) && (tid < 512)) {
