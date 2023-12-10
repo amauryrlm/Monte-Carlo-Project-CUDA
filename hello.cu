@@ -620,7 +620,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int number_of_blocks = gridDim.x;
     curandState state = d_states[idx];
 
-    int count;
+    int count = d_sums_i[blockId];
     float St;
     float G;
     tid = threadIdx.x;
@@ -629,7 +629,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 
     while (tid_sim < N_PATHS) {
         count = d_sums_i[blockId];
-        St = d_stock_prices[blockId]
+        St = d_stock_prices[blockId];
         for (int i = 0; i < remaining_steps; i++) {
             G = curand_normal(&state);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
