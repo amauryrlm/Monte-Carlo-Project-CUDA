@@ -621,7 +621,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     long unsigned int number_of_simulations = N_PATHS * N_STEPS;
     int number_of_blocks = gridDim.x;
     curandState state = d_states[idx];
-    printf("blockId : %d, tid : %d, idx : %d, state : %d\n", blockId, tid, idx, state);
 
     int count;
     float St;
