@@ -911,7 +911,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
 
     if (idx < N_PATHS) {
-        curandState state = globalStates[idx];
+        curandState state = d_states[idx];
         int count = 0;
         float St = S0;
         float G;
@@ -965,7 +965,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) {
-            atomicAdd(&(g_odata[N_PATHS * N_STEPS]), mySum);
+            atomicAdd(&(d_option_prices[N_PATHS * N_STEPS]), mySum);
         }
 
     }
@@ -980,7 +980,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     int number_of_options = N_PATHS * N_STEPS + 1;
 
-    curandState *d_states_outter, *d_states_inner;
+    curandState *d_states;
     float *d_option_prices, *d_stock_prices;
     int *d_sums_i;
     testCUDA(cudaMalloc(&d_option_prices, number_of_options * sizeof(float)));
