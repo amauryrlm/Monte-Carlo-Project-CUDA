@@ -682,7 +682,8 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         //atomic add
         mySum = mySum * expf(-r) / static_cast<float>(N_PATHS);
         atomicAdd(&(d_option_prices[blockId]), mySum);
-        printf("blockId : %d, d_option_prices[blockId] : %f\n", blockId, d_option_prices[blockId]);
+        printf("blockId : %d, d_option_prices[blockId] : %f, count i : %d , St : %f\n", blockId,
+               d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId]);
 
     }
 
