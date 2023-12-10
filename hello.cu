@@ -912,11 +912,12 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[1024];
+    curandState state = d_states[idx];
 
 
     if (tid < number_of_simulation_per_block && (tid * number_of_blocks + blockIdx.x) < N_PATHS) {
-        printf("tid : %d, tid * number_of_blocks + blockIdx.x : %d\n", tid, tid * number_of_blocks + blockIdx.x);
-        curandState state = d_states[idx];
+        // printf("tid : %d, tid * number_of_blocks + blockIdx.x : %d\n", tid, tid * number_of_blocks + blockIdx.x);
+        
         int count = 0;
         float St = S0;
         float G;
@@ -924,8 +925,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             G = curand_normal(&state);
             St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
-            d_sums_i[idx * N_STEPS + i] = count;
-            d_stock_prices[idx * N_STEPS + i] = St;
+            d_sums_i[(number_of_simulation_per_block * blockIdx.x + tid) * N_STEPS + i] = count;
+            d_stock_prices[(number_of_simulation_per_block * blockIdx.x + tid) * N_STEPS + i] = St;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
