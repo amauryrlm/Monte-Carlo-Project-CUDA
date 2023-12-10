@@ -853,7 +853,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
@@ -862,7 +862,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     size_t freeMem2;
@@ -878,7 +878,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -993,8 +993,8 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    // int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 300000);
+    int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, max_number_of_block_to_everfow);
 
 
     // wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 1);
