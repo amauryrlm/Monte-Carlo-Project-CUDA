@@ -624,9 +624,10 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     float St = d_stock_prices[blockId];
     float G;
     tid = threadIdx.x;
+    int remaining_steps = N_STEPS - count;
 
 
-    for (int i = 0; i < N_STEPS; i++) {
+    for (int i = 0; i < remaining_steps; i++) {
         G = curand_normal(&state);
         St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
         if (B > St) count += 1;
