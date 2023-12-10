@@ -946,7 +946,7 @@ int main(void) {
 
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 500000);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 200000);
 
 
     // wrapper_gpu_bullet_option_nmc(option_data, threadsPerBlock, 1);
