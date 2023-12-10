@@ -882,7 +882,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     //     }
     // }
     // cout << "max number of blocks : " << number_of_blocks << endl;
-    number_of_blocks = 100000;
+    number_of_blocks = 150000;
     cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
@@ -893,14 +893,6 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     size_t totalMem2;
     testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
 
-    //get size of curandState
-    int size_of_curandState = sizeof(curandState) ;
-
-    //compute max number of curandState we can allocate with the remaining memory
-
-    int max_number_of_curandState = freeMem2 / size_of_curandState;
-
-    cout << "max_number_of_curandState : " << max_number_of_curandState / 1024 / 1024 << " MB\n";
 
 
     std::cout << "Free memory 2 : " << freeMem2 / 1024 / 1024 << " MB\n";
