@@ -906,7 +906,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     int number_of_simulation_per_block = N_PATHS / number_of_blocks + 1;
 
-    if(idx == 0) printf("number_of_simulation_per_block : %d\n", number_of_simulation_per_block);
+    if(idx == 0) printf("number_of_simulation_per_block : %d, number_of_blocks : %d\n", number_of_simulation_per_block, number_of_blocks);
+
 
 
     cg::thread_block cta = cg::this_thread_block();
