@@ -825,7 +825,8 @@ float wrapper_gpu_bullet_option_atomic_nmc(OptionData option_data, int threadsPe
     int number_of_options = N_PATHS * N_STEPS + 1;
 
     curandState *d_states_outter, *d_states_inner;
-    float *d_option_prices, *d_stock_prices, *d_sums_i;
+    float *d_option_prices, *d_stock_prices;
+    int *d_sums_i;
     testCUDA(cudaMalloc(&d_option_prices, number_of_options * sizeof(float)));
     testCUDA(cudaMalloc(&d_stock_prices, number_of_options * sizeof(float)));
     testCUDA(cudaMalloc(&d_sums_i, number_of_options * sizeof(int)));
