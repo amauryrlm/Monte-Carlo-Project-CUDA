@@ -44,7 +44,8 @@ using namespace std;
 
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
-        std::cerr << "CUDA Error: " << cudaGetErrorString(error) << " in file " << file << " at line " << line << std::endl;
+        std::cerr << "CUDA Error: " << cudaGetErrorString(error) << " in file " << file << " at line " << line
+                  << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -633,9 +634,9 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         float mySum = 0.0f;
         tid_sim = tid;
         while (tid_sim < N_PATHS) {
-            
+
             count = d_sums_i[blockId];
-            St = d_stock_prices[blockId];            
+            St = d_stock_prices[blockId];
             for (int i = 0; i < remaining_steps; i++) {
                 G = curand_normal(&state);
                 St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
@@ -644,7 +645,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             if ((count >= P1) && (count <= P2)) {
                 mySum += max(St - K, 0.0f);
 
-                
+
             } else {
                 mySum += 0.0f;
             }
@@ -824,7 +825,8 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 }
 
 
-float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
+float
+wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -866,7 +868,6 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
     std::cout << "Used memory: " << (totalMem - freeMem) / 1024.0 / 1024.0 << " MB\n";
 
 
-
     testCUDA(cudaMalloc(&d_states_inner, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
     testCUDA(cudaGetLastError());
@@ -877,17 +878,14 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
     testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
 
 
-
     std::cout << "Free memory 2 : " << freeMem2 / 1024.0 / 1024.0 << " MB\n";
     std::cout << "Total memory 2 : " << totalMem2 / 1024.0 / 1024.0 << " MB\n";
     std::cout << "Used memory 2 : " << (totalMem2 - freeMem2) / 1024.0 / 1024.0 << " MB\n";
 
 
-
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
     testCUDA(cudaGetLastError());
-
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -899,13 +897,13 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
     for (int i = 0; i < number_of_options; i++) {
         sum += h_option_prices[i];
     }
-    cout << "Average GPU bullet option nmc one point per block : " << sum / static_cast<float>(number_of_options) << endl << endl;
+    cout << "Average GPU bullet option nmc one point per block : " << sum / static_cast<float>(number_of_options)
+         << endl << endl;
 
 
     return h_option_prices[N_PATHS * N_STEPS];
 
 }
-
 
 
 int main(void) {
