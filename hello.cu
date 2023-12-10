@@ -858,12 +858,8 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     size_t freeMem;
     size_t totalMem;
-    cudaError_t status = cudaMemGetInfo(&freeMem, &totalMem);
+    testCUDA(cudaMemGetInfo(&freeMem, &totalMem));
 
-    if (status != cudaSuccess) {
-        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status) << std::endl;
-        return 1;
-    }
 
     std::cout << "Free memory: " << freeMem / 1024.0 / 1024.0 << " MB\n";
     std::cout << "Total memory: " << totalMem / 1024.0 / 1024.0 << " MB\n";
@@ -878,23 +874,15 @@ float wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, 
 
     size_t freeMem2;
     size_t totalMem2;
-    cudaError_t status2 = cudaMemGetInfo(&freeMem2, &totalMem2);
+    testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
 
-    if (status2 != cudaSuccess) {
-        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status2) << std::endl;
-        return 1;
-    }
+
 
     std::cout << "Free memory 2 : " << freeMem2 / 1024.0 / 1024.0 << " MB\n";
     std::cout << "Total memory 2 : " << totalMem2 / 1024.0 / 1024.0 << " MB\n";
     std::cout << "Used memory 2 : " << (totalMem2 - freeMem2) / 1024.0 / 1024.0 << " MB\n";
 
 
-    error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
 
     compute_nmc_one_block_per_point<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                            d_stock_prices, d_sums_i);
