@@ -1012,7 +1012,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 }
 
 float
-max_number_of_block_to_everfow(OptionData option_data, int threadsPerBlock) {
+get_max_number_of_blocks(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
