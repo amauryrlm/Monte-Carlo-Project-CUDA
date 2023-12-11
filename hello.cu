@@ -203,6 +203,8 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     cudaFree(d_option_prices);
     cudaFree(d_stock_prices);
     cudaFree(d_sums_i);
+    cudaFree(d_states_inner);
+    cudaFree(d_states_outter);
 
     return callResult;
 
@@ -261,6 +263,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     cudaFree(d_option_prices);
     cudaFree(d_stock_prices);
     cudaFree(d_sums_i);
+    cudaFree(d_states);
 
     return 0.0f;
 
