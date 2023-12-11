@@ -997,8 +997,6 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 if ((count >= P1) && (count <= P2)) {
                     mySum += max(St - K, 0.0f);
 
-                } else {
-                    mySum += 0.0f;
                 }
                 tid_sim += blockSize;
             }
@@ -1043,7 +1041,6 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 //atomic add
                 mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
-                if(blockId == (N_PATHS * N_STEPS - 1)) printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps);
             }
         }
         compteur += 1;
