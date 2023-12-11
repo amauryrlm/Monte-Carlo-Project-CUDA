@@ -285,7 +285,7 @@ int main(void) {
 
     int threadsPerBlock = 1024;
 
-    Copy option data to constant memory
+    // Copy option data to constant memory
     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
     printOptionData(option_data);
 
