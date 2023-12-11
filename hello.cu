@@ -918,7 +918,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
             index = (tid * number_of_blocks + blockIdx.x) * N_STEPS + i;
-            printf("index : %d\n", index);
+            // printf("index : %d\n", index);
             St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
             d_sums_i[index] = count;
