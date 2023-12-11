@@ -428,229 +428,252 @@ __global__ void simulateOptionPriceOneBlockGPUSumReduce(float *d_optionPriceGPU,
     if(idx < N_PATHS) {
         sdata[tid] = 0.0f;
 
-        while(idx < N_PATHS){
-            float St = S0;
-            float G;
-            for(int i = 0; i < N_STEPS; i++){
-                G = d_randomData[idx*N_STEPS + i];
-                // cout << "G : " << G << endl;
-                St *= exp((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            }
-            sum += max(St - K,0.0f);
-            idx += stride;
-        }
-    // Load input into shared memory
-        sdata[tid] = (tid < N_PATHS) ? sum : 0;
-
-        __syncthreads();
-
-        // Perform reduction in shared memory
-        for (unsigned int s = 1024 / 2; s > 0; s >>= 1) {
-            if (tid < s && (tid + s) < N_PATHS) {
-                sdata[tid] += sdata[tid + s];
-            }
-            __syncthreads();
-        }
-
-        // Write result for this block to output
-        if (tid == 0){
-            output[0] = sdata[0];
-            }
-        }
-}
-
-
-__global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if(idx < N_PATHS) {
-            float St = S0;
-            float G;
-            for(int i = 0; i < N_STEPS; i++){
-                G = d_randomData[idx*N_STEPS + i];
-                St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-            }
-            d_simulated_payoff[idx] = max(St - K,0.0f);
-        }
-    }
-
-__global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if(idx < N_PATHS) {
-    int count = 0;
-    float St = S0;
+    int count;
+    float St;
     float G;
-    for(int i = 0; i < N_STEPS; i++){
-        G = d_randomData[idx*N_STEPS + i];
-        St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        if(B > St) count +=1;
+    int remaining_steps;
+    tid = threadIdx.x;
+    int tid_sim;
+    while (blockId < number_of_simulations) {
+        remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
+        float mySum = 0.0f;
+        tid_sim = tid;
+        while (tid_sim < N_PATHS_INNER) {
+
+            count = d_sums_i[blockId];
+            St = d_stock_prices[blockId];
+            for (int i = 0; i < remaining_steps; i++) {
+                G = curand_normal(&state);
+                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                if (B > St) count += 1;
+            }
+            if ((count >= P1) && (count <= P2)) {
+                mySum += max(St - K, 0.0f);
+
+
+            } else {
+                mySum += 0.0f;
+            }
+            tid_sim += blockSize;
         }
-    if((count >= P1) && (count <= P2)){
-      d_simulated_payoff[idx] = max(St - K,0.0f);
-    } else {
-      d_simulated_payoff[idx] = 0.0f;
+        sdata[tid] = mySum;
+        cg::sync(cta);
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
+        }
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
+
+
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
+
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+
+        }
+        // if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps);
+
+        blockId += number_of_blocks;
     }
-  }
+
+
 }
 
+__global__ void
+compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState *d_states, float *d_stock_prices,
+                                            int *d_sums_i) {
+    int tid = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int blockSize = blockDim.x;
+    int blockId = blockIdx.x;
 
-void getDeviceProperty(){
+    float K = d_OptionData.K;
+    float r = d_OptionData.r;
+    float sigma = d_OptionData.v;
+    float B = d_OptionData.B;
+    int P1 = d_OptionData.P1;
+    int P2 = d_OptionData.P2;
+    int N_PATHS = d_OptionData.N_PATHS;
+    int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
+    int N_STEPS = d_OptionData.N_STEPS;
+    float dt = d_OptionData.step;
+    float sqrdt = sqrtf(dt);
+
+    cg::thread_block cta = cg::this_thread_block();
+    __shared__ float sdata[1024];
+
+    long unsigned int number_of_simulations = N_PATHS * N_STEPS;
+    int number_of_blocks = gridDim.x;
+    curandState state = d_states[idx];
 
     int count;
-    cudaDeviceProp prop;
-    cudaGetDeviceCount(&count);
-    printf("The number of devices available is %i GPUs \n", count);
-    cudaGetDeviceProperties(&prop, count-1);
-    printf("Name: %s\n", prop.name);
-    printf("Global memory size in bytes: %ld\n", prop.totalGlobalMem);
-    printf("Shared memory size per block: %ld\n", prop.sharedMemPerBlock);
-    printf("Number of registers per block: %d\n", prop.regsPerBlock);
-    printf("Number of threads in a warp: %d\n", prop.warpSize);
-    printf("Maximum number of threads that can be launched per block: %d\n", prop.maxThreadsPerBlock);
-    printf("Maximum number of threads that can be launched: %d x %d x %d\n",
-           prop.maxThreadsDim[0], prop.maxThreadsDim[1], prop.maxThreadsDim[2]);
-    printf("Maximum grid size: %d x %d x %d\n",
-           prop.maxGridSize[0], prop.maxGridSize[1], prop.maxGridSize[2]);
-    printf("Total constant memory: %ld\n", prop.totalConstMem);
-    printf("Major compute capability: %d\n", prop.major);
-    printf("Minor compute capability: %d\n", prop.minor);
-    printf("Clock rate: %d\n", prop.clockRate);
-    printf("Maximum 1D texture memory: %d\n", prop.maxTexture1D);
-    printf("Could we overlap? %d\n", prop.deviceOverlap);
-    printf("Number of multiprocessors: %d\n", prop.multiProcessorCount);
-    printf("Is there a limit for kernel execution? %d\n", prop.kernelExecTimeoutEnabled);
-    printf("Is my GPU a chipsest? %d\n", prop.integrated);
-    printf("Can we map the host memory? %d\n", prop.canMapHostMemory);
-    printf("Can we launch concurrent kernels? %d\n", prop.concurrentKernels);
-    printf("Do we have ECC memory? %d\n", prop.ECCEnabled);
-
-}
-
-void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r, float K, float dt, float *simulated_paths_cpu){
+    float St;
     float G;
-    float countt = 0.0f;
-    for(int i=0; i<N_PATHS;i++){
-        float St = S0;
-        for(int j=0; j<N_STEPS; j++){
-            G = h_randomData[i*N_STEPS + j];
-            St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+    int remaining_steps;
+    tid = threadIdx.x;
+    int tid_sim;
+    while (blockId < number_of_simulations) {
+        remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
+        float mySum = 0.0f;
+        tid_sim = tid;
+        while (tid_sim < N_PATHS_INNER) {
 
+            count = d_sums_i[blockId];
+            St = d_stock_prices[blockId];
+            for (int i = 0; i < remaining_steps; i++) {
+                G = curand_normal(&state);
+                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                if (B > St) count += 1;
+            }
+            if ((count >= P1) && (count <= P2)) {
+                mySum += max(St - K, 0.0f);
+
+
+            } else {
+                mySum += 0.0f;
+            }
+            tid_sim += blockSize;
+        }
+        sdata[tid] = mySum;
+        cg::sync(cta);
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
+        }
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
         }
 
-        simulated_paths_cpu[i] = max(St - K, 0.0f);
-        // cout << "cpu : " <<  St << endl;
-        countt += max(St - K, 0.0f);
+        cg::sync(cta);
+
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
+
+
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
+
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+
+        }
+        // if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps);
+
+        blockId += number_of_blocks;
     }
-    *optionPriceCPU = countt/N_PATHS;
+
+
 }
 
 
-/**
- * @brief Allocate space for and fill the elements of an array with size `length`.
- *
- * @param d_randomData
- * @param h_randomData
- * @param length
- * @param seed
- */
-void initRandomArray(float **d_randomData, float **h_randomData, size_t length, long seed = 1234ULL) {
+float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
-    size_t n_random_bytes = length * sizeof(float);
+    int N_PATHS = option_data.N_PATHS;
+    int N_STEPS = option_data.N_STEPS;
 
-    testCUDA(cudaMalloc(d_randomData, n_random_bytes));
-    *h_randomData = (float *) malloc(n_random_bytes);
-    generate_random_array(*d_randomData, *h_randomData, length, seed);
-
-}
-
-// // Let's create a structure that wraps up the parameters of our simulation
-// struct
-
-
-/**
- * @brief Test different reduction methods
- *
- * @param n_trajectories
- * @param n_blocks
- * @param reduction
- */
-void testReductions(int n_trajectories, int n_steps, int n_blocks = 1, int reduction = 0) {
-
-    // Parameters:
-
-    // Defaults
-    const float risk_free_rate = 0.1;      // r
-    const float initial_spot_price = 100;  // x_0
-    const float contract_strike = 100;     // K
-    const float contract_maturity = 1;     // T
-    const float volatitility = 0.2;        // sigma
-
-    // Uninitalized
-    float barrier = 0;
-
-    size_t seed = 1234ULL;
-
-    // Variables needed for simulations
-
-
-    // Step one: Get random data from the gpu
     float *d_randomData, *h_randomData;
-
-    initRandomArray(&d_randomData, &h_randomData, n_trajectories * n_steps, seed);
-
-    // Step two: Simulate different trajectories
-    // - need to simulate trajectories on the gpu and the cpu
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
 
 
-    // Intended effect: Allocate
+    float optionPriceCPU = 0.0f;
+    simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
+    cout << endl;
+    cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    free(h_randomData);
+    cudaFree(d_randomData);
 
-    // I want to call different reductions, both on the CPU and GPU
-
-    // First step: wrap up the CPU code into a function
+    return optionPriceCPU;
 }
 
+float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
-// Compute a trajectory using the CPU
-// For now we can accept the random data
+    int N_PATHS = option_data.N_PATHS;
+    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+    // generate states array for random number generation
+    curandState *d_states;
+    testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
+    float *d_odata;
+    testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
+    float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
 
-// We should wrap this up in a new executable
+    simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
+    cudaDeviceSynchronize();
+    testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
+    float sum = 0.0f;
+    for (int i = 0; i < blocksPerGrid; i++) {
+        sum += h_odata[i];
+    }
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
+    cout << "Average GPU : " << optionPriceGPU << endl << endl;
+    free(h_odata);
+    cudaFree(d_odata);
+    cudaFree(d_states);
+    return optionPriceGPU;
+}
 
+float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
-
-
-
-
-
-int main(void) {
-
-
-
-// declare variables and constants
-    unsigned int N_PATHS = 10000;
-    const size_t N_STEPS = 100;
-    const float T = 1.0f;
-    const float K = 100.0f;
-    const float B = 110.0f;
-    const float S0 = 100.0f;
-    const float sigma = 0.2f;
-    const float r = 0.05f;
-    float dt = float(T)/float(N_STEPS);
-    float sqrdt = sqrt(dt);
-    vector<float> s(N_PATHS);
-    int threadsPerBlock = 1024;
-    unsigned int maxThreads = 1024;
-    int P1 = 10;
-    int P2 = 50;
-
-    getDeviceProperty();
-
-    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-
-    cout << "number of paths : " << N_PATHS << endl;
-    cout << "number of steps : " << N_STEPS << endl;
-
+    int N_PATHS = option_data.N_PATHS;
+    int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
+    curandState *d_states;
+    testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_randomData, *h_randomData, *simulated_paths_cpu;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
