@@ -2,3 +2,5 @@ build
 .vscode
 *.csv
 *.png
+.idea
+**build
