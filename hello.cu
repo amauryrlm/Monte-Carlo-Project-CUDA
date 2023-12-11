@@ -902,10 +902,6 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     int number_of_simulation_per_block = (N_PATHS + number_of_blocks - 1) / number_of_blocks;
 
-    if(idx == 0) printf("number_of_simulation_per_block : %d, number_of_blocks : %d, N_PATHS : %d\n", number_of_simulation_per_block, number_of_blocks, N_PATHS);
-
-
-
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[1024];
     curandState state = d_states[idx];
@@ -969,8 +965,80 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         if (cta.thread_rank() == 0) {
             atomicAdd(&(d_option_prices[N_PATHS * N_STEPS]), mySum);
         }
-
     }
+
+    int count = 0;
+
+    while( count < number_of_simulation_per_block && (count * number_of_blocks + blockIdx.x) < N_PATHS) {
+        int blockId = count * number_of_blocks + blockIdx.x;
+        remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
+        float mySum = 0.0f;
+        tid_sim = tid;
+        while (tid_sim < N_PATHS_INNER) {
+
+            count = d_sums_i[blockId];
+            St = d_stock_prices[blockId];
+            for (int i = 0; i < remaining_steps; i++) {
+                G = curand_normal(&state);
+                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                if (B > St) count += 1;
+            }
+            if ((count >= P1) && (count <= P2)) {
+                mySum += max(St - K, 0.0f);
+
+
+            } else {
+                mySum += 0.0f;
+            }
+            tid_sim += blockSize;
+        }
+        sdata[tid] = mySum;
+        cg::sync(cta);
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
+        }
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
+
+
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
+
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+
+        }
+        
+        count++;
+        }
+            
+    
 
    
 
@@ -1009,9 +1077,10 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
 
-    cout << "h_stock_prices[N_PATHS * N_STEPS - 1] : " << h_stock_prices[N_PATHS * N_STEPS - 1] << " h_sums_i[N_PATHS * N_STEPS - 1] : " << h_sums_i[N_PATHS * N_STEPS - 1] << endl;
     cout << "h_option_prices[N_PATHS * N_STEPS] : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
-
+    for(int i = 0; i < N_PATHS * N_STEPS; i++){
+        cout << "h_option_prices[i] : " << h_option_prices[i] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
+    }
     
 
 
