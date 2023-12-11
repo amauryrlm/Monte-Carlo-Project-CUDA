@@ -1087,7 +1087,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
 
     cout << "h_option_prices[N_PATHS * N_STEPS] : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
     float sum = 0.0f;
-    for(int i = 10000; i < 12000; i++){
+    for(int i = 499000; i < 500000; i++){
         cout << "h_stock_prices[i] : " << h_stock_prices[i] << ", h_sums_i[i] : " << h_sums_i[i] << endl;
     }
     // float callResult = sum / static_cast<float>(N_PATHS * N_STEPS);
