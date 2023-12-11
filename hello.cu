@@ -858,6 +858,7 @@ int main(void) {
     black_scholes_CPU(callResult,S0, K, T, r,  sigma);
     cout << "call BS : " << callResult << endl;
 
+<<<<<<< Updated upstream
 
 
 
@@ -902,6 +903,9 @@ int main(void) {
 
 
 	return 0;
+=======
+    return 0;
+>>>>>>> Stashed changes
 }
 
 
