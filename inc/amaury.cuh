@@ -470,25 +470,30 @@ __global__ void simulateOptionPriceMultipleBlockGPU(float *d_simulated_payoff, f
         }
     }
 
-__global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// __global__ void simulateBulletOptionPriceMultipleBlockGPU(float *d_simulated_payoff, float K, float r, float T,float sigma, int N_PATHS, float *d_randomData, int N_STEPS, float S0, float dt, float sqrdt, float B, float P1, float P2) {
+//   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if(idx < N_PATHS) {
-    int count = 0;
-    float St = S0;
-    float G;
-    for(int i = 0; i < N_STEPS; i++){
-        G = d_randomData[idx*N_STEPS + i];
-        St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
-        if(B > St) count +=1;
-        }
-    if((count >= P1) && (count <= P2)){
-      d_simulated_payoff[idx] = max(St - K,0.0f);
-    } else {
-      d_simulated_payoff[idx] = 0.0f;
-    }
-  }
-}
+//   if(idx < N_PATHS) {
+//     int count = 0;
+//     float St = S0;
+//     float G;
+//     for(int i = 0; i < N_STEPS; i++){
+//         G = d_randomData[idx*N_STEPS + i];
+//         St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+//         if(B > St) count +=1;
+//         }
+//     if((count >= P1) && (count <= P2)){
+//       d_simulated_payoff[idx] = max(St - K,0.0f);
+//     } else {
+//       d_simulated_payoff[idx] = 0.0f;
+//     }
+//   }
+// }
+
+#include <curand_kernel.h>
+
+
+
 
 
 void getDeviceProperty(){

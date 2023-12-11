@@ -27,6 +27,40 @@ void init_random_array(float **d_randomData, float **h_randomData, size_t length
 
 }
 
+__global__ void simulateOptionPriceMultipleBlockGPU(
+    float *d_simulated_payoff,
+    float *d_simulated_trajectories,
+    curandState *globalStates,
+    float K,
+    float r,
+    float T,
+    float sigma,
+    int N_PATHS,
+    int N_STEPS,
+    float S0,
+    float dt,
+    float sqrdt
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int step_idx = idx * N_STEPS;
+
+    if (idx < N_PATHS) {
+        float St = S0;
+        float G;
+        for (int i = 0; i < N_STEPS; i++) {
+            G = curand_normal(&globalStates[idx]);
+            St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            d_simulated_trajectories[step_idx + i] = St;
+        }
+        d_simulated_payoff[idx] = max(St - K, 0.0f);
+    }
+}
+
+
+__global__ void init_rng_kernel(curandState *state, uint64_t seed) {
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    curand_init(seed, tid, 0, &state[tid]);
+}
 
 enum ReductionType {
     SequentialAddressing = 3,
@@ -44,6 +78,7 @@ public:
     size_t n_steps;
     float * d_random_array = nullptr;
     float * h_random_array = nullptr;
+    curandState *d_states = nullptr;
 
     Simulation (
         size_t n_trajectories = 10,
@@ -53,7 +88,9 @@ public:
         float initial_spot_price = 100.0,
         float contract_strike = 100.0,
         float contract_maturity = 1,
-        float barrier = 0
+        float barrier = 0,
+        float P1 = 0,
+        float P2 = 0
     )
         : n_trajectories{n_trajectories}
         , n_steps{n_steps}
@@ -63,11 +100,23 @@ public:
         , K{contract_strike}
         , T{contract_maturity}
         , B{barrier}
+        , P1{P1}
+        , P2{P2}
     {
 
         this->initialize_random_array();
+        // this->initialize_rng_state();
 
     }
+
+    void initialize_rng_state(size_t threads_per_block, uint64_t seed = 1234) {
+        int blocks_per_grid = (this->n_trajectories + threads_per_block - 1) / threads_per_block;
+
+        testCUDA(cudaMalloc(&this->d_states, this->n_trajectories * sizeof(curandState)));
+        init_rng_kernel<<<blocks_per_grid, threads_per_block>>>(this->d_states, seed);
+
+    }
+
 
     /**
      * @brief Compute the sum of the contents stored in Simulation.h_random_array.
@@ -187,6 +236,64 @@ public:
 
     }
 
+    /**
+     * @brief Simulate the outer trajectories to be used in a NMC implementation.
+     *
+     * @param n_blocks
+     * @param n_threads_per_block
+     * @return std::vector<float>
+     */
+    std::vector<float> simulate_outer_trajectories(size_t n_threads_per_block, uint64_t seed) {
+
+        int blocks_per_grid = (this->n_trajectories + n_threads_per_block - 1) / n_threads_per_block;
+        // Allocate space for the rng.
+        this->initialize_rng_state(n_threads_per_block, seed);
+
+        std::cout << "====================================================================\n";
+        std::cout << "Going to compute outer trajectories...\n";
+        std::cout << "Number of threads per block: " << n_threads_per_block << "\n";
+        std::cout << "Number of trajectories: " << this->n_trajectories << "\n";
+        std::cout << "Number of blocks: " << blocks_per_grid << "\n";
+        std::cout << "Number of steps: " << this->n_steps << "\n";
+        std::cout << "====================================================================\n";
+
+        // Allocate space for the trajectories
+        float *d_payoffs;
+        float *d_trajectories;
+        cudaMalloc(&d_trajectories, sizeof(float) * this->length());
+        cudaMalloc(&d_payoffs, sizeof(float) * this->n_trajectories);
+
+        // Now simulate the trajectory
+        simulateOptionPriceMultipleBlockGPU<<<blocks_per_grid, n_threads_per_block>>>(
+            d_payoffs,
+            d_trajectories,
+            this->d_states,
+            this->contract_strike(),
+            this->risk_free_rate(),
+            this->contract_maturity(),
+            this->volatility(),
+            this->n_trajectories,
+            this->n_steps,
+            this->initial_spot_price(),
+            this->dt(),
+            this->sqrt_dt()
+        );
+
+        // Now copy this back to the cpu and return the results as a vector.
+        std::vector<float> out(this->length());
+
+        cudaMemcpy(out.data(), d_trajectories, this->length() * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaFree(d_trajectories);
+        cudaFree(d_payoffs);
+        cudaFree(this->d_states);
+
+        return out;
+    }
+
+    
+
+
+
     size_t length() {
         return this->n_steps * this->n_trajectories;
     }
@@ -205,11 +312,11 @@ public:
         init_random_array(&(this->d_random_array), &(this->h_random_array), this->length(), seed);
     }
 
-    float volatility() {
+    float &volatility() {
         return this->sigma;
     }
 
-    float risk_free_rate() {
+    float &risk_free_rate() {
         return this->r;
     }
 
@@ -218,7 +325,7 @@ public:
      *
      * @return float
      */
-    float initial_spot_price() {
+    float &initial_spot_price() {
         return this->x_0;
     }
 
@@ -227,15 +334,15 @@ public:
      *
      * @return float
      */
-    float contract_strike() {
+    float &contract_strike() {
         return this->K;
     }
 
-    float contract_maturity() {
+    float &contract_maturity() {
         return this->T;
     }
 
-    float barrier() {
+    float &barrier() {
         return this->B;
     }
 
@@ -248,15 +355,17 @@ public:
     }
 
 
-
-private:
-
     float sigma;   // volatility
     float r;       // risk-free rate
     float x_0;     // initial_spot_price
     float K;       // contract_strike
     float T;       // contract maturity
     float B;       // barrier
+    float P1;
+    float P2;
+
+// private:
+
 
 };
 
