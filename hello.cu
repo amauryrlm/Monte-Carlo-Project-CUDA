@@ -1039,10 +1039,11 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
 
             // write result for this block to global mem
-            if (cta.thread_rank() == 0 && blockId < (N_PATHS * N_STEPS)) {
+            if (cta.thread_rank() == 0 ) {
                 //atomic add
                 mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
+                if(blockId == (N_PATHS * N_STEPS - 1)) printf("blockId : %d\n", blockId);
             }
         }
         compteur += 1;
