@@ -971,16 +971,14 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
     int count = 0;
     int remaining_steps;
-    int blockId;
     int tid_sim;
     float St;
     float G;
+    int blockId = count * number_of_blocks + blockIdx.x;
 
     while( count < number_of_simulation_per_block && (count * number_of_blocks + blockIdx.x) < N_PATHS) {
         
-        blockId = count * number_of_blocks + blockIdx.x;
-
-        if (tid == 0) printf("blockId : %d\n", blockId);
+        
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         float mySum = 0.0f;
         tid_sim = tid;
@@ -1043,9 +1041,9 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
         }
-        
-        count++;
-    }
+        count += 1;
+        blockId = count * number_of_blocks + blockIdx.x;
+        if (tid == 0) printf("blockId : %d\n", blockId);
             
     
 
