@@ -618,7 +618,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
 }
 
 
-
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
@@ -880,6 +879,7 @@ get_max_number_of_blocks(OptionData option_data, int threadsPerBlock) {
     cudaDeviceReset();
     return number_of_blocks;
 }
+
 __global__ void
 compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState *d_states, float *d_stock_prices,
                                             int *d_sums_i) {
@@ -909,7 +909,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
 
     if (tid < number_of_simulation_per_block && (tid * number_of_blocks + blockIdx.x) < N_PATHS) {
-        
+
         int count = 0;
         float St = S0;
         float G;
@@ -977,9 +977,9 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     int count;
     int blockId;
 
-    while( compteur < number_of_simulation_per_block && (compteur * number_of_blocks + blockIdx.x) < N_PATHS) {
-        
-        for( int i = 0; i < N_STEPS; i++){
+    while (compteur < number_of_simulation_per_block && (compteur * number_of_blocks + blockIdx.x) < N_PATHS) {
+
+        for (int i = 0; i < N_STEPS; i++) {
             blockId = compteur * N_STEPS + i;
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
             float mySum = 0.0f;
@@ -1036,7 +1036,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                     mySum += tile32.shfl_down(mySum, offset);
                 }
             }
-        
+
 
             // write result for this block to global mem
             if (cta.thread_rank() == 0) {
@@ -1047,7 +1047,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         }
         compteur += 1;
     }
-   
+
 
 }
 
@@ -1075,7 +1075,8 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
     testCUDA(cudaGetLastError());
 
-    compute_nmc_one_block_per_point_with_outter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states, d_stock_prices,d_sums_i);
+    compute_nmc_one_block_per_point_with_outter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states,
+                                                                                       d_stock_prices, d_sums_i);
     cudaDeviceSynchronize();
 
     testCUDA(cudaGetLastError());
@@ -1084,7 +1085,9 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
 
-    cout << "h_option_prices[N_PATHS * N_STEPS] : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
+    cout << "h_option_prices[N_PATHS * N_STEPS] : "
+         << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
+         << endl;
     float sum = 0.0f;
     for (int i = 0; i < number_of_options; i++) {
         sum += h_option_prices[i];
@@ -1092,10 +1095,8 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     float callResult = sum / static_cast<float>(number_of_options);
     cout << "Average GPU bullet option nmc one kernel : " << callResult
          << endl << endl;
-    
 
 
-    
     free(h_option_prices);
     free(h_stock_prices);
     free(h_sums_i);
@@ -1142,7 +1143,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 250000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 100000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 200000);
 
 
     float callResult = 0.0f;
