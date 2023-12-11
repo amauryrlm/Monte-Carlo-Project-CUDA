@@ -996,14 +996,12 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 if ((count >= P1) && (count <= P2)) {
                     mySum += max(St - K, 0.0f);
 
-
                 } else {
                     mySum += 0.0f;
                 }
                 tid_sim += blockSize;
             }
             if (cta.thread_rank() == 0) {
-                //atomic add
                 printf("blockId : %d, mySum : %f\n", blockId, mySum);
             }
             sdata[tid] = mySum;
@@ -1129,8 +1127,8 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 10;
-    option_data.N_PATHS_INNER = 5000;
+    option_data.N_PATHS = 5;
+    option_data.N_PATHS_INNER = 20;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
