@@ -205,6 +205,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     cudaFree(d_sums_i);
     cudaFree(d_states_inner);
     cudaFree(d_states_outter);
+    
 
     return callResult;
 
@@ -303,7 +304,7 @@ int main(void) {
     int number_blocks = get_max_blocks(threadsPerBlock);
     printf("Computing nmc option price with %lu blocks.\n", number_blocks);
     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 100000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 50000);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
