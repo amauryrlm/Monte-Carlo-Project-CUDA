@@ -914,12 +914,15 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         int count = 0;
         float St = S0;
         float G;
+        int index;
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
+            index = (tid * number_of_blocks + blockIdx.x) * N_STEPS + i;
+            printf("index : %d\n", index);
             St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
-            d_sums_i[(tid * number_of_blocks + blockIdx.x) * N_STEPS + i] = count;
-            d_stock_prices[(tid * number_of_blocks + blockIdx.x) * N_STEPS + i] = St;
+            d_sums_i[index] = count;
+            d_stock_prices[index] = St;
         }
         if ((count >= P1) && (count <= P2)) {
             sdata[tid] = max(St - K, 0.0f);
