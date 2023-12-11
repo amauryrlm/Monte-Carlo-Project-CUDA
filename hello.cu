@@ -901,7 +901,6 @@ int main(void) {
   cudaFree(d_randomData);
 
 
-
 	return 0;
 }
 
