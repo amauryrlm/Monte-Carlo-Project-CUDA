@@ -981,9 +981,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
         for (int i = 0; i < N_STEPS; i++) {
             blockId = (compteur * number_of_blocks + blockIdx.x) * N_STEPS + i;
-            // if (tid == 0 && blockId >= N_PATHS * N_STEPS ) {
-            //     printf("We went too far : blockId : %d\n", blockId);
-            // }
+
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
             float mySum = 0.0f;
             tid_sim = tid;
@@ -1004,7 +1002,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 }
                 tid_sim += blockSize;
             }
-            if(tid == 0) printf("mySum : %f, blockid : %d\n", mySum, blockId);
+            if(tid == 0) printf("mySum : %f\n", mySum);
             sdata[tid] = mySum;
             cg::sync(cta);
             if ((blockSize >= 1024) && (tid < 512)) {
