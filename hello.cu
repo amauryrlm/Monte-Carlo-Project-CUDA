@@ -279,28 +279,28 @@ int main(void) {
     option_data.P1 = 10;
     option_data.P2 = 50;
     option_data.N_PATHS = 100000;
-    option_data.N_PATHS_INNER = 10000;
+    option_data.N_PATHS_INNER = 1000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
     int threadsPerBlock = 1024;
 
     // Copy option data to constant memory
-    cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-    printOptionData(option_data);
+    // cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    // printOptionData(option_data);
 
-    getDeviceProperty();
+    // getDeviceProperty();
 
-    wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
+    // wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
 
-    wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
+    // wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
+    // wrapper_gpu_bullet_option(option_data, threadsPerBlock);
+    // wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
 
-    int number_blocks = get_max_blocks(threadsPerBlock);
-    printf("Computing nmc option price with %lu blocks.\n", number_blocks);
+    // int number_blocks = get_max_blocks(threadsPerBlock);
+    // printf("Computing nmc option price with %lu blocks.\n", number_blocks);
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 10000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 100000);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
