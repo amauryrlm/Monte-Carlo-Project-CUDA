@@ -1043,8 +1043,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         }
         count += 1;
         blockId = count * number_of_blocks + blockIdx.x;
-        if (tid == 0) printf("blockId : %d\n", blockId);
-    }
+        if (tid == 0) printf("blockId : %d, count : %d, blockId : %d, number of block : %d\n", blockId, count, blockIdx.x, number_of_blocks);
             
     
 
