@@ -1002,7 +1002,10 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 }
                 tid_sim += blockSize;
             }
-            if(tid == 0) printf("mySum : %f\n", mySum);
+            if (cta.thread_rank() == 0) {
+                //atomic add
+                printf("blockId : %d, mySum : %f\n", blockId, mySum);
+            }
             sdata[tid] = mySum;
             cg::sync(cta);
             if ((blockSize >= 1024) && (tid < 512)) {
