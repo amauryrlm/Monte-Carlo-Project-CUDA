@@ -990,7 +990,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 St = d_stock_prices[blockId];
                 for (int i = 0; i < remaining_steps; i++) {
                     G = curand_normal(&state);
-                    St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                    St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
                     if (B > St) count += 1;
                 }
                 if ((count >= P1) && (count <= P2)) {
@@ -1001,7 +1001,6 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 }
                 tid_sim += blockSize;
             }
-            if (tid == 0) printf("blockId : %d, mySum : %f\n", blockId, mySum);
             sdata[tid] = mySum;
             cg::sync(cta);
             if ((blockSize >= 1024) && (tid < 512)) {
