@@ -208,66 +208,6 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
 }
 
-float
-get_max_number_of_blocks(OptionData option_data, int threadsPerBlock) {
-
-    int N_PATHS = option_data.N_PATHS;
-    int N_STEPS = option_data.N_STEPS;
-    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
-    int number_of_options = N_PATHS * N_STEPS + 1;
-
-    curandState *d_states_outter, *d_states_inner;
-    float *d_option_prices, *d_stock_prices;
-    int *d_sums_i;
-    testCUDA(cudaMalloc(&d_option_prices, number_of_options * sizeof(float)));
-    testCUDA(cudaMalloc(&d_stock_prices, number_of_options * sizeof(float)));
-    testCUDA(cudaMalloc(&d_sums_i, number_of_options * sizeof(int)));
-    float *h_option_prices = (float *) malloc(number_of_options * sizeof(float));
-    float *h_stock_prices = (float *) malloc(number_of_options * sizeof(float));
-    int *h_sums_i = (int *) malloc(number_of_options * sizeof(int));
-    CHECK_MALLOC(h_option_prices);
-    CHECK_MALLOC(h_stock_prices);
-    CHECK_MALLOC(h_sums_i);
-
-
-    testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
-    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
-
-
-    simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
-                                                                    d_sums_i);
-    testCUDA(cudaGetLastError());
-
-    cudaDeviceSynchronize();
-    cudaFree(d_states_outter);
-
-    size_t freeMem;
-    size_t totalMem;
-    testCUDA(cudaMemGetInfo(&freeMem, &totalMem));
-
-    int number_of_blocks = 10000;
-    cudaError_t status;
-    while (true) {
-        status = cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
-
-        if (status == cudaSuccess) {
-            // Allocation successful, free memory and try a larger size
-            cudaFree(d_states_inner);
-            d_states_inner = nullptr;
-            number_of_blocks += 10000;
-        } else {
-            cudaFree(d_states_inner);
-            break;
-        }
-    }
-    number_of_blocks *= 0.9f;
-    cout << "max number of blocks : " << number_of_blocks << endl;
-
-    cudaDeviceReset();
-    return number_of_blocks;
-}
-
-
 int main(void) {
 
     OptionData option_data;
@@ -295,18 +235,16 @@ int main(void) {
     wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
 
     wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
-
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    // int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 500);
 
-
+    int number_blocks = get_max_blocks(threadsPerBlock);
+    printf("Computing nmc option price with %lu blocks.\n", number_blocks);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
     cout << endl << "call Black Scholes : " << callResult << endl;
-
 
     return 0;
 }
