@@ -1091,7 +1091,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
          << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS)
          << endl;
     float sum = 0.0f;
-    for (int i = 0; i < number_of_options; i++) {
+    for (int i = 0; i < 1000; i++) {
         sum += h_option_prices[i];
     }
     float callResult = sum / static_cast<float>(number_of_options);
