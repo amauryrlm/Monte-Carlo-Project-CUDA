@@ -1041,11 +1041,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             // write result for this block to global mem
             if (cta.thread_rank() == 0) {
                 //atomic add
-                
-
-                // mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
+                mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
-                printf("blockId : %d, mySum : %f\n", blockId, mySum);
             }
         }
         compteur += 1;
@@ -1096,9 +1093,6 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
         sum += h_option_prices[i];
     }
 
-    for(int i = 0; i < 100; i++) {
-        cout << "h_option_prices[" << i << "] : " << h_option_prices[i] << endl;
-    }
 
     float callResult = sum / static_cast<float>(number_of_options);
     cout << "Average GPU bullet option nmc one kernel : " << callResult
