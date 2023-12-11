@@ -3,11 +3,25 @@
 #pragma once
 
 
-#include "amaury.cuh"
+// #include "amaury.cuh"
 #include <cmath>
 #include <iostream>
 #include <vector>
 
+#include "tool.cuh"
+#include "reduce.cuh"
+#include "trajectories.cuh"
+#include "nmc.cuh"
+
+
+void generate_random_array(float *d_randomData, float *h_randomData, int length, unsigned long long seed = 1234ULL) {
+    curandGenerator_t gen;
+    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(gen, seed);
+    curandGenerateNormal(gen, d_randomData, length, 0.0, 1.0);
+    testCUDA(cudaMemcpy(h_randomData, d_randomData, length * sizeof(float), cudaMemcpyDeviceToHost));
+    curandDestroyGenerator(gen);
+}
 
 /**
  * @brief Allocate space for and fill the elements of an array with size `length` on both the CPU and GPU.
@@ -26,6 +40,8 @@ void init_random_array(float **d_randomData, float **h_randomData, size_t length
     generate_random_array(*d_randomData, *h_randomData, length, seed);
 
 }
+
+
 
 __global__ void simulateOptionPriceMultipleBlockGPU(
     float *d_simulated_payoff,
@@ -55,6 +71,25 @@ __global__ void simulateOptionPriceMultipleBlockGPU(
         d_simulated_payoff[idx] = max(St - K, 0.0f);
     }
 }
+
+void simulateOptionPriceCPU(float *optionPriceCPU, int N_PATHS, int N_STEPS, float * h_randomData, float S0, float sigma, float sqrdt, float r, float K, float dt, float *simulated_paths_cpu){
+    float G;
+    float countt = 0.0f;
+    for(int i=0; i<N_PATHS;i++){
+        float St = S0;
+        for(int j=0; j<N_STEPS; j++){
+            G = h_randomData[i*N_STEPS + j];
+            St *= expf((r - (sigma*sigma)/2)*dt + sigma * sqrdt * G);
+
+        }
+
+        simulated_paths_cpu[i] = max(St - K, 0.0f);
+        // cout << "cpu : " <<  St << endl;
+        countt += max(St - K, 0.0f);
+    }
+    *optionPriceCPU = countt/N_PATHS;
+}
+
 
 
 __global__ void init_rng_kernel(curandState *state, uint64_t seed) {
