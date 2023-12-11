@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 
@@ -15,7 +17,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
   unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
   float mySum = (i < n) ? g_idata[i] : 0;
-  
+
 
   if (i + blockDim.x < n) mySum += g_idata[i + blockDim.x];
   cg::sync(cta);
@@ -41,7 +43,7 @@ __global__ void reduce3(float *g_idata, float *g_odata, unsigned int n) {
 
     g_odata[blockIdx.x] = mySum;
 
-  } 
+  }
 }
 
 
