@@ -983,7 +983,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             blockId = (compteur * number_of_blocks + blockIdx.x) * N_STEPS + i;
 
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
-            float mySum = 0.0f;
+            float mySum = 1.0f;
             tid_sim = tid;
             while (tid_sim < N_PATHS_INNER) {
 
