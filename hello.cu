@@ -899,6 +899,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     int N_STEPS = d_OptionData.N_STEPS;
     float dt = d_OptionData.step;
     float sqrdt = sqrtf(dt);
+    int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
 
     int number_of_simulation_per_block = (N_PATHS + number_of_blocks - 1) / number_of_blocks;
 
