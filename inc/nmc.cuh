@@ -279,3 +279,123 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 
 
 }
+
+
+
+__global__ void
+compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stock_prices, int *d_sums_i) {
+    int tid = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int blockSize = blockDim.x;
+    int blockId = blockIdx.x;
+
+    float K = d_OptionData.K;
+    float r = d_OptionData.r;
+    float sigma = d_OptionData.v;
+    float B = d_OptionData.B;
+    int P1 = d_OptionData.P1;
+    int P2 = d_OptionData.P2;
+    int N_PATHS = d_OptionData.N_PATHS;
+    int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
+    int N_STEPS = d_OptionData.N_STEPS;
+    float dt = d_OptionData.step;
+    float sqrdt = sqrtf(dt);
+
+    cg::thread_block cta = cg::this_thread_block();
+    __shared__ float sdata[1024];
+
+    long unsigned int number_of_simulations = N_PATHS * N_STEPS;
+    unsigned int number_of_task_per_point = (N_PATHS_INNER + number_of_blocks - 1) / number_of_blocks;
+    long long unsigned int number_of_tasks = N_PATHS * N_STEPS * number_of_task_per_point;
+    int length_of_last_task = N_PATHS_INNER - ((number_of_task_per_point - 1) * blockSize);
+    int rank_of_task;
+    int length_of_task;
+
+
+    int number_of_blocks = gridDim.x;
+    curandState state = d_states[idx];
+
+    int count;
+    float St;
+    float G;
+    int remaining_steps;
+    tid = threadIdx.x;
+    int tid_sim;
+    int task_id = blockIdx.x;
+    
+    while (task_id < number_of_tasks) {
+        remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
+        blockId = task_id / number_of_task_per_point;
+        if (blockId  % number_of_task_per_point == (number_of_task_per_point - 1)) {
+            length_of_task = length_of_last_task;
+        } else {
+            length_of_task = blockSize;
+        }
+        float mySum = 0.0f;
+
+        if (tid < length_of_task) {
+
+            count = d_sums_i[blockId];
+            St = d_stock_prices[blockId];
+            for (int i = 0; i < remaining_steps; i++) {
+                G = curand_normal(&state);
+                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                if (B > St) count += 1;
+            }
+            if ((count >= P1) && (count <= P2)) {
+                mySum += max(St - K, 0.0f);
+
+
+            } else {
+                mySum += 0.0f;
+            }
+            tid_sim += blockSize;
+        }
+        sdata[tid] = mySum;
+        cg::sync(cta);
+        if ((blockSize >= 1024) && (tid < 512)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 512];
+        }
+        cg::sync(cta);
+        if ((blockSize >= 512) && (tid < 256)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 256];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 256) && (tid < 128)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 128];
+        }
+
+        cg::sync(cta);
+
+        if ((blockSize >= 128) && (tid < 64)) {
+            sdata[tid] = mySum = mySum + sdata[tid + 64];
+        }
+        cg::sync(cta);
+
+
+        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+        if (cta.thread_rank() < 32) {
+            // Fetch final intermediate sum from 2nd warp
+            if (blockSize >= 64) mySum += sdata[tid + 32];
+            // Reduce final warp using shuffle
+            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                mySum += tile32.shfl_down(mySum, offset);
+            }
+        }
+
+        // write result for this block to global mem
+        if (cta.thread_rank() == 0) {
+            //atomic add
+            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+
+        }
+
+        task_id += number_of_blocks;
+    }
+
+
+}
