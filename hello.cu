@@ -985,8 +985,9 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
             
             tid_sim = tid;
+            mySum = 0.0f;
             while (tid_sim < N_PATHS_INNER) {
-                mySum = 0.0f;
+                count = d_sums_i[blockId];
                 St = d_stock_prices[blockId];
                 for (int i = 0; i < remaining_steps; i++) {
                     G = curand_normal(&state);
