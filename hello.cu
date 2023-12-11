@@ -1043,6 +1043,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 //atomic add
                 mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
+                if (blockId <= N_PATHS * N_STEPS) printf("blockId %d, trop loin \n", blockId);
             }
         }
         compteur += 1;
