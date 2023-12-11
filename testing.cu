@@ -77,7 +77,7 @@ int main() {
 
     std::cout << "Final value of CPU trajectory:" << simulations[simulations.size() - 1] << "\n";
 
-    // std::cout << "Len simulations: " << simulations.size() << "\n";
+    std::cout << "Len simulations: " << simulations.size() << "\n";
 
     for (int i = 3; i < 7; i++) {
         std::cout << "Testing reduction: " << i << "\n";
