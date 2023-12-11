@@ -973,6 +973,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     int blockId;
     int tid_sim;
     float St;
+    float G;
 
     while( count < number_of_simulation_per_block && (count * number_of_blocks + blockIdx.x) < N_PATHS) {
         blockId = count * number_of_blocks + blockIdx.x;
