@@ -777,6 +777,79 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
 
 
+<<<<<<< Updated upstream
+=======
+    testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
+
+
+    simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
+                                                                    d_sums_i);
+    testCUDA(cudaGetLastError());
+
+    cudaDeviceSynchronize();
+    cudaFree(d_states_outter);
+
+    size_t freeMem;
+    size_t totalMem;
+    testCUDA(cudaMemGetInfo(&freeMem, &totalMem));
+
+    int number_of_blocks = 10000;
+    cudaError_t status;
+    while (true) {
+        status = cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState));
+
+        if (status == cudaSuccess) {
+            // Allocation successful, free memory and try a larger size
+            cudaFree(d_states_inner);
+            d_states_inner = nullptr;
+            number_of_blocks += 10000;
+        } else {
+            cudaFree(d_states_inner);
+            break;
+        }
+    }
+    number_of_blocks *= 0.9f;
+    cout << "max number of blocks : " << number_of_blocks << endl;
+
+    cudaDeviceReset();
+    return number_of_blocks;
+}
+
+int main(void) {
+
+    OptionData option_data;
+    option_data.S0 = 100.0f;
+    option_data.T = 1.0f;
+    option_data.K = 100.0f;
+    option_data.r = 0.1f;
+    option_data.v = 0.2f;
+    option_data.B = 120.0f;
+    option_data.P1 = 10;
+    option_data.P2 = 50;
+    option_data.N_PATHS = 100000;
+    option_data.N_PATHS_INNER = 10000;
+    option_data.N_STEPS = 100;
+    option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
+
+    int threadsPerBlock = 1024;
+
+    // Copy option data to constant memory
+    cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    printOptionData(option_data);
+
+    getDeviceProperty();
+
+    wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
+
+    wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
+
+    wrapper_gpu_bullet_option(option_data, threadsPerBlock);
+    wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
+    // int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 90000);
+
+>>>>>>> Stashed changes
 
 //--------------------------------BLACK SCHOLES FORMULA ----------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------
