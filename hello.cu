@@ -990,7 +990,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 St = d_stock_prices[blockId];
                 for (int i = 0; i < remaining_steps; i++) {
                     G = curand_normal(&state);
-                    St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                    St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
                     if (B > St) count += 1;
                 }
                 if ((count >= P1) && (count <= P2)) {
@@ -1042,7 +1042,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 //atomic add
                 mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
-                printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d, mySum : %f\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps, mySum);
+                printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d, mySum : %f, tid_sim : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps, mySum, tid_sim);
             }
         }
         compteur += 1;
