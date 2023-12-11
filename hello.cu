@@ -980,10 +980,10 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     while (compteur < number_of_simulation_per_block && (compteur * number_of_blocks + blockIdx.x) < N_PATHS) {
 
         for (int i = 0; i < N_STEPS; i++) {
-            blockId = compteur * N_STEPS + i;
-            if (tid == 0 && blockId >= N_PATHS * N_STEPS ) {
-                printf("We went too far : blockId : %d\n", blockId);
-            }
+            blockId = (compteur * number_of_blocks + blockIdx.x) * N_STEPS + i;
+            // if (tid == 0 && blockId >= N_PATHS * N_STEPS ) {
+            //     printf("We went too far : blockId : %d\n", blockId);
+            // }
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
             float mySum = 0.0f;
             tid_sim = tid;
