@@ -1038,6 +1038,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             //atomic add
             mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
+            printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps);
 
         }
         
@@ -1118,7 +1119,7 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 600000;
+    option_data.N_PATHS = 100;
     option_data.N_PATHS_INNER = 10000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
@@ -1141,7 +1142,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 250000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 200000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 10);
 
 
     float callResult = 0.0f;
