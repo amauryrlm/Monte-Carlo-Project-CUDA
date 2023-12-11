@@ -1040,9 +1040,10 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             // write result for this block to global mem
             if (cta.thread_rank() == 0) {
                 //atomic add
-                mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
-                atomicAdd(&(d_option_prices[blockId]), mySum);
                 printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d, mySum : %f, tid_sim : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps, mySum, tid_sim);
+
+                mySum = mySum * __expf(-r*T) / static_cast<float>(N_PATHS_INNER);
+                atomicAdd(&(d_option_prices[blockId]), mySum);
             }
         }
         compteur += 1;
