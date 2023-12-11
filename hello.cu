@@ -1001,9 +1001,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 }
                 tid_sim += blockSize;
             }
-            if (cta.thread_rank() == 0) {
-                printf("blockId : %d, mySum : %f\n", blockId, mySum);
-            }
+            if (tid == 0) printf("blockId : %d, mySum : %f\n", blockId, mySum);
             sdata[tid] = mySum;
             cg::sync(cta);
             if ((blockSize >= 1024) && (tid < 512)) {
@@ -1127,8 +1125,8 @@ int main(void) {
     option_data.B = 120.0f;
     option_data.P1 = 10;
     option_data.P2 = 50;
-    option_data.N_PATHS = 4;
-    option_data.N_PATHS_INNER = 4;
+    option_data.N_PATHS = 10;
+    option_data.N_PATHS_INNER = 10;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
@@ -1150,7 +1148,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 250000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 2);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 3);
 
 
     float callResult = 0.0f;
