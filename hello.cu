@@ -1094,6 +1094,11 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     for (int i = 0; i < N_PATHS * N_STEPS; i++) {
         sum += h_option_prices[i];
     }
+
+    for(int i = 0; i < 100; i++) {
+        cout << "h_option_prices[" << i << "] : " << h_option_prices[i] << endl;
+    }
+
     float callResult = sum / static_cast<float>(number_of_options);
     cout << "Average GPU bullet option nmc one kernel : " << callResult
          << endl << endl;
