@@ -1046,6 +1046,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
                 printf("blockId : %d, mySum : %f, d_option_prices[blockId] : %f\n", blockId, mySum, d_option_prices[blockId]);
+            }
         }
         compteur += 1;
     }
