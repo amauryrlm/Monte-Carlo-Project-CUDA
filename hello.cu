@@ -1084,9 +1084,11 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
 
     cout << "h_option_prices[N_PATHS * N_STEPS] : " << h_option_prices[N_PATHS * N_STEPS] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
+    float sum = 0.0f;
     for(int i = 0; i < N_PATHS * N_STEPS; i++){
-        cout << "h_option_prices[i] : " << h_option_prices[i] * expf(-option_data.r * option_data.T) / static_cast<float>(N_PATHS) << endl;
+        sum += h_option_prices[i];
     }
+    float callResult = sum / static_cast<float>(N_PATHS * N_STEPS);
     
 
 
