@@ -1,3 +1,20 @@
-factorise random number generator 
-enable multi block
-use only one block
+
+question
+
+
+generate array with random values at once 
+
+separe kernel copute and reduce
+
+steps for vanilla option 1 
+
+bullet only time step?
+
+date du controle
+
+
+one kernel for loop 
+simulate a number of outer average and sum until N_PATHS
+
+
+each thread has a state

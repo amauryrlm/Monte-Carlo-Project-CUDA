@@ -1,4 +1,3 @@
-
 #ifndef BLACK_SCHOLES_HPP
 #define BLACK_SCHOLES_HPP
 
