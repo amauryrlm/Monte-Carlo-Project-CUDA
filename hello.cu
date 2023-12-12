@@ -270,7 +270,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
 
 }
 float
-wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
+wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -383,10 +383,11 @@ int main(void) {
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
 
-    int number_blocks = get_max_blocks(threadsPerBlock);
-    printf("Computing nmc option price with %lu blocks.\n", number_blocks);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
+    // int number_blocks = get_max_blocks(threadsPerBlock);
+    // printf("Computing nmc option price with %lu blocks.\n", number_blocks);
+    // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 50000);
+    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 50000);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
