@@ -299,7 +299,6 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     unsigned int number_of_task_per_point = (N_PATHS_INNER + blockSize - 1) / blockSize;
     long unsigned int number_of_tasks = N_PATHS * N_STEPS * number_of_task_per_point;
     int length_of_last_task = N_PATHS_INNER - ((number_of_task_per_point - 1) * blockSize);
-    int rank_of_task;
     int length_of_task;
 
 
@@ -309,7 +308,6 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     float St;
     float G;
     int remaining_steps;
-    int tid_sim;
     long unsigned int task_id = blockIdx.x;
     float mySum;
 
