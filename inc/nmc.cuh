@@ -288,6 +288,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int blockSize = blockDim.x;
     int blockId = blockIdx.x;
+    int number_of_blocks = gridDim.x;
 
     float K = d_OptionData.K;
     float r = d_OptionData.r;
