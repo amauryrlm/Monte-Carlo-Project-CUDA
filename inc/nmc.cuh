@@ -7,6 +7,8 @@
 #include "tool.cuh"
 #include "trajectories.cuh"
 
+//kernel with mc for each point computed by one block
+
 __global__ void
 compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, float *d_stock_prices, int *d_sums_i) {
     int tid = threadIdx.x;
@@ -24,6 +26,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
     int N_STEPS = d_OptionData.N_STEPS;
     float dt = d_OptionData.step;
+    float T = d_OptionData.T;
     float sqrdt = sqrtf(dt);
 
     cg::thread_block cta = cg::this_thread_block();
@@ -40,6 +43,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     tid = threadIdx.x;
     int tid_sim;
     float mySum;
+    //iterate while all the points are not coputed
     while (blockId < number_of_simulations) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         mySum = 0.0f;
@@ -50,7 +54,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             St = d_stock_prices[blockId];
             for (int i = 0; i < remaining_steps; i++) {
                 G = curand_normal(&state);
-                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
                 if (B > St) count += 1;
             }
             if ((count >= P1) && (count <= P2)) {
@@ -96,7 +100,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         }
 
         if (cta.thread_rank() == 0) {
-            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
@@ -105,6 +109,8 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     }
 }
 
+
+//one kernel for the compute of the outer and inner trajectories
 __global__ void
 compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState *d_states, float *d_stock_prices,
                                             int *d_sums_i) {
@@ -126,14 +132,17 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     float sqrdt = sqrtf(dt);
     int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
 
+    //number of outer simulation computer per block
     int number_of_simulation_per_block = (N_PATHS + number_of_blocks - 1) / number_of_blocks;
+
 
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[1024];
     curandState state = d_states[idx];
 
-
-    if (tid < number_of_simulation_per_block && (tid * number_of_blocks + blockIdx.x) < N_PATHS) {
+    //one thread computes one outer simulation
+    int sim_tid = threadIdx.x ;
+    while (sim_tid < number_of_simulation_per_block && (sim_tid * number_of_blocks + blockIdx.x) < N_PATHS) {
 
         int count = 0;
         float St = S0;
@@ -141,7 +150,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         int index;
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
-            index = (tid * number_of_blocks + blockIdx.x) * N_STEPS + i;
+            index = (sim_tid * number_of_blocks + blockIdx.x) * N_STEPS + i;
             St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
             d_sums_i[index] = count;
@@ -189,16 +198,13 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         if (cta.thread_rank() == 0) {
             atomicAdd(&(d_option_prices[N_PATHS * N_STEPS]), mySum);
         }
+        sim_tid += blockSize;
     }
 
     int compteur = 0;
-    int remaining_steps;
-    int tid_sim;
-    float St;
-    float G;
-    int count;
-    int blockId;
-    float mySum;
+    int remaining_steps, tid_sim, blockId, count;
+    float St, G, mySum;
+
     while (compteur < number_of_simulation_per_block && (compteur * number_of_blocks + blockIdx.x) < N_PATHS) {
 
         for (int i = 0; i < N_STEPS; i++) {
@@ -213,7 +219,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 St = d_stock_prices[blockId];
                 for (int i = 0; i < remaining_steps; i++) {
                     G = curand_normal(&state);
-                    St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                    St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
                     if (B > St) count += 1;
                 }
                 if ((count >= P1) && (count <= P2)) {
