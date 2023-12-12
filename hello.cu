@@ -381,10 +381,10 @@ int main(void) {
 
     int number_blocks = get_max_blocks(threadsPerBlock);
     printf("Computing nmc option price with %d blocks.\n", number_blocks);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
+    // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
+    // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
     wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
 
     float callResult = 0.0f;
