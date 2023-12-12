@@ -342,7 +342,6 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
             if ((count >= P1) && (count <= P2)) {
                 mySum += max(St - K, 0.0f);
             }
-            tid_sim += blockSize;
         }
         sdata[tid] = mySum;
         cg::sync(cta);
