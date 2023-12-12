@@ -320,7 +320,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
     compute_nmc_optimal<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                d_stock_prices, d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
