@@ -313,7 +313,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     int length_of_task;
 
 
-    int number_of_blocks = gridDim.x;
+
     curandState state = d_states[idx];
 
     int count;
