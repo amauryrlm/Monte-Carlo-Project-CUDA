@@ -39,9 +39,10 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     int remaining_steps;
     tid = threadIdx.x;
     int tid_sim;
+    float mySum;
     while (blockId < number_of_simulations) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
-        float mySum = 0.0f;
+        mySum = 0.0f;
         tid_sim = tid;
         while (tid_sim < N_PATHS_INNER) {
 
@@ -141,7 +142,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         for (int i = 0; i < N_STEPS; i++) {
             G = curand_normal(&state);
             index = (tid * number_of_blocks + blockIdx.x) * N_STEPS + i;
-            St *= __expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
             if (B > St) count += 1;
             d_sums_i[index] = count;
             d_stock_prices[index] = St;
@@ -306,9 +307,9 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     float St;
     float G;
     int remaining_steps;
-    tid = threadIdx.x;
     int tid_sim;
     int task_id = blockIdx.x;
+    float mySum;
     
     while (task_id < number_of_tasks) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
@@ -318,7 +319,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
         } else {
             length_of_task = blockSize;
         }
-        float mySum = 0.0f;
+        mySum = 0.0f;
 
         if (tid < length_of_task) {
 
