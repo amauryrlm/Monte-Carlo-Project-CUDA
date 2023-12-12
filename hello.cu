@@ -334,7 +334,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
         sum += h_option_prices[i];
     }
     float callResult = sum / static_cast<float>(number_of_options);
-    cout << "Average GPU bullet option nmc one point per block : " << callResult
+    cout << "Average GPU bullet option nmc optimal : " << callResult
          << endl << endl;
 
 
