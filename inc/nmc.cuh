@@ -205,7 +205,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             blockId = (compteur * number_of_blocks + blockIdx.x) * N_STEPS + i;
 
             remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
-            
+
             tid_sim = tid;
             mySum = 0.0f;
             while (tid_sim < N_PATHS_INNER) {
@@ -255,15 +255,14 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             }
 
 
-            if (cta.thread_rank() == 0 ) {
-                mySum = mySum * __expf(-r*T) / static_cast<float>(N_PATHS_INNER);
+            if (cta.thread_rank() == 0) {
+                mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
             }
         }
         compteur += 1;
     }
 }
-
 
 
 __global__ void
@@ -298,7 +297,6 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     int length_of_task;
 
 
-
     curandState state = d_states[idx];
 
     int count;
@@ -308,11 +306,11 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     int tid_sim;
     int task_id = blockIdx.x;
     float mySum;
-    
+
     while (task_id < number_of_tasks) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         blockId = task_id / number_of_task_per_point;
-        if (task_id  % number_of_task_per_point == (number_of_task_per_point - 1)) {
+        if (task_id % number_of_task_per_point == (number_of_task_per_point - 1)) {
             length_of_task = length_of_last_task;
         } else {
             length_of_task = blockSize;
@@ -366,7 +364,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
         }
 
         if (cta.thread_rank() == 0) {
-            mySum = mySum * expf(-r*T) / static_cast<float>(N_PATHS_INNER);
+            mySum = mySum * expf(-r * T) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
         }
 
