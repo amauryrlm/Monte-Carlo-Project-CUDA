@@ -296,7 +296,6 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
-    // testCUDA(cudaGetLastError());
 
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
@@ -305,7 +304,6 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
-    // testCUDA(cudaGetLastError());
 
 
     size_t freeMem2;
@@ -320,7 +318,6 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
     compute_nmc_optimal<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states_inner,
                                                                d_stock_prices, d_sums_i);
-    // testCUDA(cudaGetLastError());
 
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
@@ -385,19 +382,10 @@ int main(void) {
     int number_blocks = get_max_blocks(threadsPerBlock);
     printf("Computing nmc option price with %d blocks.\n", number_blocks);
     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
-    size_t freeMem2;
-    size_t totalMem2;
-    // testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
 
 
-    // std::cout << "Free memory : " << freeMem2 / 1024 / 1024 << " MB\n";
-    // std::cout << "Total memory : " << totalMem2 / 1024 / 1024 << " MB\n";
-    // std::cout << "Used memory : " << (totalMem2 - freeMem2) / 1024 / 1024 << " MB\n";
-
-
-
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 50000);
-    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 50000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
+    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
