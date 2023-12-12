@@ -17,9 +17,9 @@ __global__ void print_gpu_random(float * d_random_array) {
     __syncthreads();
 }
 
-void test_outer(int n_traj, int n_steps, int n_threads_per_block, uint64_t seed = 1234) {
+void test_outer(int n_traj, int n_steps, int n_threads_per_block, uint64_t seed = 1234, float volatility = 0.2f) {
 
-    Simulation parameters(n_traj, n_steps);
+    Simulation parameters(n_traj, n_steps, volatility);
     // std::cout << "True reduction value across the entire cpu array: \n";
     // std::cout << parameters.sum_random_array();
 
@@ -101,11 +101,12 @@ int main() {
     // std::cout << default_parameters.n_steps << "\n";
     // std::cout << default_parameters.n_trajectories << "\n";
 
-    int n_traj = 20;
-    int n_steps = 150;
+    int n_traj = 1000;
+    int n_steps = 200;
     int n_threads_per_block = 10;
+    float volatility = 0.5;
 
-    test_outer(n_traj, n_steps, n_threads_per_block, 555);
+    test_outer(n_traj, n_steps, n_threads_per_block, 555, volatility);
 
 
 }

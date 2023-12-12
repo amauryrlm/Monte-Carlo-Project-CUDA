@@ -235,6 +235,25 @@ public:
     }
 
 
+    OptionData to_option_data() {
+
+        OptionData option_data {
+            .S0 = this->x_0,
+            .T = this->T,
+            .K = this->K,
+            .r = this->r,
+            .v = this->sigma,
+            .B = this->B ,
+            .P1 = this->P1,
+            .P2 = this->P2,
+            .N_PATHS = this->n_trajectories,
+            .N_STEPS = this->n_steps
+        };
+
+        return option_data;
+    }
+
+
     /* -------------------------- Simulation functions -------------------------- */
     std::vector<float> simulate_trajectory_cpu() {
 

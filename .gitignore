@@ -4,3 +4,4 @@ build
 *.png
 .idea
 **build
+*.mp4
