@@ -234,13 +234,11 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
 
     testCUDA(cudaMalloc(&d_states, number_of_blocks * threadsPerBlock * sizeof(curandState)));
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
-    testCUDA(cudaGetLastError());
 
     compute_nmc_one_block_per_point_with_outter<<<number_of_blocks, threadsPerBlock>>>(d_option_prices, d_states,
                                                                                        d_stock_prices, d_sums_i);
     cudaDeviceSynchronize();
 
-    testCUDA(cudaGetLastError());
 
     testCUDA(cudaMemcpy(h_option_prices, d_option_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
