@@ -385,7 +385,7 @@ int main(void) {
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
 
     int number_blocks = get_max_blocks(threadsPerBlock);
-    printf("Computing nmc option price with %lu blocks.\n", number_blocks);
+    printf("Computing nmc option price with %d blocks.\n", number_blocks);
     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 50000);
     // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 50000);
