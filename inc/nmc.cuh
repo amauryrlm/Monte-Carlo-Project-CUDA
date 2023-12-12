@@ -272,6 +272,8 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
 }
 
 
+
+//kernel with each point divided into N_PATHS_INNER / N_THREADS tasks
 __global__ void
 compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stock_prices, int *d_sums_i) {
     int tid = threadIdx.x;
