@@ -88,17 +88,13 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
-            //atomic add
             mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
@@ -183,15 +179,12 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             atomicAdd(&(d_option_prices[N_PATHS * N_STEPS]), mySum);
         }
@@ -254,19 +247,15 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
             if (cta.thread_rank() < 32) {
-                // Fetch final intermediate sum from 2nd warp
                 if (blockSize >= 64) mySum += sdata[tid + 32];
-                // Reduce final warp using shuffle
                 for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                     mySum += tile32.shfl_down(mySum, offset);
                 }
             }
 
 
-            // write result for this block to global mem
             if (cta.thread_rank() == 0 ) {
-                //atomic add
-                mySum = mySum * __expf(-r) / static_cast<float>(N_PATHS_INNER);
+                mySum = mySum * __expf(-r*T) / static_cast<float>(N_PATHS_INNER);
                 atomicAdd(&(d_option_prices[blockId]), mySum);
             }
         }
@@ -288,6 +277,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
 
     float K = d_OptionData.K;
     float r = d_OptionData.r;
+    float T = d_OptionData.T;
     float sigma = d_OptionData.v;
     float B = d_OptionData.B;
     int P1 = d_OptionData.P1;
@@ -370,18 +360,14 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
-            //atomic add
-            mySum = mySum * expf(-r) / static_cast<float>(N_PATHS_INNER);
+            mySum = mySum * expf(-r*T) / static_cast<float>(N_PATHS_INNER);
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
