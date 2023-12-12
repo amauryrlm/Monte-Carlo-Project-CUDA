@@ -129,6 +129,7 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
     int N_PATHS = d_OptionData.N_PATHS;
     int N_STEPS = d_OptionData.N_STEPS;
     float dt = d_OptionData.step;
+    float T = d_OptionData.T;
     float sqrdt = sqrtf(dt);
     int N_PATHS_INNER = d_OptionData.N_PATHS_INNER;
 
