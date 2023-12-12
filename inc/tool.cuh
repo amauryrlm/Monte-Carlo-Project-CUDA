@@ -53,13 +53,15 @@ void printOptionData(OptionData od) {
 
 void getDeviceProperty() {
 
+    const float GIGA = 1024.0 * 1024.0 * 1024.0;
+
     int count;
     cudaDeviceProp prop;
     cudaGetDeviceCount(&count);
     printf("The number of devices available is %i GPUs \n", count);
     cudaGetDeviceProperties(&prop, count - 1);
     printf("Name: %s\n", prop.name);
-    printf("Global memory size in bytes: %ld\n", prop.totalGlobalMem);
+    printf("Global memory size in bytes: %fGB\n", prop.totalGlobalMem / GIGA);
     printf("Shared memory size per block: %ld\n", prop.sharedMemPerBlock);
     printf("Number of registers per block: %d\n", prop.regsPerBlock);
     printf("Number of threads in a warp: %d\n", prop.warpSize);
@@ -118,6 +120,21 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
         countt += max(St - K, 0.0f);
     }
     *optionPriceCPU = expf(-r) * (countt / N_PATHS);
+}
+
+// Return the maximum number of blocks that we can run using global memory for RNG state.
+size_t get_max_blocks(int threads_per_block) {
+
+    // We also need to reserve space for n_trajectories and n_steps
+    // Figure out how much memory there is.
+    size_t free_mem;
+    size_t total_mem;
+    testCUDA(cudaMemGetInfo(&free_mem, &total_mem));
+    printf("free_mem: %7.3fGB, total_mem: %7.3fGB\n", free_mem / (1024.0 * 1024.0 * 1024.0), total_mem / (1024.0 * 1024.0 * 1024.0));
+
+    // Use 90% of total memory:
+    float multiplier = 0.90;
+    return (size_t) (free_mem * multiplier) / (sizeof(curandState_t) * threads_per_block);
 }
 
 void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS,

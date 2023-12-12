@@ -208,7 +208,6 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
 }
 
-
 int main(void) {
 
     OptionData option_data;
@@ -236,18 +235,16 @@ int main(void) {
     wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
 
     wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
-
     wrapper_gpu_bullet_option(option_data, threadsPerBlock);
     wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
-    // int max_number_of_block_to_everfow = get_max_number_of_blocks(option_data, threadsPerBlock);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 500);
 
-
+    int number_blocks = get_max_blocks(threadsPerBlock);
+    printf("Computing nmc option price with %lu blocks.\n", number_blocks);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
     cout << endl << "call Black Scholes : " << callResult << endl;
-
 
     return 0;
 }
