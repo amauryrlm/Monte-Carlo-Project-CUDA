@@ -370,7 +370,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
         }
 
         if (cta.thread_rank() == 0) {
-            mySum = mySum * expf(-r * T) / static_cast<float>(N_PATHS_INNER);
+            mySum = mySum * expf(-r * T) / static_cast<float>(length_of_task);
             atomicAdd(&(d_option_prices[blockId]), mySum);
         }
 
