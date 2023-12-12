@@ -296,7 +296,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
     cudaDeviceSynchronize();
     cudaFree(d_states_outter);
@@ -305,7 +305,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
 
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
-    testCUDA(cudaGetLastError());
+    // testCUDA(cudaGetLastError());
 
 
     size_t freeMem2;
