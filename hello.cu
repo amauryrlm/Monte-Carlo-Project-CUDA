@@ -387,6 +387,17 @@ int main(void) {
     int number_blocks = get_max_blocks(threadsPerBlock);
     printf("Computing nmc option price with %d blocks.\n", number_blocks);
     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
+    size_t freeMem2;
+    size_t totalMem2;
+    testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
+
+
+    std::cout << "Free memory : " << freeMem2 / 1024 / 1024 << " MB\n";
+    std::cout << "Total memory : " << totalMem2 / 1024 / 1024 << " MB\n";
+    std::cout << "Used memory : " << (totalMem2 - freeMem2) / 1024 / 1024 << " MB\n";
+
+
+
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 50000);
     // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 50000);
 
