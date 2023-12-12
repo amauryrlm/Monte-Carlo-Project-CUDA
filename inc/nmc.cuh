@@ -296,9 +296,8 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     cg::thread_block cta = cg::this_thread_block();
     __shared__ float sdata[1024];
 
-    long unsigned int number_of_simulations = N_PATHS * N_STEPS;
     unsigned int number_of_task_per_point = (N_PATHS_INNER + blockSize - 1) / blockSize;
-    long long unsigned int number_of_tasks = N_PATHS * N_STEPS * number_of_task_per_point;
+    long unsigned int number_of_tasks = N_PATHS * N_STEPS * number_of_task_per_point;
     int length_of_last_task = N_PATHS_INNER - ((number_of_task_per_point - 1) * blockSize);
     int rank_of_task;
     int length_of_task;
@@ -311,7 +310,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     float G;
     int remaining_steps;
     int tid_sim;
-    int task_id = blockIdx.x;
+    long unsigned int task_id = blockIdx.x;
     float mySum;
 
     while (task_id < number_of_tasks) {
