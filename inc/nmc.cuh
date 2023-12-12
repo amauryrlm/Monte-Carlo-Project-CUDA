@@ -103,12 +103,9 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             atomicAdd(&(d_option_prices[blockId]), mySum);
 
         }
-        // if (cta.thread_rank() == 0 && blockId < number_of_simulations && blockId > (number_of_simulations - 100))  printf("blockId : %d, d_option_prices[blockId] : %f, d_sums_i[blockId] : %d, d_stock_prices[blockId] : %f, remaining_steps : %d\n", blockId, d_option_prices[blockId], d_sums_i[blockId], d_stock_prices[blockId], remaining_steps);
 
         blockId += number_of_blocks;
     }
-
-
 }
 
 __global__ void
@@ -227,7 +224,6 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                 }
                 if ((count >= P1) && (count <= P2)) {
                     mySum += max(St - K, 0.0f);
-
                 }
                 tid_sim += blockSize;
             }
@@ -306,7 +302,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     __shared__ float sdata[1024];
 
     long unsigned int number_of_simulations = N_PATHS * N_STEPS;
-    unsigned int number_of_task_per_point = (N_PATHS_INNER + number_of_blocks - 1) / number_of_blocks;
+    unsigned int number_of_task_per_point = (N_PATHS_INNER + blockSize - 1) / blockSize;
     long long unsigned int number_of_tasks = N_PATHS * N_STEPS * number_of_task_per_point;
     int length_of_last_task = N_PATHS_INNER - ((number_of_task_per_point - 1) * blockSize);
     int rank_of_task;
@@ -327,7 +323,7 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
     while (task_id < number_of_tasks) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         blockId = task_id / number_of_task_per_point;
-        if (blockId  % number_of_task_per_point == (number_of_task_per_point - 1)) {
+        if (task_id  % number_of_task_per_point == (number_of_task_per_point - 1)) {
             length_of_task = length_of_last_task;
         } else {
             length_of_task = blockSize;
@@ -340,15 +336,11 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
             St = d_stock_prices[blockId];
             for (int i = 0; i < remaining_steps; i++) {
                 G = curand_normal(&state);
-                St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+                St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
                 if (B > St) count += 1;
             }
             if ((count >= P1) && (count <= P2)) {
                 mySum += max(St - K, 0.0f);
-
-
-            } else {
-                mySum += 0.0f;
             }
             tid_sim += blockSize;
         }
