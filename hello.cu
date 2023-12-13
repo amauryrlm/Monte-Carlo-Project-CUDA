@@ -42,7 +42,7 @@ int main(void) {
 
 
 
-    // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
+    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
 
 
     float callResult = 0.0f;
