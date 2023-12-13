@@ -121,7 +121,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     }
     *optionPriceCPU = expf(-r * T) * countt / static_cast<float>(N_PATHS);
 }
-void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionData option_data) {
+void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float G;
     float countt = 0.0f;
     float K = option_data.K;
