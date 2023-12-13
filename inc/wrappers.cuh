@@ -16,38 +16,28 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock, bo
     generateRandomArray(d_randomData, h_randomData, N_PATHS, 1);
 
     float optionPriceCPU = 0.0f;
-    simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
+    simulateOptionPriceCPU(&optionPriceCPU, option_data);
+
+    // cout << endl;
+    // cout << "Average CPU Vanilla Option: " << optionPriceCPU << endl << endl;
 
     if (!quiet) {
         cout << endl;
         cout << "Average CPU : " << optionPriceCPU << endl << endl;
     }
 
-    free(h_randomData);
-    cudaFree(d_randomData);
-
     return optionPriceCPU;
 }
 float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock, bool quiet = false) {
 
-    int N_PATHS = option_data.N_PATHS;
-    int N_STEPS = option_data.N_STEPS;
-
-    float *d_randomData, *h_randomData;
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
-    h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
-
 
     float optionPriceCPU = 0.0f;
-    simulateBulletOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
+    simulateBulletOptionPriceCPU(&optionPriceCPU, option_data);
 
     if (!quiet) {
         cout << endl;
         cout << "Monte Carlo CPU Bullet Option Price : " << optionPriceCPU << endl << endl;
     }
-    free(h_randomData);
-    cudaFree(d_randomData);
 
     return optionPriceCPU;
 }
@@ -59,29 +49,27 @@ float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock, bo
     // generate states array for random number generation
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
-    testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
-    float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
+    testCUDA(cudaMalloc(&d_odata, sizeof(float)));
+    float *h_odata = (float *) malloc( sizeof(float));
 
     simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
     cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
     float sum = 0.0f;
     for (int i = 0; i < blocksPerGrid; i++) {
         sum += h_odata[i];
     }
-    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
+
+    testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / N_PATHS;
 
     if (!quiet) {
         cout << "Average GPU : " << optionPriceGPU << endl << endl;
     }
+
     free(h_odata);
     cudaFree(d_odata);
     cudaFree(d_states);
@@ -94,6 +82,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock, boo
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+        //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
@@ -133,6 +122,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
@@ -150,7 +140,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
     testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
 
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
-    cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
+    // cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
 
     free(h_odata);
     cudaFree(d_odata);
@@ -185,7 +175,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
-
+    //simulate outer trajectories and store S_T and I
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
 
@@ -194,16 +184,16 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
 
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
-
+    //initialize random number generator
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
 
 
-    size_t freeMem2;
-    size_t totalMem2;
-    testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
 
 
     if (!quiet) {
+        size_t freeMem2;
+        size_t totalMem2;
+        testCUDA(cudaMemGetInfo(&freeMem2, &totalMem2));
         std::cout << "Free memory : " << freeMem2 / 1024 / 1024 << " MB\n";
         std::cout << "Total memory : " << totalMem2 / 1024 / 1024 << " MB\n";
         std::cout << "Used memory : " << (totalMem2 - freeMem2) / 1024 / 1024 << " MB\n";
@@ -240,7 +230,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     cudaFree(d_states_outter);
 
 
-    return callResult;
+    return 1.0f;
 
 }
 
@@ -327,7 +317,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
     testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
-
+    //simulate outer trajectories and store S_T and I
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
 
@@ -336,7 +326,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
 
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
-
+    //initialize random number generator
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
 
 
@@ -359,7 +349,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
     testCUDA(cudaMemcpy(h_stock_prices, d_stock_prices, number_of_options * sizeof(float), cudaMemcpyDeviceToHost));
     testCUDA(cudaMemcpy(h_sums_i, d_sums_i, number_of_options * sizeof(int), cudaMemcpyDeviceToHost));
 
-    //compute average of option prices
+    // //compute average of option prices
     float sum = 0.0f;
     for (int i = 0; i < number_of_options; i++) {
         sum += h_option_prices[i] / static_cast<float>(option_data.N_PATHS_INNER);
