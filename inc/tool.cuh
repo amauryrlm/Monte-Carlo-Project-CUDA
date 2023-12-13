@@ -119,7 +119,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
 
         countt += max(St - K, 0.0f);
     }
-    *optionPriceCPU = expf(-r) * (countt / N_PATHS);
+    *optionPriceCPU = expf(-r) * countt / static_cast<float>(N_PATHS);
 }
 void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionData option_data) {
     float G;
@@ -135,6 +135,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
     float B = option_data.B;
     float P1 = option_data.P1;
     float P2 = option_data.P2;
+    float T = option_data.T;
     int count;
     float St;
 
@@ -154,7 +155,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
             countt += max(St - K, 0.0f);
         }
     }
-    *optionPriceCPU = expf(-r) * (countt / N_PATHS);
+    *optionPriceCPU = expf(-r * T) * countt / static_cast<float>(N_PATHS);
 }
 
 // Return the maximum number of blocks that we can run using global memory for RNG state.
