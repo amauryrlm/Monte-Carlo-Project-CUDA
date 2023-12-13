@@ -36,7 +36,12 @@ int main(void) {
 
 
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
-    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
+    for (int i = 1; i < 11; i++)    {
+
+        float nb = i * number_blocks/10;
+        cout << endl << endl << "Iteration : " << i << " number of blocks : " << nb << endl;
+        wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, nb);
+    }
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
