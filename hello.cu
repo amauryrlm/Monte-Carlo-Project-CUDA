@@ -384,9 +384,11 @@ int main(void) {
 
 
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
-    for (int i = 0; i < 10; i++)    {
-        cout << "Iteration : " << i << endl;
-        wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
+    for (int i = 1; i < 11; i++)    {
+
+        float nb = i * number_blocks/10;
+        cout << "Iteration : " << i << " number of blocks : " << nb << endl;
+        wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, nb);
     }
 
     float callResult = 0.0f;
