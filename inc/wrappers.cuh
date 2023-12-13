@@ -33,22 +33,23 @@ float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock, int number_of_blocks) {
 
     int N_PATHS = option_data.N_PATHS;
+    int blocksPerGrid = (N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     // generate states array for random number generation
     curandState *d_states;
-    testCUDA(cudaMalloc(&d_states, number_of_blocks * threadsPerBlock * sizeof(curandState)));
+    testCUDA(cudaMalloc(&d_states, blocksPerGrid * threadsPerBlock * sizeof(curandState)));
     //initialize random number generator
-    setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states, 1234);
+    setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
     testCUDA(cudaMalloc(&d_odata, sizeof(float)));
     float *h_odata = (float *) malloc( sizeof(float));
 
-    simulateOptionPriceMultipleBlockGPUwithReduce<<<number_of_blocks, threadsPerBlock>>>(d_odata, d_states);
+    simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
     cudaDeviceSynchronize();
     testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
 
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / N_PATHS;
-    // cout << "Average GPU : " << optionPriceGPU << endl << endl;
+    cout << "Average GPU : " << optionPriceGPU << endl << endl;
     free(h_odata);
     cudaFree(d_odata);
     cudaFree(d_states);
