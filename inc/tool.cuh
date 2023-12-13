@@ -135,7 +135,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
     float B = option_data.B;
     float P1 = option_data.P1;
     float P2 = option_data.P2;
-    int count = 0;
+    int count;
     float St;
 
 
@@ -153,6 +153,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
         if (count >= P1 && count <= P2) {
             countt += max(St - K, 0.0f);
         }
+    }
     *optionPriceCPU = expf(-r) * (countt / N_PATHS);
 }
 
