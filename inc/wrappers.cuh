@@ -4,6 +4,7 @@
 #include "reduce.cuh"
 #include "tool.cuh"
 #include "trajectories.cuh"
+#include "testing.cuh"
 
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock, bool quiet = false) {
 
@@ -13,7 +14,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock, bo
     float *d_randomData, *h_randomData;
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
-    generateRandomArray(d_randomData, h_randomData, N_PATHS, 1);
+    generate_random_array(d_randomData, h_randomData, N_PATHS, 1);
 
     float optionPriceCPU = 0.0f;
     simulateOptionPriceCPU(&optionPriceCPU, option_data);

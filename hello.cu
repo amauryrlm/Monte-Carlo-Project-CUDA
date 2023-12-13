@@ -13,7 +13,7 @@ int main(void) {
     option_data.P2 = 50;
     // option_data.N_PATHS = 100000;
     option_data.N_PATHS = 100000;
-    option_data.N_PATHS_INNER = 1000;
+    option_data.N_PATHS_INNER = 10000;
     option_data.N_STEPS = 100;
     option_data.step = option_data.T / static_cast<float>(option_data.N_STEPS);
 
@@ -35,7 +35,7 @@ int main(void) {
 
     // int number_blocks = get_max_blocks(threadsPerBlock);
     // printf("Computing nmc option price with %d blocks.\n", number_blocks);
-    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
+    // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
 
 
     // /* -------------------------------------------------------------------------- */
@@ -107,7 +107,7 @@ int main(void) {
         };
 
         auto gpu_bullet_fn = [&] () {
-            wrapper_gpu_bullet_option(option_data, threadsPerBlock, true);
+            wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
         };
 
         auto cpu_vanilla_fn = [&] () {
