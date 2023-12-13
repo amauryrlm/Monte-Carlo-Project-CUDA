@@ -105,6 +105,7 @@ public:
         vector<float> TIMES(len);
 
         for (int i = 0; i < len; i++) {
+            std::cout << "[ " << i << "]...";
             TIMES[i] = time_fn(callback, input_range[i], n_repetitions);
             std::cout << input_name << ": " << input_range[i] << " took: " << TIMES[i] << "s\n";
         }
@@ -281,6 +282,8 @@ void gpu_simple_vs_threads_compact() {
     std::string input_name = INPUT_NAME; \
     int n_trials = N_REPETITIONS; \
 
+
+
 void cpu_baseline() {
 
     INIT_SIM(10000, 200, 10, "cpu_vanilla_baseline.csv", "n_traj", 5)
@@ -288,6 +291,7 @@ void cpu_baseline() {
     std::function<void(float)> cpu_callback = [&] (float n_traj) {
         option_data.N_PATHS = n_traj;
         auto price = wrapper_cpu_option_vanilla(option_data, n_threads_per_block);
+
     };
 
     auto traj_range = linspace(100, 100100, 101);
@@ -308,6 +312,7 @@ void gpu_baseline() {
 
     std::function<void(float)> gpu_callback = [&] (float n_traj) {
         option_data.N_PATHS = n_traj;
+        cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
         auto price = wrapper_gpu_option_vanilla(option_data, n_threads_per_block);
     };
 
@@ -325,11 +330,12 @@ void gpu_baseline() {
 
 void nmc_gpu_baseline() {
 
-    INIT_SIM(10000, 100, 1024, "nmc_baseline_threads.csv", "n_threads", 5);
+    INIT_SIM(1000, 100, 1024, "nmc_baseline_threads.csv", "n_threads", 5);
 
-    const int N_BLOCKS = 10;
+    const int N_BLOCKS = 1000;
 
     option_data.N_PATHS_INNER = 1000;
+    cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
 
     std::function<void(float)> nmc_callback = [&] (float n_threads) {
         auto price = wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, n_threads, N_BLOCKS);
