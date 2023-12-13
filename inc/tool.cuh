@@ -25,6 +25,7 @@ struct OptionData {
     float step;
 };
 
+// function to print the parameters
 void printOptionData(OptionData od) {
     cout << endl;
     cout << "S0 : " << od.S0 << endl;
@@ -87,6 +88,7 @@ void getDeviceProperty() {
     }
 
 
+// Error handling macro for cuda
 void testCUDA(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
         std::cerr << "CUDA Error: " << cudaGetErrorString(error) << " in file " << file << " at line " << line
@@ -97,9 +99,11 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
+
+
 void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float G;
-    float countt = 0.0f;
+    float sum = 0.0f;
     float K = option_data.K;
     float r = option_data.r;
     float sigma = option_data.v;
@@ -109,19 +113,23 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float T = option_data.T;
     float sqrdt = sqrtf(T);
 
+    //initialize random number generator
     mt19937 generator(std::random_device{}());
     normal_distribution<float> distribution(0.0, 1.0);
 
-
+    // simulate N_PATHS paths
     for (int i = 0; i < N_PATHS; i++) {
         float St = S0;
         G = distribution(generator);
         St *= expf((r - (sigma * sigma) / 2) * T + sigma * sqrdt * G);
-
-        countt += max(St - K, 0.0f);
+        // calculate the payoff and accumulate
+        sum += max(St - K, 0.0f);
     }
-    *optionPriceCPU = expf(-r * T) * countt / static_cast<float>(N_PATHS);
+    // calculate the average and discount it
+    *optionPriceCPU = expf(-r * T) * sum / static_cast<float>(N_PATHS);
 }
+
+
 void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float G;
     float sum = 0.0f;
@@ -139,21 +147,24 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data)
     float sqrdt = sqrtf(dt);
     int count;
     float St;
+    //initialize random number generator
     mt19937 generator(std::random_device{}());
     normal_distribution<float> distribution(0.0, 1.0);
 
-
+    // simulate N_PATHS paths
     for (int i = 0; i < N_PATHS; i++) {
         St = S0;
         count = 0;
-
+        // simulate N_STEPS steps
         for (int j = 0; j < N_STEPS; j++) {
             G = distribution(generator);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
+            // check if the barrier is crossed
             if (St < B) {
                 count++;
             }
         }
+        // calculate the payoff and accumulate
         if (count >= P1 && count <= P2) {
             sum += max(St - K, 0.0f);
         }
@@ -176,18 +187,6 @@ size_t get_max_blocks(int threads_per_block) {
     return (size_t) (free_mem * multiplier) / (sizeof(curandState_t) * threads_per_block);
 }
 
-void generateRandomArray(float *d_randomData, float *h_randomData, int N_PATHS, int N_STEPS,
-                         unsigned long long seed = 1234ULL) {
-
-    // create generator all fill array with generated values
-    curandGenerator_t gen;
-    curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
-    curandSetPseudoRandomGeneratorSeed(gen, seed);
-    curandGenerateNormal(gen, d_randomData, N_PATHS * N_STEPS, 0.0, 1.0);
-    testCUDA(cudaMemcpy(h_randomData, d_randomData, N_PATHS * N_STEPS * sizeof(float), cudaMemcpyDeviceToHost));
-    curandDestroyGenerator(gen);
-
-}
 
 
 __global__ void setup_kernel(curandState *state, uint64_t seed) {
@@ -196,16 +195,3 @@ __global__ void setup_kernel(curandState *state, uint64_t seed) {
 }
 
 
-
-
-extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
-
-unsigned int nextPow2(unsigned int x) {
-    --x;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return ++x;
-    }
