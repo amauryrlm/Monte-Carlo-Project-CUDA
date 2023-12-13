@@ -49,7 +49,7 @@ float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock, in
     testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
 
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / N_PATHS;
-    cout << "Average GPU : " << optionPriceGPU << endl << endl;
+    // cout << "Average GPU : " << optionPriceGPU << endl << endl;
     free(h_odata);
     cudaFree(d_odata);
     cudaFree(d_states);
