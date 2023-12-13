@@ -78,11 +78,11 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     }
     cudaDeviceSynchronize();
     testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
-    // float sum = 0.0f;
-    // for (int i = 0; i < blocksPerGrid; i++) {
-    //     sum += h_odata[i];
-    // }
-    // float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / static_cast<float>(N_PATHS);
+    float sum = 0.0f;
+    for (int i = 0; i < blocksPerGrid; i++) {
+        sum += h_odata[i];
+    }
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / static_cast<float>(N_PATHS);
     // cout << "Average GPU bullet option : " << optionPriceGPU << endl << endl;
 
     free(h_odata);
@@ -115,7 +115,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
     cudaDeviceSynchronize();
     testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
 
-    // float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
     // cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
 
     free(h_odata);
