@@ -5,6 +5,8 @@
 #include "tool.cuh"
 #include "trajectories.cuh"
 
+//all wrappers for kernels are in this file
+
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     float optionPriceCPU = 0.0f;
@@ -35,6 +37,7 @@ float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     // generate states array for random number generation
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
@@ -59,6 +62,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+        //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
@@ -94,6 +98,7 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
     curandState *d_states;
     testCUDA(cudaMalloc(&d_states, N_PATHS * sizeof(curandState)));
+    //initialize random number generator
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
@@ -146,7 +151,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
     testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
-
+    //simulate outer trajectories and store S_T and I
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
 
@@ -155,7 +160,7 @@ wrapper_gpu_bullet_option_nmc_one_point_one_block(OptionData option_data, int th
 
 
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
-
+    //initialize random number generator
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
 
 
@@ -283,7 +288,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
     testCUDA(cudaMalloc(&d_states_outter, N_PATHS * sizeof(curandState)));
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states_outter, 1234);
 
-
+    //simulate outer trajectories and store S_T and I
     simulate_outer_trajectories<<<blocksPerGrid, threadsPerBlock>>>(d_option_prices, d_states_outter, d_stock_prices,
                                                                     d_sums_i);
 
@@ -292,7 +297,7 @@ wrapper_gpu_bullet_option_nmc_optimal(OptionData option_data, int threadsPerBloc
 
 
     testCUDA(cudaMalloc(&d_states_inner, number_of_blocks * threadsPerBlock * sizeof(curandState)));
-
+    //initialize random number generator
     setup_kernel<<<number_of_blocks, threadsPerBlock>>>(d_states_inner, 1235);
 
 
