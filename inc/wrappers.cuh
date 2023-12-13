@@ -8,10 +8,9 @@
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     int N_PATHS = option_data.N_PATHS;
-    int N_STEPS = option_data.N_STEPS;
 
     float *d_randomData, *h_randomData;
-    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, 1);
 
@@ -19,7 +18,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
     cout << endl;
-    cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    cout << "Average CPU : " << optionPriceCPU[0] << endl << endl;
     free(h_randomData);
     cudaFree(d_randomData);
 
