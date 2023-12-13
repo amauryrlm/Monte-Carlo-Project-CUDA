@@ -108,6 +108,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
 
         // write result for this block to global mem
         if (cta.thread_rank() == 0) atomicAdd(&(g_odata[0]), mySum);
+    }
 }
 
 __global__ void
