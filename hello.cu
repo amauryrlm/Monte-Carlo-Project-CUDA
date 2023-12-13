@@ -37,7 +37,7 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
 
 
-    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 5000);
 
 
 
