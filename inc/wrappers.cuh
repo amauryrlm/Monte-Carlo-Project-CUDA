@@ -18,7 +18,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
     cout << endl;
-    cout << "Average CPU : " << optionPriceCPU[0] << endl << endl;
+    cout << "Average CPU : " << optionPriceCPU << endl << endl;
     free(h_randomData);
     cudaFree(d_randomData);
 
