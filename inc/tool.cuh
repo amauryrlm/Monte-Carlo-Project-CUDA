@@ -105,7 +105,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float sigma = option_data.v;
     float S0 = option_data.S0;
     float dt = option_data.step;
-    float sqrdt = sqrtf(dt);
+    float sqrdt = sqrtf(T);
     int N_PATHS = option_data.N_PATHS;
     float T = option_data.T;
     mt19937 generator(std::random_device{}());
@@ -129,7 +129,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data)
     float sigma = option_data.v;
     float S0 = option_data.S0;
     float dt = option_data.step;
-    float sqrdt = sqrtf(dt);
+    float sqrdt = sqrtf(T);
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
     float B = option_data.B;
