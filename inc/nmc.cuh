@@ -216,55 +216,57 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
             mySum = 0.0f;
             count = d_sums_i[blockId];
             St = d_stock_prices[blockId];
-            while (tid_sim < N_PATHS_INNER && count <= P2) {
-                
-                for (int i = 0; i < remaining_steps; i++) {
-                    G = curand_normal(&state);
-                    St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
-                    if (B > St) count += 1;
+            if (count <= P2){
+                while (tid_sim < N_PATHS_INNER) {
+                    
+                    for (int i = 0; i < remaining_steps; i++) {
+                        G = curand_normal(&state);
+                        St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
+                        if (B > St) count += 1;
+                    }
+                    if ((count >= P1) && (count <= P2)) {
+                        mySum += max(St - K, 0.0f);
+                    }
+                    tid_sim += blockSize;
                 }
-                if ((count >= P1) && (count <= P2)) {
-                    mySum += max(St - K, 0.0f);
+                sdata[tid] = mySum;
+                cg::sync(cta);
+                if ((blockSize >= 1024) && (tid < 512)) {
+                    sdata[tid] = mySum = mySum + sdata[tid + 512];
                 }
-                tid_sim += blockSize;
-            }
-            sdata[tid] = mySum;
-            cg::sync(cta);
-            if ((blockSize >= 1024) && (tid < 512)) {
-                sdata[tid] = mySum = mySum + sdata[tid + 512];
-            }
-            cg::sync(cta);
-            if ((blockSize >= 512) && (tid < 256)) {
-                sdata[tid] = mySum = mySum + sdata[tid + 256];
-            }
-
-            cg::sync(cta);
-
-            if ((blockSize >= 256) && (tid < 128)) {
-                sdata[tid] = mySum = mySum + sdata[tid + 128];
-            }
-
-            cg::sync(cta);
-
-            if ((blockSize >= 128) && (tid < 64)) {
-                sdata[tid] = mySum = mySum + sdata[tid + 64];
-            }
-            cg::sync(cta);
-
-
-            cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
-
-            if (cta.thread_rank() < 32) {
-                if (blockSize >= 64) mySum += sdata[tid + 32];
-                for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
-                    mySum += tile32.shfl_down(mySum, offset);
+                cg::sync(cta);
+                if ((blockSize >= 512) && (tid < 256)) {
+                    sdata[tid] = mySum = mySum + sdata[tid + 256];
                 }
-            }
+
+                cg::sync(cta);
+
+                if ((blockSize >= 256) && (tid < 128)) {
+                    sdata[tid] = mySum = mySum + sdata[tid + 128];
+                }
+
+                cg::sync(cta);
+
+                if ((blockSize >= 128) && (tid < 64)) {
+                    sdata[tid] = mySum = mySum + sdata[tid + 64];
+                }
+                cg::sync(cta);
 
 
-            if (cta.thread_rank() == 0) {
-                mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
-                atomicAdd(&(d_option_prices[blockId]), mySum);
+                cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+                if (cta.thread_rank() < 32) {
+                    if (blockSize >= 64) mySum += sdata[tid + 32];
+                    for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                        mySum += tile32.shfl_down(mySum, offset);
+                    }
+                }
+
+
+                if (cta.thread_rank() == 0) {
+                    mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
+                    atomicAdd(&(d_option_prices[blockId]), mySum);
+                }
             }
         }
         compteur += 1;
