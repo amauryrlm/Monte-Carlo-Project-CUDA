@@ -23,7 +23,7 @@ int main(void) {
     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
     // printOptionData(option_data);
 
-    // getDeviceProperty();
+    getDeviceProperty();
 
 
     // wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
@@ -38,43 +38,43 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
 
 
-    // /* -------------------------------------------------------------------------- */
-    // /*                                 Q1 Testing                                 */
-    // /* -------------------------------------------------------------------------- */
-    // // Compute the difference between our vanilla option price and block scholes
-    // // depending on the number of paths used
-    // float call_price = 0.0;
-    // black_scholes_CPU(
-    //     call_price,
-    //     option_data.S0,
-    //     option_data.K,
-    //     option_data.T,
-    //     option_data.r,
-    //     option_data.v
-    // );
+    /* -------------------------------------------------------------------------- */
+    /*                                 Q1 Testing                                 */
+    /* -------------------------------------------------------------------------- */
+    // Compute the difference between our vanilla option price and block scholes
+    // depending on the number of paths used
+    float call_price = 0.0;
+    black_scholes_CPU(
+        call_price,
+        option_data.S0,
+        option_data.K,
+        option_data.T,
+        option_data.r,
+        option_data.v
+    );
 
-    // float start = 1;
-    // float end = 1000;
-    // // float end = 1000001;
-    // int n = 1001;
-    // std::vector<float> N_TRAJ = linspace(start, end, n);
-    // std::vector<float> gpu_prices(n);
+    float start = 1;
+    float end = 250;
+    // float end = 1000001;
+    int n = 250;
+    std::vector<float> N_TRAJ = linspace(start, end, n);
+    std::vector<float> gpu_prices(n);
 
 
-    // printf("=========================================================\n");
-    // printf("=                       Question 1                      =\n");
-    // printf("=========================================================\n");
-    // printf("= Computing difference between Black-Scholes and Monte Carlo");
-    // printf("= Using trajectory values in linspace(%.0f, %.0f, %d)\n", start, end, n);
-    // printf("=========================================================\n");
+    printf("=========================================================\n");
+    printf("=                       Question 1                      =\n");
+    printf("=========================================================\n");
+    printf("= Computing difference between Black-Scholes and Monte Carlo");
+    printf("= Using trajectory values in linspace(%.0f, %.0f, %d)\n", start, end, n);
+    printf("=========================================================\n");
 
-    // printf("n_traj,real_value,estimated_value\n");
-    // for (int i = 0; i < n; i++) {
-    //     option_data.N_PATHS = N_TRAJ[i];
-    //     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-    //     gpu_prices[i] = wrapper_gpu_option_vanilla(option_data, threadsPerBlock, true);
-    //     printf("%.0f,%f,%f\n", N_TRAJ[i], call_price, gpu_prices[i]);
-    // }
+    printf("n_traj,real_value,estimated_value\n");
+    for (int i = 0; i < n; i++) {
+        option_data.N_PATHS = N_TRAJ[i];
+        cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+        gpu_prices[i] = wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
+        printf("%.0f,%f,%f\n", N_TRAJ[i], call_price, gpu_prices[i]);
+    }
 
 
     /* -------------------------------------------------------------------------- */
@@ -179,53 +179,57 @@ int main(void) {
     /* -------------------------------------------------------------------------- */
     /*                                 Q3 Testing                                 */
     /* -------------------------------------------------------------------------- */
-    vector<float> n_traj = linspace(50000, 200000, 10);
+    // vector<float> n_traj = linspace(50000, 150000, 9);
 
-    Clock clock;
-    // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
-    printf("=========================================================\n");
-    printf("=                       Timing                          =\n");
-    printf("=========================================================\n");
-    printf("= Running %d[%d] paths with %d steps \n", option_data.N_PATHS, option_data.N_PATHS_INNER, option_data.N_STEPS);
-    printf("= Using 400 Blocks for each callback\n");
-    printf("= Max blocks: %d\n", get_max_blocks(threadsPerBlock));
-    printf("= Testing across linspace(%.0f, %.0f, %d)\n", n_traj[0], n_traj.back(), n_traj.size());
-    printf("=========================================================\n");
+    // Clock clock;
+    // // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
+    // printf("=========================================================\n");
+    // printf("=                       Timing                          =\n");
+    // printf("=========================================================\n");
+    // printf("= Running %d[%d] paths with %d steps \n", option_data.N_PATHS, option_data.N_PATHS_INNER, option_data.N_STEPS);
+    // printf("= Using 400 Blocks for each callback\n");
+    // printf("= Max blocks: %d\n", get_max_blocks(threadsPerBlock));
+    // printf("= Testing across linspace(%.0f, %.0f, %d)\n", n_traj[0], n_traj.back(), n_traj.size());
+    // printf("=========================================================\n");
 
 
-    printf("i,n_blocks,n_traj,time_optimal\n");
-    // for (int i = 1; i < 11; i++)    {
-    int i = 0;
+    // printf("i,n_blocks,n_traj,time_optimal,time_one_point,time_one_kernel\n");
+    // // for (int i = 1; i < 11; i++)    {
+    // int i = 0;
 
-    for (float t : n_traj) {
+    // for (float t : n_traj) {
 
-        // float nb = i * number_blocks/10;
+    //     // float nb = i * number_blocks/10;
 
-        // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, nb);
+    //     // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, nb);
 
-        // Timing block
-        auto optimal_callback = [&] () {
-            option_data.N_PATHS = t;
-            cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-            wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 400);
-        };
+    //     // Timing block
+    //     auto optimal_callback = [&] () {
+    //         option_data.N_PATHS = t;
+    //         cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    //         wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 400);
+    //     };
 
-        // auto one_point_callback = [&] () {
-        //     wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 400);
-        // };
+    //     auto one_point_callback = [&] () {
+    //         option_data.N_PATHS = t;
+    //         cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    //         wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 400);
+    //     };
 
-        // auto one_kernel_callback = [&] () {
-        //     wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 400);
-        // };
+    //     auto one_kernel_callback = [&] () {
+    //         option_data.N_PATHS = t;
+    //         cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+    //         wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 400);
+    //     };
 
-        float time_optimal = clock.time_fn(optimal_callback, 1);
-        // float time_one_point = clock.time_fn(one_point_callback, 5);
-        // float time_one_kernel = clock.time_fn(one_kernel_callback, 5);
+    //     float time_optimal = clock.time_fn(optimal_callback, 1);
+    //     float time_one_point = clock.time_fn(one_point_callback, 1);
+    //     float time_one_kernel = clock.time_fn(one_kernel_callback, 1);
 
-        printf("%d,%d,%d,%f\n", i, (int) 400, (int) t, time_optimal);
-        i ++;
+    //     printf("%d,%d,%d,%f,%f,%f\n", i, (int) 400, (int) t, time_optimal, time_one_point, time_one_kernel);
+    //     i ++;
 
-    }
+    // }
 
 
 
