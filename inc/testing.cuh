@@ -247,7 +247,8 @@ public:
             .P1 = this->P1,
             .P2 = this->P2,
             .N_PATHS = this->n_trajectories,
-            .N_STEPS = this->n_steps
+            .N_STEPS = this->n_steps,
+            .step = 1.0 / (this->n_steps)
         };
 
         return option_data;
