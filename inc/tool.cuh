@@ -124,7 +124,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
 }
 void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float G;
-    float countt = 0.0f;
+    float sum = 0.0f;
     float K = option_data.K;
     float r = option_data.r;
     float sigma = option_data.v;
