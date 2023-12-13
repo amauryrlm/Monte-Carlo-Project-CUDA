@@ -150,15 +150,15 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data)
         for (int j = 0; j < N_STEPS; j++) {
             G = distribution(generator);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
-            if (St > B) {
+            if (St < B) {
                 count++;
             }
         }
         if (count >= P1 && count <= P2) {
-            countt += max(St - K, 0.0f);
+            sum += max(St - K, 0.0f);
         }
     }
-    *optionPriceCPU = expf(-r * T) * countt / static_cast<float>(N_PATHS);
+    *optionPriceCPU = expf(-r * T) * sum / static_cast<float>(N_PATHS);
 }
 
 // Return the maximum number of blocks that we can run using global memory for RNG state.
