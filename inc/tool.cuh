@@ -133,8 +133,8 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
     float B = option_data.B;
-    float P1 = 0;
-    float P2 = 100;
+    float P1 = option_data.P1;
+    float P2 = option_data.P2;
     float T = option_data.T;
     int count;
     float St;
