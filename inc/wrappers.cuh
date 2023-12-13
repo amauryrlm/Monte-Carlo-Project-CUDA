@@ -5,7 +5,7 @@
 #include "tool.cuh"
 #include "trajectories.cuh"
 
-float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
+float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock, bool quiet = false) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -14,18 +14,21 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, 1);
-    
+
     float optionPriceCPU = 0.0f;
     simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
-    cout << endl;
-    cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    if (!quiet) {
+        cout << endl;
+        cout << "Average CPU : " << optionPriceCPU << endl << endl;
+    }
+
     free(h_randomData);
     cudaFree(d_randomData);
 
     return optionPriceCPU;
 }
-float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
+float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock, bool quiet = false) {
 
     int N_PATHS = option_data.N_PATHS;
     int N_STEPS = option_data.N_STEPS;
@@ -39,8 +42,10 @@ float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     float optionPriceCPU = 0.0f;
     simulateBulletOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
-    cout << endl;
-    cout << "Monte Carlo CPU Bullet Option Price : " << optionPriceCPU << endl << endl;
+    if (!quiet) {
+        cout << endl;
+        cout << "Monte Carlo CPU Bullet Option Price : " << optionPriceCPU << endl << endl;
+    }
     free(h_randomData);
     cudaFree(d_randomData);
 
@@ -83,7 +88,7 @@ float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock, bo
     return optionPriceGPU;
 }
 
-float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
+float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock, bool quiet = false) {
 
     int N_PATHS = option_data.N_PATHS;
     int blocksPerGrid = (option_data.N_PATHS + threadsPerBlock - 1) / threadsPerBlock;
@@ -98,6 +103,7 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
     simulateBulletOptionPriceMultipleBlockGPU<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
     cudaError_t error = cudaGetLastError();
+
     if (error != cudaSuccess) {
         fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
         return -1;
@@ -109,7 +115,10 @@ float wrapper_gpu_bullet_option(OptionData option_data, int threadsPerBlock) {
         sum += h_odata[i];
     }
     float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / static_cast<float>(N_PATHS);
-    cout << "Average GPU bullet option : " << optionPriceGPU << endl << endl;
+
+    if (!quiet) {
+        cout << "Average GPU bullet option : " << optionPriceGPU << endl << endl;
+    }
 
     free(h_odata);
     cudaFree(d_odata);

@@ -38,27 +38,27 @@ int main(void) {
     // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, number_blocks);
 
 
-    /* -------------------------------------------------------------------------- */
-    /*                                 Q1 Testing                                 */
-    /* -------------------------------------------------------------------------- */
-    // Compute the difference between our vanilla option price and block scholes
-    // depending on the number of paths used
-    float call_price = 0.0;
-    black_scholes_CPU(
-        call_price,
-        option_data.S0,
-        option_data.K,
-        option_data.T,
-        option_data.r,
-        option_data.v
-    );
+    // /* -------------------------------------------------------------------------- */
+    // /*                                 Q1 Testing                                 */
+    // /* -------------------------------------------------------------------------- */
+    // // Compute the difference between our vanilla option price and block scholes
+    // // depending on the number of paths used
+    // float call_price = 0.0;
+    // black_scholes_CPU(
+    //     call_price,
+    //     option_data.S0,
+    //     option_data.K,
+    //     option_data.T,
+    //     option_data.r,
+    //     option_data.v
+    // );
 
-    float start = 1;
-    float end = 1000;
-    // float end = 1000001;
-    int n = 1001;
-    std::vector<float> N_TRAJ = linspace(start, end, n);
-    std::vector<float> gpu_prices(n);
+    // float start = 1;
+    // float end = 1000;
+    // // float end = 1000001;
+    // int n = 1001;
+    // std::vector<float> N_TRAJ = linspace(start, end, n);
+    // std::vector<float> gpu_prices(n);
 
 
     // printf("=========================================================\n");
@@ -85,6 +85,50 @@ int main(void) {
     printf("=========================================================\n");
     printf("= Comparing performance between CPU and GPU\n");
     printf("=========================================================\n");
+
+    // Iterating through number of trajectories, compare the speeds between CPU and gpu
+    Clock clock;
+    int n_q2 = 100;
+    float n_traj_0 = 1000;
+    float n_traj_F = 100000;
+    threadsPerBlock = 1024;
+
+    vector<float> TRAJ = linspace(n_traj_0, n_traj_F, n_q2);
+    vector<float> q2_cpu_bullet_time(n_q2);
+    vector<float> q2_gpu_bullet_time(n_q2);
+    vector<float> q2_cpu_vanilla_time(n_q2);
+    vector<float> q2_gpu_vanilla_time(n_q2);
+
+    // Vanilla pricing
+    printf("n_traj,time_cpu_vanilla,time_gpu_vanilla,time_cpu_bullet,time_gpu_bullet\n");
+    for (int i = 0; i < n_q2; i++) {
+
+        option_data.N_PATHS = TRAJ[i];
+        cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
+
+        auto cpu_bullet_fn = [&] () {
+            wrapper_cpu_bullet_option(option_data, threadsPerBlock, true);
+        };
+
+        auto gpu_bullet_fn = [&] () {
+            wrapper_gpu_bullet_option(option_data, threadsPerBlock, true);
+        };
+
+        auto cpu_vanilla_fn = [&] () {
+            wrapper_cpu_option_vanilla(option_data, threadsPerBlock, true);
+        };
+
+        auto gpu_vanilla_fn = [&] () {
+            wrapper_gpu_option_vanilla(option_data, threadsPerBlock, true);
+        };
+
+        float cpu_bullet = clock.time_fn(cpu_bullet_fn);
+        float gpu_bullet = clock.time_fn(gpu_bullet_fn);
+        float cpu_vanilla = clock.time_fn(cpu_vanilla_fn);
+        float gpu_vanilla = clock.time_fn(gpu_vanilla_fn);
+
+        printf("%d,%f,%f,%f,%f\n", (int) TRAJ[i], cpu_vanilla, gpu_vanilla, cpu_bullet, gpu_bullet);
+    }
 
     // printf("n_traj,real_value,estimated_value\n");
     // for (int i = 0; i < n; i++) {
