@@ -139,7 +139,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data)
     int count;
     float St;
     mt19937 generator(std::random_device{}());
-    normal_distribution<float> distribution(0.0, 1.0);
+    normal_distribution<float> distribution(0.0, 10.0);
 
 
     for (int i = 0; i < N_PATHS; i++) {
