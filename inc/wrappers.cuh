@@ -7,8 +7,6 @@
 
 float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
-    int N_PATHS = option_data.N_PATHS;
-
     float optionPriceCPU = 0.0f;
     simulateOptionPriceCPU(&optionPriceCPU, option_data);
 
@@ -20,8 +18,6 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 }
 float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
 
-    int N_PATHS = option_data.N_PATHS;
-    int N_STEPS = option_data.N_STEPS;
 
     float optionPriceCPU = 0.0f;
     simulateBulletOptionPriceCPU(&optionPriceCPU, option_data);
