@@ -54,12 +54,12 @@ int main(void) {
     );
 
     float start = 1;
-    float end = 250;
+    float end = 1000;
     // float end = 1000001;
-    int n = 250;
+    int n = 1000;
     std::vector<float> N_TRAJ = linspace(start, end, n);
     std::vector<float> gpu_prices(n);
-
+    int number_blocks = 400;
 
     printf("=========================================================\n");
     printf("=                       Question 1                      =\n");
@@ -72,7 +72,7 @@ int main(void) {
     for (int i = 0; i < n; i++) {
         option_data.N_PATHS = N_TRAJ[i];
         cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-        gpu_prices[i] = wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
+        gpu_prices[i] = wrapper_gpu_option_vanilla(option_data, threadsPerBlock, number_blocks);
         printf("%.0f,%f,%f\n", N_TRAJ[i], call_price, gpu_prices[i]);
     }
 

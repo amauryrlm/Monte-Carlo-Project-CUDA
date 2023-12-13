@@ -213,7 +213,7 @@ void gpu_simple_vs_threads() {
     for (float n_threads: N_THREADS) {
 
         auto gpu_callback = [&] () {
-            auto price = wrapper_gpu_option_vanilla(option_data, n_threads);
+            auto price = wrapper_gpu_option_vanilla(option_data, n_threads, 400);
         };
 
         float avg_time = clock.time_fn(gpu_callback, n_trials);
@@ -244,7 +244,7 @@ void gpu_simple_vs_threads_compact() {
     int n_trials = 5;
 
     std::function<void(float)> gpu_callback = [&] (float n_threads) {
-        auto price = wrapper_gpu_option_vanilla(option_data, (int) n_threads);
+        auto price = wrapper_gpu_option_vanilla(option_data, (int) n_threads, 400);
     };
 
     auto thread_range = linspace(1, 1024, 1024);
@@ -318,7 +318,7 @@ void gpu_baseline() {
     std::function<void(float)> gpu_callback = [&] (float n_traj) {
         option_data.N_PATHS = n_traj;
         cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-        auto price = wrapper_gpu_option_vanilla(option_data, n_threads_per_block);
+        auto price = wrapper_gpu_option_vanilla(option_data, n_threads_per_block, 400);
     };
 
     auto traj_range = linspace(100, 100100, 101);
