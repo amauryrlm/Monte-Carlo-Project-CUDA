@@ -10,7 +10,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     int N_PATHS = option_data.N_PATHS;
 
     float optionPriceCPU = 0.0f;
-    simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
+    simulateOptionPriceCPU(&optionPriceCPU, option_data);
 
     cout << endl;
     cout << "Average CPU Vanilla Option: " << optionPriceCPU << endl << endl;
@@ -24,7 +24,7 @@ float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
     int N_STEPS = option_data.N_STEPS;
 
     float optionPriceCPU = 0.0f;
-    simulateBulletOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
+    simulateBulletOptionPriceCPU(&optionPriceCPU, option_data);
 
     cout << endl;
     cout << "Monte Carlo CPU Bullet Option Price : " << optionPriceCPU << endl << endl;
