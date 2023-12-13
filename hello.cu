@@ -94,12 +94,8 @@ int main(void) {
     threadsPerBlock = 1024;
 
     vector<float> TRAJ = linspace(n_traj_0, n_traj_F, n_q2);
-    vector<float> q2_cpu_bullet_time(n_q2);
-    vector<float> q2_gpu_bullet_time(n_q2);
-    vector<float> q2_cpu_vanilla_time(n_q2);
-    vector<float> q2_gpu_vanilla_time(n_q2);
 
-    // Vanilla pricing
+    // Compare pricing functions
     printf("n_traj,time_cpu_vanilla,time_gpu_vanilla,time_cpu_bullet,time_gpu_bullet\n");
     for (int i = 0; i < n_q2; i++) {
 
@@ -129,24 +125,6 @@ int main(void) {
 
         printf("%d,%f,%f,%f,%f\n", (int) TRAJ[i], cpu_vanilla, gpu_vanilla, cpu_bullet, gpu_bullet);
     }
-
-    // printf("n_traj,real_value,estimated_value\n");
-    // for (int i = 0; i < n; i++) {
-    //     option_data.N_PATHS = N_TRAJ[i];
-    //     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-    //     gpu_prices[i] = wrapper_gpu_option_vanilla(option_data, threadsPerBlock, true);
-    //     printf("%.0f,%f,%f\n", N_TRAJ[i], call_price, gpu_prices[i]);
-    // }
-
-
-
-
-
-
-
-
-
-
 
     /* -------------------------------------------------------------------------- */
     /*                                 Q3 Testing                                 */
