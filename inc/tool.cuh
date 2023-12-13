@@ -6,6 +6,8 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <cuda.h>
+#include <random>
+
 using namespace std;
 
 // Parameters for option pricing
@@ -122,6 +124,11 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
     *optionPriceCPU = expf(-r) * countt / static_cast<float>(N_PATHS);
 }
 void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionData option_data) {
+    random_device rd;  
+    mt19937 gen(rd()); 
+    normal_distribution<> distr(0, 1); 
+
+
     float G;
     float countt = 0.0f;
     float K = option_data.K;
@@ -145,7 +152,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
         count = 0;
 
         for (int j = 0; j < N_STEPS; j++) {
-            G = h_randomData[i * N_STEPS + j];
+            G = distr(gen);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (St > B) {
                 count++;
