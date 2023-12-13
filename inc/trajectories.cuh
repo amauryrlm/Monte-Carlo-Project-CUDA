@@ -68,7 +68,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         float St = S0;
         float G, mySum;
         G = curand_normal(&state);
-        St *= expf((r - sigma * sigma * 0.5) * T + sigma * sqrdt * G);
+        St *= __expf((r - sigma * sigma * 0.5) * T + sigma * sqrdt * G);
         mySum = max(St - K, 0.0f);
         sdata[tid] = mySum;
         cg::sync(cta);
@@ -107,8 +107,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         }
 
         // write result for this block to global mem
-        if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
-    }
+        if (cta.thread_rank() == 0) atomicAdd(&(g_odata[0]), mySum);
 }
 
 __global__ void

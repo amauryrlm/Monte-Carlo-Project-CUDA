@@ -14,7 +14,7 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
     h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
     generateRandomArray(d_randomData, h_randomData, N_PATHS, 1);
-    
+
     float optionPriceCPU = 0.0f;
     simulateOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
 
@@ -57,22 +57,14 @@ float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
     setup_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_states, 1234);
 
     float *d_odata;
-    testCUDA(cudaMalloc(&d_odata, blocksPerGrid * sizeof(float)));
-    float *h_odata = (float *) malloc(blocksPerGrid * sizeof(float));
+    testCUDA(cudaMalloc(&d_odata, sizeof(float)));
+    float *h_odata = (float *) malloc( sizeof(float));
 
     simulateOptionPriceMultipleBlockGPUwithReduce<<<blocksPerGrid, threadsPerBlock>>>(d_odata, d_states);
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(error));
-        return -1;
-    }
     cudaDeviceSynchronize();
-    testCUDA(cudaMemcpy(h_odata, d_odata, blocksPerGrid * sizeof(float), cudaMemcpyDeviceToHost));
-    float sum = 0.0f;
-    for (int i = 0; i < blocksPerGrid; i++) {
-        sum += h_odata[i];
-    }
-    float optionPriceGPU = expf(-option_data.r * option_data.T) * sum / N_PATHS;
+    testCUDA(cudaMemcpy(h_odata, d_odata, sizeof(float), cudaMemcpyDeviceToHost));
+
+    float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / N_PATHS;
     cout << "Average GPU : " << optionPriceGPU << endl << endl;
     free(h_odata);
     cudaFree(d_odata);
