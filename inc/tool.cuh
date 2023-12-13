@@ -108,7 +108,6 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float r = option_data.r;
     float sigma = option_data.v;
     float S0 = option_data.S0;
-    float dt = option_data.step;
     int N_PATHS = option_data.N_PATHS;
     float T = option_data.T;
     float sqrdt = sqrtf(T);
@@ -126,6 +125,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
         sum += max(St - K, 0.0f);
     }
     // calculate the average and discount it
+    
     *optionPriceCPU = expf(-r * T) * sum / static_cast<float>(N_PATHS);
 }
 
@@ -196,9 +196,9 @@ __global__ void setup_kernel(curandState *state, uint64_t seed) {
 
 
 
-
+// check if the number is a power of 2
 extern "C" bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
-
+// compute the next highest power of 2 
 unsigned int nextPow2(unsigned int x) {
     --x;
     x |= x >> 1;

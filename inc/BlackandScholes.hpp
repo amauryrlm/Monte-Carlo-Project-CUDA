@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+
+//cumulative normal distribution function
 float CND(float x) {
     float p = 0.2316419f;
     float b1 = 0.31938153f;
@@ -27,6 +29,8 @@ float CND(float x) {
         }
     }
 
+
+//formula for black scholes option pricing
 void black_scholes_CPU(float& call_price, float x0, float strike_price, float T, float risk_free_rate, float volatility)
     {
     float sqrtT = sqrtf(T);
