@@ -98,15 +98,12 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) atomicAdd(&(g_odata[0]), mySum);
     }
 }
@@ -178,15 +175,12 @@ simulateBulletOptionPriceMultipleBlockGPU(float *g_odata, curandState *globalSta
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 
     }
@@ -259,15 +253,12 @@ simulateBulletOptionPriceMultipleBlockGPUatomic(float *g_odata, curandState *glo
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             atomicAdd(&(g_odata[0]), mySum);
         }
@@ -342,15 +333,12 @@ simulate_outer_trajectories(float *g_odata, curandState *globalStates, float *d_
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             atomicAdd(&(g_odata[N_PATHS * N_STEPS]), mySum);
         }
@@ -423,15 +411,12 @@ simulateBulletOptionOutter(float *d_option_prices, curandState *globalStates, fl
         cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
         if (cta.thread_rank() < 32) {
-            // Fetch final intermediate sum from 2nd warp
             if (blockSize >= 64) mySum += sdata[tid + 32];
-            // Reduce final warp using shuffle
             for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
                 mySum += tile32.shfl_down(mySum, offset);
             }
         }
 
-        // write result for this block to global mem
         if (cta.thread_rank() == 0) {
             atomicAdd(&(d_option_prices[0]), mySum);
             printf("d_option_prices[0] : %f\n", d_option_prices[0]);
