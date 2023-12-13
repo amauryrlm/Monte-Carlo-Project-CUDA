@@ -97,7 +97,7 @@ void testCUDA(cudaError_t error, const char *file, int line) {
 
 #define testCUDA(error) (testCUDA(error, __FILE__, __LINE__))
 
-void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionData option_data) {
+void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     float G;
     float countt = 0.0f;
     float K = option_data.K;
@@ -138,6 +138,8 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
     float T = option_data.T;
     int count;
     float St;
+    mt19937 generator(std::random_device{}());
+    normal_distribution<double> distribution(0.0, 1.0);
 
 
     for (int i = 0; i < N_PATHS; i++) {
@@ -145,7 +147,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, float *h_randomData, Op
         count = 0;
 
         for (int j = 0; j < N_STEPS; j++) {
-            G = h_randomData[i * N_STEPS + j];
+            G = distribution(generator);
             St *= expf((r - (sigma * sigma) / 2) * dt + sigma * sqrdt * G);
             if (St > B) {
                 count++;
