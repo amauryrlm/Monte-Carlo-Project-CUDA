@@ -10,3 +10,4 @@
 #include "tool.cuh"
 #include "trajectories.cuh"
 #include "wrappers.cuh"
+#include "timing.cuh"
