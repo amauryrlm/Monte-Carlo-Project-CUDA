@@ -109,7 +109,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, OptionData option_data) {
     int N_PATHS = option_data.N_PATHS;
     float T = option_data.T;
     mt19937 generator(std::random_device{}());
-    normal_distribution<float> distribution(0.0, 2.0);
+    normal_distribution<float> distribution(0.0, 10.0);
 
 
     for (int i = 0; i < N_PATHS; i++) {
