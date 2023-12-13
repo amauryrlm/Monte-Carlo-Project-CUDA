@@ -26,6 +26,27 @@ float wrapper_cpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
     return optionPriceCPU;
 }
+float wrapper_cpu_bullet_option(OptionData option_data, int threadsPerBlock) {
+
+    int N_PATHS = option_data.N_PATHS;
+    int N_STEPS = option_data.N_STEPS;
+
+    float *d_randomData, *h_randomData;
+    testCUDA(cudaMalloc(&d_randomData, N_PATHS * N_STEPS * sizeof(float)));
+    h_randomData = (float *) malloc(N_PATHS * N_STEPS * sizeof(float));
+    generateRandomArray(d_randomData, h_randomData, N_PATHS, N_STEPS);
+
+
+    float optionPriceCPU = 0.0f;
+    simulateBulletOptionPriceCPU(&optionPriceCPU, h_randomData, option_data);
+
+    cout << endl;
+    cout << "Monte Carlo CPU Bullet Option Price : " << optionPriceCPU << endl << endl;
+    free(h_randomData);
+    cudaFree(d_randomData);
+
+    return optionPriceCPU;
+}
 
 float wrapper_gpu_option_vanilla(OptionData option_data, int threadsPerBlock) {
 
