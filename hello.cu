@@ -234,9 +234,12 @@ int main(void) {
 
 
 
-    // float callResult = 0.0f;
-    // black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
-    // std::cout << endl << "call Black Scholes : " << callResult << endl;
+    // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 5000);
+
+
+    float callResult = 0.0f;
+    black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
+    cout << endl << "call Black Scholes : " << callResult << endl;
 
     return 0;
 }

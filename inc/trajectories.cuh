@@ -67,7 +67,7 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
     __shared__ float sdata[1024];
 
 
-    while (idx < N_PATHS) {
+    if (idx < N_PATHS) {
         curandState state = globalStates[idx];
         float St = S0;
         float G, mySum;
@@ -109,7 +109,6 @@ __global__ void simulateOptionPriceMultipleBlockGPUwithReduce(float *g_odata, cu
         }
 
         if (cta.thread_rank() == 0) atomicAdd(&(g_odata[0]), mySum);
-        idx += gridDim.x * blockDim.x;
     }
 }
 
