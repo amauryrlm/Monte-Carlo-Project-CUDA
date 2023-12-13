@@ -384,7 +384,9 @@ int main(void) {
 
 
     // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, number_blocks);
-    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
+    for (int i = 0; i < 10; i++)    {
+        wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, number_blocks);
+    }
 
     float callResult = 0.0f;
     black_scholes_CPU(callResult, option_data.S0, option_data.K, option_data.T, option_data.r, option_data.v);
