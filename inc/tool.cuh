@@ -112,7 +112,7 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
 
     for (int i = 0; i < N_PATHS; i++) {
         float St = S0;
-        G = h_randomData[i * N_STEPS + j];
+        G = h_randomData[i];
         St *= expf((r - (sigma * sigma) / 2) * T + sigma * sqrdt * G);
 
         countt += max(St - K, 0.0f);

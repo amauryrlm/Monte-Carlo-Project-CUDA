@@ -43,7 +43,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
     tid = threadIdx.x;
     int tid_sim;
     float mySum;
-    //iterate while all the points are not coputed
+    //iterate while all the points are not computed
     while (blockId < number_of_simulations) {
         remaining_steps = N_STEPS - ((blockId % N_STEPS) + 1);
         mySum = 0.0f;
@@ -59,8 +59,6 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
             }
             if ((count >= P1) && (count <= P2)) {
                 mySum += max(St - K, 0.0f);
-
-
             } else {
                 mySum += 0.0f;
             }
@@ -108,6 +106,7 @@ compute_nmc_one_block_per_point(float *d_option_prices, curandState *d_states, f
         blockId += number_of_blocks;
     }
 }
+
 
 
 //one kernel for the compute of the outer and inner trajectories
