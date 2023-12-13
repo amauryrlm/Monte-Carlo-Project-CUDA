@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <cuda.h>
+#include <random>
 using namespace std;
 
 // Parameters for option pricing
@@ -107,11 +108,13 @@ void simulateOptionPriceCPU(float *optionPriceCPU, float *h_randomData, OptionDa
     float sqrdt = sqrtf(dt);
     int N_PATHS = option_data.N_PATHS;
     float T = option_data.T;
+    mt19937 generator(std::random_device{}());
+    normal_distribution<double> distribution(0.0, 1.0);
 
 
     for (int i = 0; i < N_PATHS; i++) {
         float St = S0;
-        G = h_randomData[i];
+        G = distribution(generator);
         St *= expf((r - (sigma * sigma) / 2) * T + sigma * sqrdt * G);
 
         countt += max(St - K, 0.0f);
