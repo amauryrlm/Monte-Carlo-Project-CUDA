@@ -20,29 +20,24 @@ int main(void) {
 
     // Copy option data to constant memory
     cudaMemcpyToSymbol(d_OptionData, &option_data, sizeof(OptionData));
-    // printOptionData(option_data);
+    printOptionData(option_data);
 
-    // getDeviceProperty();
+    getDeviceProperty();
 
 
-    // wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
-    // wrapper_cpu_bullet_option(option_data, threadsPerBlock);
+    wrapper_cpu_option_vanilla(option_data, threadsPerBlock);
+    wrapper_cpu_bullet_option(option_data, threadsPerBlock);
 
-    wrapper_gpu_option_vanilla(option_data, threadsPerBlock, 5000);
-    // wrapper_gpu_bullet_option(option_data, threadsPerBlock);
-    // wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
+    wrapper_gpu_option_vanilla(option_data, threadsPerBlock);
+    wrapper_gpu_bullet_option(option_data, threadsPerBlock);
+    wrapper_gpu_bullet_option_atomic(option_data, threadsPerBlock);
 
     // int number_blocks = get_max_blocks(threadsPerBlock);
     // printf("Computing nmc option price with %d blocks.\n", number_blocks);
-    // wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
 
-
-    // wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 5000);
-
-
-
-
-    // wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 5000);
+    wrapper_gpu_bullet_option_nmc_one_point_one_block(option_data, threadsPerBlock, 5000);
+    wrapper_gpu_bullet_option_nmc_one_kernel(option_data, threadsPerBlock, 5000);
+    wrapper_gpu_bullet_option_nmc_optimal(option_data, threadsPerBlock, 5000);
 
 
     float callResult = 0.0f;
