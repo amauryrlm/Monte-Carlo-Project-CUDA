@@ -136,7 +136,7 @@ void simulateBulletOptionPriceCPU(float *optionPriceCPU, OptionData option_data)
     float P1 = option_data.P1;
     float P2 = option_data.P2;
     float T = option_data.T;
-    float sqrdt = sqrtf(T);
+    float sqrdt = sqrtf(dt);
     int count;
     float St;
     mt19937 generator(std::random_device{}());
