@@ -261,13 +261,14 @@ compute_nmc_one_block_per_point_with_outter(float *d_option_prices, curandState 
                         mySum += tile32.shfl_down(mySum, offset);
                     }
                 }
-
-
-                if (cta.thread_rank() == 0) {
-                    mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
-                    atomicAdd(&(d_option_prices[blockId]), mySum);
-                }
             }
+
+
+            if (cta.thread_rank() == 0) {
+                mySum = mySum * __expf(-r * T) / static_cast<float>(N_PATHS_INNER);
+                atomicAdd(&(d_option_prices[blockId]), mySum);
+            }
+            
         }
         compteur += 1;
     }
@@ -372,12 +373,13 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
                     mySum += tile32.shfl_down(mySum, offset);
                 }
             }
-
-            if (cta.thread_rank() == 0) {
-                mySum = mySum * __expf(-r * T);
-                atomicAdd(&(d_option_prices[blockId]), mySum);
-            }
         }
+
+        if (cta.thread_rank() == 0) {
+            mySum = mySum * __expf(-r * T);
+            atomicAdd(&(d_option_prices[blockId]), mySum);
+        }
+        
 
         task_id += number_of_blocks;
     }
