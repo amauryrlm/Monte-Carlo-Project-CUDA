@@ -324,56 +324,59 @@ compute_nmc_optimal(float *d_option_prices, curandState *d_states, float *d_stoc
             length_of_task = blockSize;
         }
         mySum = 0.0f;
+        count = d_sums_i[blockId];
+        St = d_stock_prices[blockId];
+        if(count <= P2){
 
-        if (tid < length_of_task) {
+            if (tid < length_of_task ) {
 
-            count = d_sums_i[blockId];
-            St = d_stock_prices[blockId];
-            for (int i = 0; i < remaining_steps; i++) {
-                G = curand_normal(&state);
-                St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
-                if (B > St) count += 1;
+
+                for (int i = 0; i < remaining_steps; i++) {
+                    G = curand_normal(&state);
+                    St *= __expf((r - (sigma * sigma) * 0.5f) * dt + sigma * sqrdt * G);
+                    if (B > St) count += 1;
+                }
+                if ((count >= P1) && (count <= P2)) {
+                    mySum += max(St - K, 0.0f);
+                }
             }
-            if ((count >= P1) && (count <= P2)) {
-                mySum += max(St - K, 0.0f);
+            sdata[tid] = mySum;
+            cg::sync(cta);
+            if ((blockSize >= 1024) && (tid < 512)) {
+                sdata[tid] = mySum = mySum + sdata[tid + 512];
             }
-        }
-        sdata[tid] = mySum;
-        cg::sync(cta);
-        if ((blockSize >= 1024) && (tid < 512)) {
-            sdata[tid] = mySum = mySum + sdata[tid + 512];
-        }
-        cg::sync(cta);
-        if ((blockSize >= 512) && (tid < 256)) {
-            sdata[tid] = mySum = mySum + sdata[tid + 256];
-        }
-
-        cg::sync(cta);
-
-        if ((blockSize >= 256) && (tid < 128)) {
-            sdata[tid] = mySum = mySum + sdata[tid + 128];
-        }
-
-        cg::sync(cta);
-
-        if ((blockSize >= 128) && (tid < 64)) {
-            sdata[tid] = mySum = mySum + sdata[tid + 64];
-        }
-        cg::sync(cta);
-
-
-        cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
-
-        if (cta.thread_rank() < 32) {
-            if (blockSize >= 64) mySum += sdata[tid + 32];
-            for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
-                mySum += tile32.shfl_down(mySum, offset);
+            cg::sync(cta);
+            if ((blockSize >= 512) && (tid < 256)) {
+                sdata[tid] = mySum = mySum + sdata[tid + 256];
             }
-        }
 
-        if (cta.thread_rank() == 0) {
-            mySum = mySum * __expf(-r * T);
-            atomicAdd(&(d_option_prices[blockId]), mySum);
+            cg::sync(cta);
+
+            if ((blockSize >= 256) && (tid < 128)) {
+                sdata[tid] = mySum = mySum + sdata[tid + 128];
+            }
+
+            cg::sync(cta);
+
+            if ((blockSize >= 128) && (tid < 64)) {
+                sdata[tid] = mySum = mySum + sdata[tid + 64];
+            }
+            cg::sync(cta);
+
+
+            cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
+
+            if (cta.thread_rank() < 32) {
+                if (blockSize >= 64) mySum += sdata[tid + 32];
+                for (int offset = tile32.size() / 2; offset > 0; offset /= 2) {
+                    mySum += tile32.shfl_down(mySum, offset);
+                }
+            }
+
+            if (cta.thread_rank() == 0) {
+                mySum = mySum * __expf(-r * T);
+                atomicAdd(&(d_option_prices[blockId]), mySum);
+            }
         }
 
         task_id += number_of_blocks;
