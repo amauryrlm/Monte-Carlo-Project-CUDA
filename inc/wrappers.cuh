@@ -244,7 +244,7 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
 
     }
     for (int i = 0; i < 100; i++) {
-        cout << "i: " << i << ", " << d_sums[i] << ", " << d_stock_prices[i] << ", " << d_option_prices[i] << "\n";
+        cout << "i: " << i << ", " << d_sums_i[i] << ", " << d_stock_prices[i] << ", " << d_option_prices[i] << "\n";
     }
 
 
