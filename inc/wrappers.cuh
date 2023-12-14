@@ -117,7 +117,6 @@ float wrapper_gpu_bullet_option_atomic(OptionData option_data, int threadsPerBlo
 
     float optionPriceGPU = expf(-option_data.r * option_data.T) * h_odata[0] / static_cast<float>(N_PATHS);
     cout << "Average GPU bullet option atomic : " << optionPriceGPU << endl << endl;
-
     free(h_odata);
     cudaFree(d_odata);
     cudaFree(d_states);
@@ -242,6 +241,10 @@ float wrapper_gpu_bullet_option_nmc_one_kernel(OptionData option_data, int threa
     float sum = 0.0f;
     for (int i = 0; i < N_PATHS * N_STEPS; i++) {
         sum += h_option_prices[i];
+
+    }
+    for (int i = 0; i < 100; i++) {
+        cout << "i: " << i << ", " << d_sums[i] << ", " << d_stock_prices[i] << ", " << d_option_prices[i] << "\n";
     }
 
 
